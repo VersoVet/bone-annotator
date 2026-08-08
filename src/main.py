@@ -70,10 +70,10 @@ async def lifespan(app: FastAPI):
     """Gère le cycle de vie de l'application."""
     logger.info("🚀 bone-annotator starting...")
 
-    # Initialiser OnyxClient pour intégration Onyx
+    # Initialiser OnyxClient pour intégration Onyx Dashboard
     try:
         app_state.onyx_client = OnyxClient()
-        await app_state.onyx_client.publish_status("bone-annotator", "starting")
+        await app_state.onyx_client.start()  # Signal UP au Dashboard
         app_state.redis_ready = True
         logger.info("✓ OnyxClient initialized")
     except Exception as e:
@@ -92,9 +92,6 @@ async def lifespan(app: FastAPI):
     app_state.qdrant_ready = True
     app_state.cvat_ready = True
 
-    if app_state.onyx_client:
-        await app_state.onyx_client.publish_status("bone-annotator", "ready")
-
     logger.info("✓ All dependencies initialized")
 
     yield
@@ -102,7 +99,7 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 bone-annotator shutting down...")
     if app_state.onyx_client:
         try:
-            await app_state.onyx_client.publish_status("bone-annotator", "stopping")
+            await app_state.onyx_client.stop()  # Signal DOWN au Dashboard
         except Exception as e:
             logger.warning(f"⚠ Failed to publish shutdown status: {e}")
     logger.info("✓ Shutdown complete")
@@ -127,10 +124,6 @@ async def health() -> dict:
         HTTPException: Si critiques dépendances non prêtes.
     """
     if not (app_state.postgres_ready and app_state.qdrant_ready):
-        if app_state.onyx_client:
-            await app_state.onyx_client.publish_status(
-                "bone-annotator", "degraded"
-            )
         raise HTTPException(status_code=503, detail="dependencies_not_ready")
 
     return {
