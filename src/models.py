@@ -3,10 +3,8 @@
 Définitions de schémas request/response pour l'API.
 """
 
-from typing import Optional
 
 from pydantic import BaseModel, Field
-
 
 # ============================================================================
 # Ingestion Models
@@ -34,10 +32,10 @@ class AnnotationTaskRequest(BaseModel):
     bone_type: str = Field(
         ..., description="Type os (humerus, femur, tibia, etc.)"
     )
-    frames_sample: Optional[int] = Field(
+    frames_sample: int | None = Field(
         None, description="Nombre de frames à sampler (None = toutes)"
     )
-    assignee: Optional[str] = Field(None, description="Email assigné (optionnel)")
+    assignee: str | None = Field(None, description="Email assigné (optionnel)")
 
 
 class AnnotationTaskResponse(BaseModel):
@@ -60,7 +58,7 @@ class AnnotationTaskStatusResponse(BaseModel):
     progress_percent: int = Field(..., description="Progression 0-100")
     annotated_frames: int = Field(..., description="Frames annotés")
     total_frames: int = Field(..., description="Total frames")
-    assignee: Optional[str] = Field(None, description="Assigné à")
+    assignee: str | None = Field(None, description="Assigné à")
     created_at: str = Field(..., description="Timestamp création")
 
 
@@ -90,7 +88,7 @@ class PredictRequest(BaseModel):
     """Requête prédiction YOLO."""
 
     acquisition_id: str = Field(..., description="ID acquisition")
-    model_version: Optional[str] = Field(
+    model_version: str | None = Field(
         None, description="Version modèle (None = dernière)"
     )
     confidence_threshold: float = Field(
@@ -105,7 +103,7 @@ class PredictProgressResponse(BaseModel):
     status: str = Field(..., description="Statut: queued, processing, completed")
     frames_predicted: int = Field(..., description="Frames traités")
     total_frames: int = Field(..., description="Total frames")
-    eta_seconds: Optional[int] = Field(None, description="ETA secondes")
+    eta_seconds: int | None = Field(None, description="ETA secondes")
 
 
 class BoundingBox(BaseModel):
@@ -178,7 +176,7 @@ class TrainingSubmitResponse(BaseModel):
     job_id: str = Field(..., description="ID Ray job")
     status: str = Field(..., description="Statut: submitted")
     submission_time: str = Field(..., description="Timestamp soumission")
-    eta_minutes: Optional[int] = Field(None, description="ETA minutes")
+    eta_minutes: int | None = Field(None, description="ETA minutes")
 
 
 class TrainingStatusResponse(BaseModel):
@@ -189,10 +187,10 @@ class TrainingStatusResponse(BaseModel):
         ...,
         description="Statut: submitted, running, success, failed, cancelled",
     )
-    epoch: Optional[int] = Field(None, description="Epoch courant (si running)")
+    epoch: int | None = Field(None, description="Epoch courant (si running)")
     total_epochs: int = Field(..., description="Total epochs")
-    loss: Optional[float] = Field(None, description="Loss courant")
-    map: Optional[float] = Field(None, description="mAP courant")
+    loss: float | None = Field(None, description="Loss courant")
+    map: float | None = Field(None, description="mAP courant")
     progress_percent: int = Field(default=0, ge=0, le=100, description="Progression")
 
 
@@ -202,8 +200,8 @@ class TrainingMetrics(BaseModel):
     map: float = Field(..., ge=0.0, le=1.0, description="mAP")
     map50: float = Field(..., ge=0.0, le=1.0, description="mAP@50")
     loss: float = Field(..., ge=0.0, description="Loss final")
-    precision: Optional[float] = Field(None, ge=0.0, le=1.0, description="Precision")
-    recall: Optional[float] = Field(None, ge=0.0, le=1.0, description="Recall")
+    precision: float | None = Field(None, ge=0.0, le=1.0, description="Precision")
+    recall: float | None = Field(None, ge=0.0, le=1.0, description="Recall")
 
 
 class TrainingCallbackRequest(BaseModel):
@@ -211,15 +209,15 @@ class TrainingCallbackRequest(BaseModel):
 
     job_id: str = Field(..., description="ID Ray job")
     status: str = Field(..., description="Statut: success, failed, cancelled")
-    result: Optional[dict] = Field(None, description="Résultats job")
-    error: Optional[str] = Field(None, description="Message erreur si failed")
+    result: dict | None = Field(None, description="Résultats job")
+    error: str | None = Field(None, description="Message erreur si failed")
 
 
 class TrainingCallbackResponse(BaseModel):
     """Réponse callback training."""
 
     acknowledged: bool = Field(..., description="Callback reçu")
-    model_version: Optional[str] = Field(None, description="Version modèle créée")
+    model_version: str | None = Field(None, description="Version modèle créée")
 
 
 # ============================================================================

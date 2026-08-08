@@ -3,6 +3,7 @@
   "entries": [
     {
       "data_type": "postgresql",
+      "container": "postgres_bone_annotations",
       "host": "10.0.0.59",
       "port": 5433,
       "database": "bone_annotations",
