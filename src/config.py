@@ -4,7 +4,6 @@ Gère les configurations de BoneStore, PostgreSQL, Qdrant, CVAT, ml-compute
 et fournit des fonctions de vérification pour le lifespan.
 """
 
-import json
 import logging
 import os
 from pathlib import Path

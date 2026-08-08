@@ -107,9 +107,9 @@ async def lifespan(app: FastAPI):
     # Vérifier les dépendances externes avec backoff exponentiel
     from src.config import (
         check_bonestore,
+        check_cvat,
         check_postgres,
         check_qdrant,
-        check_cvat,
     )
 
     logger.info("Initializing external dependencies...")
@@ -289,12 +289,12 @@ async def config_endpoint() -> dict:
         Dictionnaire avec configuration de toutes les dépendances.
     """
     from src.config import (
-        get_postgres_config,
-        get_qdrant_config,
+        BONESTORE_ROOT,
         get_cvat_config,
         get_ml_compute_config,
+        get_postgres_config,
+        get_qdrant_config,
         get_redis_config,
-        BONESTORE_ROOT,
     )
 
     return {
