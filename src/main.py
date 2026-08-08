@@ -104,17 +104,39 @@ async def lifespan(app: FastAPI):
         logger.warning("⚠ onyx_sdk not available")
         app_state.redis_ready = False
 
-    # TODO: Initialiser les dépendances externes
-    # - BoneStore (NFS check)
-    # - PostgreSQL (connexion annotations)
-    # - Qdrant (collections)
-    # - CVAT (API check)
+    # Vérifier les dépendances externes avec backoff exponentiel
+    from src.config import (
+        check_bonestore,
+        check_postgres,
+        check_qdrant,
+        check_cvat,
+    )
 
-    # Placeholder: marquer les dépendances comme prêtes
-    app_state.bonestore_ready = True
-    app_state.postgres_ready = True
-    app_state.qdrant_ready = True
-    app_state.cvat_ready = True
+    logger.info("Initializing external dependencies...")
+    app_state.bonestore_ready = await wait_for_dependency(
+        "BoneStore NFS",
+        check_bonestore,
+        retries=3,
+        base_delay=1.0,
+    )
+    app_state.postgres_ready = await wait_for_dependency(
+        "PostgreSQL",
+        check_postgres,
+        retries=3,
+        base_delay=1.0,
+    )
+    app_state.qdrant_ready = await wait_for_dependency(
+        "Qdrant",
+        check_qdrant,
+        retries=3,
+        base_delay=1.0,
+    )
+    app_state.cvat_ready = await wait_for_dependency(
+        "CVAT API",
+        check_cvat,
+        retries=2,
+        base_delay=1.0,
+    )
 
     logger.info("✓ All dependencies initialized")
 
@@ -256,6 +278,62 @@ async def cron_tasks() -> dict:
         ],
         "total": 2,
         "enabled": 2,
+    }
+
+
+@app.get("/api/config")
+async def config_endpoint() -> dict:
+    """Endpoint de configuration des dépendances externes.
+
+    Returns:
+        Dictionnaire avec configuration de toutes les dépendances.
+    """
+    from src.config import (
+        get_postgres_config,
+        get_qdrant_config,
+        get_cvat_config,
+        get_ml_compute_config,
+        get_redis_config,
+        BONESTORE_ROOT,
+    )
+
+    return {
+        "service": "bone-annotator",
+        "version": __version__,
+        "bonestore": {"root": BONESTORE_ROOT},
+        "postgres": get_postgres_config(),
+        "qdrant": get_qdrant_config(),
+        "cvat": {**get_cvat_config(), "password": "***"},
+        "ml_compute": get_ml_compute_config(),
+        "redis": get_redis_config(),
+    }
+
+
+@app.get("/api/dependencies")
+async def dependencies_endpoint() -> dict:
+    """Endpoint détaillé de l'état de toutes les dépendances.
+
+    Returns:
+        État de chaque dépendance avec détails.
+    """
+    from src.config import check_all_dependencies
+
+    deps_status = await check_all_dependencies()
+    critical = ["postgres", "qdrant"]
+    critical_ready = all(deps_status.get(dep) for dep in critical)
+
+    return {
+        "service": "bone-annotator",
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        "dependencies": {
+            "bonestore": {"ready": app_state.bonestore_ready, "critical": False},
+            "postgres": {"ready": app_state.postgres_ready, "critical": True},
+            "qdrant": {"ready": app_state.qdrant_ready, "critical": True},
+            "cvat": {"ready": app_state.cvat_ready, "critical": False},
+            "redis": {"ready": app_state.redis_ready, "critical": False},
+        },
+        "critical_ready": critical_ready,
+        "overall_health": "healthy" if critical_ready else "degraded",
     }
 
 
