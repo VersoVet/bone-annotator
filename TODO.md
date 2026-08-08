@@ -57,17 +57,23 @@
   - [x] Sync depuis label-generator
   - [x] Validation annotations
 
-## Phase 4: Dashboard & Monitoring
+## Phase 4: Dashboard & Monitoring ✓ COMPLÈTE
 
-- [ ] Créer `src/modules/dashboard/service.py`
-  - [ ] SSE events stream
-  - [ ] Monitoring training en direct
-  - [ ] Pipeline status
+- [x] Service dashboard (Phase 2 - déjà migré)
+  - [x] Events service avec EventBus
+  - [x] Monitoring service avec métriques
+  - [x] Pipeline status tracking
 
-- [ ] Créer pages HTML dashboard
-  - [ ] `static/index.html` — Dashboard principal
-  - [ ] `static/training.html` — Monitoring training
-  - [ ] `static/annotations.html` — Historique annotations
+- [x] Pages HTML dashboard
+  - [x] `static/index.html` — Dashboard principal (422 lignes)
+  - [x] `static/training.html` — Monitoring training (335 lignes)
+  - [x] `static/annotations.html` — Historique annotations (415 lignes)
+
+- [x] Endpoints de monitoring
+  - [x] `/annotate/` — Page HTML dashboard
+  - [x] `/api/training/status` — État des jobs training
+  - [x] `/api/annotations` — Liste annotations
+  - [x] `/api/events` — Stream SSE des événements
 
 ## Phase 5: Tests & Validation
 
