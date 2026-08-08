@@ -1,0 +1,32 @@
+{
+  "tasks": [
+    {
+      "id": "daily-health-check",
+      "name": "Daily Health Check",
+      "description": "Vérification quotidienne de la santé du skill et des connexions services",
+      "schedule": "0 0 * * *",
+      "command": {
+        "type": "endpoint",
+        "endpoint": "/health",
+        "method": "GET"
+      },
+      "timeout_seconds": 120,
+      "enabled": true,
+      "notify_on_failure": true
+    },
+    {
+      "id": "hourly-sync-ingestion",
+      "name": "Hourly Ingestion Sync",
+      "description": "Synchronisation toutes les heures du registre d'ingestion BoneStore",
+      "schedule": "0 * * * *",
+      "command": {
+        "type": "endpoint",
+        "endpoint": "/api/ingestion/sync",
+        "method": "POST"
+      },
+      "timeout_seconds": 300,
+      "enabled": true,
+      "notify_on_failure": true
+    }
+  ]
+}

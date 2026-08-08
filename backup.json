@@ -1,0 +1,33 @@
+{
+  "strategy": "active",
+  "entries": [
+    {
+      "data_type": "postgresql",
+      "host": "10.0.0.59",
+      "port": 5433,
+      "database": "bone_annotations",
+      "criticality": "critical",
+      "description": "Base PostgreSQL annotations OS — schéma acquisitions, annotations (zones, landmarks, measurements, lesions). Données irremplaçables métier."
+    },
+    {
+      "data_type": "qdrant",
+      "host": "10.0.0.59",
+      "port": 6333,
+      "collections": ["bone_atlas", "bone_annotations"],
+      "criticality": "high",
+      "description": "Collections Qdrant — bone_atlas (512D embeddings), bone_annotations (768D labels). Vectorisation des annotations."
+    },
+    {
+      "data_type": "config_files",
+      "paths": ["/opt/onyx/skills/bone-annotator/config/"],
+      "criticality": "medium",
+      "description": "Configuration du skill — paramètres YOLO, seuils détection, connexions services."
+    },
+    {
+      "data_type": "sqlite",
+      "paths": ["/opt/onyx/skills/bone-annotator/data/ingestion_registry.db"],
+      "criticality": "medium",
+      "description": "Registre d'ingestion SQLite — suivi des acquisitions BoneStore ingérées et traitées."
+    }
+  ]
+}
