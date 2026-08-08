@@ -155,11 +155,13 @@ async def ready() -> dict:
     Returns:
         Statut de disponibilité du service.
     """
-    all_ready = all([
-        app_state.bonestore_ready,
-        app_state.postgres_ready,
-        app_state.qdrant_ready,
-    ])
+    all_ready = all(
+        [
+            app_state.bonestore_ready,
+            app_state.postgres_ready,
+            app_state.qdrant_ready,
+        ]
+    )
     status = "ready" if all_ready else "not_ready"
     return {"status": status}
 

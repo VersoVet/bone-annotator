@@ -3,7 +3,6 @@
 Définitions de schémas request/response pour l'API.
 """
 
-
 from pydantic import BaseModel, Field
 
 # ============================================================================
@@ -29,12 +28,8 @@ class AnnotationTaskRequest(BaseModel):
     """Requête création tâche annotation CVAT."""
 
     acquisition_id: str = Field(..., description="ID acquisition BoneStore")
-    bone_type: str = Field(
-        ..., description="Type os (humerus, femur, tibia, etc.)"
-    )
-    frames_sample: int | None = Field(
-        None, description="Nombre de frames à sampler (None = toutes)"
-    )
+    bone_type: str = Field(..., description="Type os (humerus, femur, tibia, etc.)")
+    frames_sample: int | None = Field(None, description="Nombre de frames à sampler (None = toutes)")
     assignee: str | None = Field(None, description="Email assigné (optionnel)")
 
 
@@ -52,9 +47,7 @@ class AnnotationTaskStatusResponse(BaseModel):
     """Statut d'une tâche annotation."""
 
     task_id: str = Field(..., description="ID CVAT task")
-    status: str = Field(
-        ..., description="Statut: created, in_progress, completed, rejected"
-    )
+    status: str = Field(..., description="Statut: created, in_progress, completed, rejected")
     progress_percent: int = Field(..., description="Progression 0-100")
     annotated_frames: int = Field(..., description="Frames annotés")
     total_frames: int = Field(..., description="Total frames")
@@ -88,12 +81,8 @@ class PredictRequest(BaseModel):
     """Requête prédiction YOLO."""
 
     acquisition_id: str = Field(..., description="ID acquisition")
-    model_version: str | None = Field(
-        None, description="Version modèle (None = dernière)"
-    )
-    confidence_threshold: float = Field(
-        default=0.5, ge=0.0, le=1.0, description="Seuil confiance"
-    )
+    model_version: str | None = Field(None, description="Version modèle (None = dernière)")
+    confidence_threshold: float = Field(default=0.5, ge=0.0, le=1.0, description="Seuil confiance")
 
 
 class PredictProgressResponse(BaseModel):
@@ -126,9 +115,7 @@ class Zone(BaseModel):
 class Landmark(BaseModel):
     """Landmark détecté (point anatomique)."""
 
-    landmark_type: str = Field(
-        ..., description="Type (medial_epicondyle, lateral_epicondyle)"
-    )
+    landmark_type: str = Field(..., description="Type (medial_epicondyle, lateral_epicondyle)")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confiance")
     x: float = Field(..., description="Coordonnée X pixels")
     y: float = Field(..., description="Coordonnée Y pixels")
@@ -139,9 +126,7 @@ class FramePrediction(BaseModel):
 
     frame_idx: int = Field(..., ge=0, description="Index frame")
     zones: list[Zone] = Field(default_factory=list, description="Zones détectées")
-    landmarks: list[Landmark] = Field(
-        default_factory=list, description="Landmarks détectés"
-    )
+    landmarks: list[Landmark] = Field(default_factory=list, description="Landmarks détectés")
 
 
 class PredictResultResponse(BaseModel):
@@ -149,9 +134,7 @@ class PredictResultResponse(BaseModel):
 
     task_id: str = Field(..., description="ID tâche")
     status: str = Field(..., description="Statut: completed, failed")
-    predictions: list[FramePrediction] = Field(
-        ..., description="Prédictions par frame"
-    )
+    predictions: list[FramePrediction] = Field(..., description="Prédictions par frame")
     duration_seconds: float = Field(..., gt=0, description="Durée traitement")
 
 

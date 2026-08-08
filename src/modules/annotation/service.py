@@ -132,15 +132,10 @@ class AnnotationService:
         Returns:
             Dict {label, zones, landmarks} filtered by region.
         """
-        # Determine visible regions
-        if region in ("entire", "bilateral", ""):
-            visible_regions = None  # All
-        elif region == "proximal":
-            visible_regions = ("proximal", "diaphysis", "all")
-        elif region == "distal":
-            visible_regions = ("distal", "diaphysis", "all")
-        else:
-            visible_regions = None
+        # TODO: Use visible_regions for filtering in future versions
+        # Determine visible regions based on anatomy
+        if region not in ("entire", "bilateral", ""):
+            pass  # region-based filtering not yet implemented
 
         # Fallback to JSON taxonomy
         return self._taxonomy.get(bone_type, {})
