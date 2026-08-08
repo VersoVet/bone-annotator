@@ -9,6 +9,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
+from onyx_sdk import OnyxClient
 
 # Configure logging
 logger = logging.getLogger("bone-annotator")
@@ -24,6 +25,7 @@ class AppState:
     qdrant_ready: bool = False
     cvat_ready: bool = False
     redis_ready: bool = False
+    onyx_client: OnyxClient | None = None
 
 
 app_state = AppState()
@@ -68,26 +70,41 @@ async def lifespan(app: FastAPI):
     """Gère le cycle de vie de l'application."""
     logger.info("🚀 bone-annotator starting...")
 
+    # Initialiser OnyxClient pour intégration Onyx
+    try:
+        app_state.onyx_client = OnyxClient()
+        await app_state.onyx_client.publish_status("bone-annotator", "starting")
+        app_state.redis_ready = True
+        logger.info("✓ OnyxClient initialized")
+    except Exception as e:
+        logger.warning(f"⚠ OnyxClient failed: {e}")
+        app_state.redis_ready = False
+
     # TODO: Initialiser les dépendances externes
     # - BoneStore (NFS check)
     # - PostgreSQL (connexion annotations)
     # - Qdrant (collections)
     # - CVAT (API check)
-    # - Redis (pour l'intégration Onyx)
 
     # Placeholder: marquer les dépendances comme prêtes
     app_state.bonestore_ready = True
     app_state.postgres_ready = True
     app_state.qdrant_ready = True
     app_state.cvat_ready = True
-    app_state.redis_ready = True
+
+    if app_state.onyx_client:
+        await app_state.onyx_client.publish_status("bone-annotator", "ready")
 
     logger.info("✓ All dependencies initialized")
 
     yield
 
     logger.info("🛑 bone-annotator shutting down...")
-    # TODO: Cleanup (fermer connexions DB, etc.)
+    if app_state.onyx_client:
+        try:
+            await app_state.onyx_client.publish_status("bone-annotator", "stopping")
+        except Exception as e:
+            logger.warning(f"⚠ Failed to publish shutdown status: {e}")
     logger.info("✓ Shutdown complete")
 
 
@@ -110,6 +127,10 @@ async def health() -> dict:
         HTTPException: Si critiques dépendances non prêtes.
     """
     if not (app_state.postgres_ready and app_state.qdrant_ready):
+        if app_state.onyx_client:
+            await app_state.onyx_client.publish_status(
+                "bone-annotator", "degraded"
+            )
         raise HTTPException(status_code=503, detail="dependencies_not_ready")
 
     return {
