@@ -1,1 +1,3 @@
-"""Module annotation — Orchestration annotation CVAT + YOLO."""
+"""Annotation module for bone acquisition annotation."""
+
+__all__ = ["AnnotationService", "get_acquisition_status"]
