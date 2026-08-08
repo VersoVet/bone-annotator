@@ -32,22 +32,30 @@
   - [ ] Adapter pour Ray Jobs API (ml-compute:9469) au lieu d'exécution locale
   - [ ] Callback handler pour résultats training
 
-## Phase 3: Adaptation Dependencies Externes
+## Phase 3: Adaptation Dependencies Externes ✓ COMPLÈTE
 
-- [ ] Implémenter lifespan `src/main.py`
-  - [ ] Check BoneStore NFS
-  - [ ] Connexion PostgreSQL (bone_annotations)
-  - [ ] Connexion Qdrant (collections)
-  - [ ] Check CVAT API
-  - [ ] Check ml-compute Ray
+- [x] Créer `src/config.py` avec configuration centralisée
+  - [x] Check BoneStore NFS
+  - [x] Connexion PostgreSQL (bone_annotations)
+  - [x] Connexion Qdrant (collections)
+  - [x] Check CVAT API
+  - [x] Check ml-compute Ray
+  - [x] Check Redis
 
-- [ ] Intégration Redis/OnyxClient
-  - [ ] Publier statut skill sur Redis
-  - [ ] Événements SSE pipeline
+- [x] Implémenter lifespan avec checks réels
+  - [x] wait_for_dependency avec backoff exponentiel
+  - [x] Intégration OnyxClient (déjà fait)
+  - [x] Événements startup/shutdown
 
-- [ ] Intégration label-generator
-  - [ ] Récupérer labels anatomiques
-  - [ ] Cache local labels + critères
+- [x] Ajouter endpoints de monitoring
+  - [x] `/api/config` — Configuration des dépendances
+  - [x] `/api/dependencies` — État détaillé des dépendances
+
+- [x] Intégration label-generator
+  - [x] Module `src/modules/labels/service.py`
+  - [x] Cache local labels + critères
+  - [x] Sync depuis label-generator
+  - [x] Validation annotations
 
 ## Phase 4: Dashboard & Monitoring
 
