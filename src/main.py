@@ -5,8 +5,10 @@ Gère l'accès à BoneStore (NFS), PostgreSQL annotations, CVAT, et ml-compute.
 """
 
 import asyncio
+import json
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 
@@ -18,6 +20,19 @@ except ImportError:
 # Configure logging
 logger = logging.getLogger("bone-annotator")
 logging.basicConfig(level=logging.INFO)
+
+# Load version from manifest.json
+def _load_version() -> str:
+    """Load version from manifest.json."""
+    try:
+        manifest_path = Path(__file__).resolve().parent.parent / "manifest.json"
+        with manifest_path.open() as f:
+            manifest = json.load(f)
+            return manifest.get("version", "0.1.0")
+    except Exception:
+        return "0.1.0"
+
+__version__ = _load_version()
 
 
 # Dépendances globales (à initialiser au démarrage)
@@ -117,7 +132,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="bone-annotator",
     description="Annotation des images osseuses fluoroscopie 360°",
-    version="0.1.0",
+    version=__version__,
     lifespan=lifespan,
 )
 
@@ -137,7 +152,7 @@ async def health() -> dict:
 
     return {
         "status": "healthy",
-        "version": "0.1.0",
+        "version": __version__,
         "dependencies": {
             "bonestore": app_state.bonestore_ready,
             "postgres": app_state.postgres_ready,
@@ -175,7 +190,7 @@ async def status() -> dict:
     """
     return {
         "service": "bone-annotator",
-        "version": "0.1.0",
+        "version": __version__,
         "status": "development",
         "dependencies": {
             "bonestore": "✓" if app_state.bonestore_ready else "✗",
@@ -192,7 +207,7 @@ async def root() -> dict:
     """Endpoint racine — informations générales du service."""
     return {
         "service": "bone-annotator",
-        "version": "0.1.0",
+        "version": __version__,
         "description": "Annotation des images d'os nus (fluoroscopie 360°)",
         "docs": "/docs",
         "status": "/api/status",
