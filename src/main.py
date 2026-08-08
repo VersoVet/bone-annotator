@@ -213,6 +213,35 @@ async def working_signal() -> dict:
     return {"status": "working_signaled"}
 
 
+@app.get("/cron")
+async def cron_tasks() -> dict:
+    """Endpoint GET /cron — Liste et statut des tâches cron.
+
+    Returns:
+        Configuration des tâches cron définies dans cron.json.
+    """
+    return {
+        "tasks": [
+            {
+                "id": "daily-health-check",
+                "name": "Daily Health Check",
+                "schedule": "0 0 * * *",
+                "enabled": True,
+                "description": "Vérification quotidienne de la santé du skill",
+            },
+            {
+                "id": "hourly-sync-ingestion",
+                "name": "Hourly Ingestion Sync",
+                "schedule": "0 * * * *",
+                "enabled": True,
+                "description": "Synchronisation toutes les heures du registre d'ingestion",
+            },
+        ],
+        "total": 2,
+        "enabled": 2,
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
 
