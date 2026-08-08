@@ -2,6 +2,7 @@
 
 Manages anatomical labels, caching, and integration with label-generator.
 Provides hierarchical label structures for zone, landmark, and lesion annotations.
+Uses label-generator API as primary source with local JSON cache fallback.
 """
 
 import json
@@ -11,28 +12,47 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Configuration
+LABEL_GENERATOR_URL = "http://10.0.0.59:9466/api/labels/anatomy"
+CACHE_PATH = Path(__file__).resolve().parent.parent.parent.parent / "config" / "anatomy_zones.json"
+
 # Cache local pour les labels anatomiques
 _label_cache: dict[str, Any] = {}
 _cache_loaded: bool = False
 
 
 def load_anatomy_labels(config_path: str | Path | None = None) -> dict[str, Any]:
-    """Charger les labels anatomiques depuis fichier config.
+    """Charger les labels anatomiques depuis label-generator API ou cache JSON.
+
+    Stratégie:
+    1. Tenter de charger depuis API label-generator (http://10.0.0.59:9466/api/labels/anatomy)
+    2. Si API répond, sauvegarder en cache JSON local
+    3. Si API échoue, utiliser le cache JSON local
 
     Args:
-        config_path: Chemin vers le fichier de configuration anatomique.
+        config_path: Chemin vers le fichier de configuration anatomique (fallback).
                     Si None, utilise config/anatomy_zones.json par défaut.
 
     Returns:
-        Dict avec structure {bone_type: {zones, landmarks, lesions}}.
+        Dict avec structure {bone_type: {zones, landmarks, morphometric_criteria, ...}}.
     """
     global _label_cache, _cache_loaded
 
     if _cache_loaded and _label_cache:
         return _label_cache
 
+    # Étape 1: Tenter de charger depuis label-generator API
+    labels = _load_from_api()
+    if labels:
+        _label_cache = labels
+        _cache_loaded = True
+        # Sauvegarder en cache pour fallback
+        _save_cache(labels, config_path)
+        return _label_cache
+
+    # Étape 2: Fallback sur cache JSON local
     if config_path is None:
-        config_path = Path(__file__).resolve().parent.parent.parent.parent / "config" / "anatomy_zones.json"
+        config_path = CACHE_PATH
     else:
         config_path = Path(config_path)
 
@@ -41,14 +61,58 @@ def load_anatomy_labels(config_path: str | Path | None = None) -> dict[str, Any]
             with config_path.open() as f:
                 _label_cache = json.load(f)
                 _cache_loaded = True
-                logger.info("Anatomy labels loaded from %s", config_path)
+                logger.info("Anatomy labels loaded from cache: %s", config_path)
                 return _label_cache
         else:
-            logger.warning("Anatomy config not found at %s", config_path)
+            logger.warning("Anatomy cache not found at %s", config_path)
             return {}
     except Exception as e:
-        logger.error("Failed to load anatomy labels: %s", e)
+        logger.error("Failed to load anatomy labels from cache: %s", e)
         return {}
+
+
+def _load_from_api() -> dict[str, Any] | None:
+    """Charger les labels depuis label-generator API.
+
+    Returns:
+        Dict avec labels ou None si échoue.
+    """
+    try:
+        # Utiliser synchrone pour compatibilité
+        import urllib.request
+
+        with urllib.request.urlopen(LABEL_GENERATOR_URL, timeout=10) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode())
+                logger.info("Anatomy labels loaded from API: %s", LABEL_GENERATOR_URL)
+                return data
+            else:
+                logger.warning("API returned status %d", response.status)
+                return None
+    except Exception as e:
+        logger.warning("Failed to load labels from API (%s): %s", LABEL_GENERATOR_URL, e)
+        return None
+
+
+def _save_cache(labels: dict[str, Any], config_path: str | Path | None = None) -> None:
+    """Sauvegarder les labels en cache JSON local.
+
+    Args:
+        labels: Dict de labels à sauvegarder.
+        config_path: Chemin de sauvegarde (utilise CACHE_PATH par défaut).
+    """
+    if config_path is None:
+        config_path = CACHE_PATH
+    else:
+        config_path = Path(config_path)
+
+    try:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with config_path.open("w") as f:
+            json.dump(labels, f, indent=2, default=str)
+        logger.info("Labels cached to %s", config_path)
+    except Exception as e:
+        logger.warning("Failed to save labels cache: %s", e)
 
 
 def get_labels_for_bone(bone_type: str) -> dict[str, Any] | None:
@@ -186,7 +250,7 @@ async def sync_labels_from_generator() -> int:
 
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "http://10.0.0.44:8051/api/labels/anatomy",
+                LABEL_GENERATOR_URL,
                 timeout=10.0,
             )
             if response.status_code == 200:

@@ -21,6 +21,7 @@ except ImportError:
 logger = logging.getLogger("bone-annotator")
 logging.basicConfig(level=logging.INFO)
 
+
 # Load version from manifest.json
 def _load_version() -> str:
     """Load version from manifest.json."""
@@ -31,6 +32,7 @@ def _load_version() -> str:
             return manifest.get("version", "0.1.0")
     except Exception:
         return "0.1.0"
+
 
 __version__ = _load_version()
 
@@ -406,7 +408,9 @@ async def events_stream():
     async def event_generator():
         # Placeholder - implémentation réelle en Phase 4
         while True:
-            data = f"data: {{\"type\": \"ping\", \"timestamp\": \"{__import__('datetime').datetime.utcnow().isoformat()}\"}}\n\n"
+            data = (
+                f'data: {{"type": "ping", "timestamp": "{__import__("datetime").datetime.utcnow().isoformat()}"}}\n\n'
+            )
             yield data
             await asyncio.sleep(10)
 

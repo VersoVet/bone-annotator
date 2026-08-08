@@ -9,14 +9,9 @@ import json
 import logging
 import sqlite3
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
-
-try:
-    from enum import StrEnum
-except ImportError:
-    StrEnum = None  # type: ignore
 
 from src.modules.ingestion.registry_utils import (
     load_acquisition_metadata,
@@ -27,27 +22,14 @@ logger = logging.getLogger(__name__)
 DB_NAME = "ingestion_registry.db"
 
 
-# Use StrEnum if available (Python 3.11+), fall back to (str, Enum)
-if StrEnum:
+class IngestionStatus(StrEnum):
+    """Acquisition status in pipeline."""
 
-    class IngestionStatus(StrEnum):
-        """Acquisition status in pipeline."""
-
-        DISCOVERED = "discovered"
-        IN_PROGRESS = "in_progress"
-        COMPLETED = "completed"
-        FAILED = "failed"
-        SKIPPED = "skipped"
-else:
-
-    class IngestionStatus(str, Enum):
-        """Acquisition status in pipeline."""
-
-        DISCOVERED = "discovered"
-        IN_PROGRESS = "in_progress"
-        COMPLETED = "completed"
-        FAILED = "failed"
-        SKIPPED = "skipped"
+    DISCOVERED = "discovered"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    SKIPPED = "skipped"
 
 
 class IngestionRegistry:
