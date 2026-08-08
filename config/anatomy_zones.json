@@ -1,0 +1,20 @@
+{
+  "humerus": {
+    "zones": [
+      {
+        "id": "zone1",
+        "name": "proximal",
+        "region": "proximal"
+      }
+    ],
+    "landmarks": [
+      {
+        "id": "lm1",
+        "name": "head"
+      }
+    ],
+    "lesion_criteria": {
+      "fracture": "type1"
+    }
+  }
+}
