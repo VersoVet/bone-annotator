@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bone-annotator — Historique Annotations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #e67e22;
+            font-size: 24px;
+        }
+
+        .back-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e67e22;
+            padding-bottom: 10px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
+            color: #2c3e50;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .annotation-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-zone {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-landmark {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-lesion {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-annotating {
+            color: #3498db;
+        }
+
+        .status-completed {
+            color: #27ae60;
+        }
+
+        .status-pending {
+            color: #f39c12;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            border: 1px solid #bdc3c7;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #e67e22;
+            color: white;
+            border-color: #e67e22;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e67e22;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>📋 Historique Annotations</h1>
+            </div>
+            <a href="/" class="back-link">← Retour au Dashboard</a>
+        </header>
+
+        <div class="card">
+            <h2>Statistiques</h2>
+            <div class="stats-row" id="statsRow">
+                <div class="stat">
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">Complétées</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">En cours</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">-</div>
+                    <div class="stat-label">En attente</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Filtres</h2>
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Type d'os</label>
+                    <select id="boneTypeFilter">
+                        <option value="">Tous</option>
+                        <option value="humerus">Humerus</option>
+                        <option value="radius">Radius</option>
+                        <option value="ulna">Ulna</option>
+                        <option value="femur">Femur</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Région</label>
+                    <select id="regionFilter">
+                        <option value="">Tous</option>
+                        <option value="proximal">Proximal</option>
+                        <option value="distal">Distal</option>
+                        <option value="entire">Entier</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Statut</label>
+                    <select id="statusFilter">
+                        <option value="">Tous</option>
+                        <option value="completed">Complétées</option>
+                        <option value="annotating">En cours</option>
+                        <option value="pending">En attente</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Annotations</h2>
+            <div class="table-container">
+                <div id="annotationsContent" class="loading">Chargement...</div>
+            </div>
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        let allAnnotations = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
+
+        async function loadAnnotations() {
+            try {
+                const resp = await fetch('/api/annotations?limit=1000');
+                if (resp.ok) {
+                    const data = await resp.json();
+                    allAnnotations = data.annotations || [];
+                    updateStats();
+                    applyFilters();
+                } else {
+                    showAnnotationsTable([]);
+                }
+            } catch (error) {
+                console.error('Error loading annotations:', error);
+                document.getElementById('annotationsContent').innerHTML = `
+                    <div class="empty-state">
+                        <div>Erreur lors du chargement des annotations</div>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStats() {
+            const completed = allAnnotations.filter(a => a.status === 'completed').length;
+            const annotating = allAnnotations.filter(a => a.status === 'annotating').length;
+            const pending = allAnnotations.filter(a => a.status === 'pending').length;
+
+            document.getElementById('statsRow').innerHTML = `
+                <div class="stat">
+                    <div class="stat-value">${allAnnotations.length}</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${completed}</div>
+                    <div class="stat-label">Complétées</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${annotating}</div>
+                    <div class="stat-label">En cours</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">${pending}</div>
+                    <div class="stat-label">En attente</div>
+                </div>
+            `;
+        }
+
+        function applyFilters() {
+            const boneType = document.getElementById('boneTypeFilter').value;
+            const region = document.getElementById('regionFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            let filtered = allAnnotations.filter(a => {
+                if (boneType && a.bone_type !== boneType) return false;
+                if (region && a.region !== region) return false;
+                if (status && a.status !== status) return false;
+                return true;
+            });
+
+            currentPage = 1;
+            showAnnotationsTable(filtered);
+        }
+
+        function showAnnotationsTable(annotations) {
+            if (annotations.length === 0) {
+                document.getElementById('annotationsContent').innerHTML = `
+                    <div class="empty-state">
+                        <div>Aucune annotation trouvée</div>
+                    </div>
+                `;
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            const totalPages = Math.ceil(annotations.length / itemsPerPage);
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = annotations.slice(start, end);
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Acquisition</th>
+                            <th>Os</th>
+                            <th>Région</th>
+                            <th>Types</th>
+                            <th>Statut</th>
+                            <th>Annotateur</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (const ann of pageData) {
+                const statusClass = `status-${ann.status}`;
+                const date = new Date(ann.created_at).toLocaleDateString('fr-FR');
+
+                html += `
+                    <tr>
+                        <td>${escapeHtml(ann.acquisition_id)}</td>
+                        <td>${escapeHtml(ann.bone_type)}</td>
+                        <td>${escapeHtml(ann.region)}</td>
+                        <td>
+                            ${ann.has_zones ? '<span class="annotation-badge badge-zone">Zones</span>' : ''}
+                            ${ann.has_landmarks ? '<span class="annotation-badge badge-landmark">Landmarks</span>' : ''}
+                            ${ann.has_lesions ? '<span class="annotation-badge badge-lesion">Lesions</span>' : ''}
+                        </td>
+                        <td><span class="${statusClass}">${ann.status}</span></td>
+                        <td>${escapeHtml(ann.annotator || 'N/A')}</td>
+                        <td>${date}</td>
+                    </tr>
+                `;
+            }
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('annotationsContent').innerHTML = html;
+
+            // Pagination
+            let paginationHtml = '';
+            if (currentPage > 1) {
+                paginationHtml += '<button onclick="goToPage(1)">« Premier</button>';
+                paginationHtml += '<button onclick="goToPage(' + (currentPage - 1) + ')">Précédent</button>';
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    paginationHtml += `<button disabled>${i}</button>`;
+                } else {
+                    paginationHtml += `<button onclick="goToPage(${i})">${i}</button>`;
+                }
+            }
+
+            if (currentPage < totalPages) {
+                paginationHtml += '<button onclick="goToPage(' + (currentPage + 1) + ')">Suivant</button>';
+                paginationHtml += `<button onclick="goToPage(${totalPages})">Dernier »</button>`;
+            }
+
+            document.getElementById('pagination').innerHTML = paginationHtml;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            applyFilters();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Setup event listeners
+        document.getElementById('boneTypeFilter').addEventListener('change', applyFilters);
+        document.getElementById('regionFilter').addEventListener('change', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+        // Initial load
+        loadAnnotations();
+
+        // Refresh every 30 seconds
+        setInterval(loadAnnotations, 30000);
+    </script>
+</body>
+</html>

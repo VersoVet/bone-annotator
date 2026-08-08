@@ -341,6 +341,82 @@ async def dependencies_endpoint() -> dict:
     }
 
 
+@app.get("/annotate/")
+async def annotate_page() -> str:
+    """Dashboard principal d'annotation.
+
+    Returns:
+        Contenu HTML du dashboard.
+    """
+    try:
+        from pathlib import Path
+
+        index_path = Path(__file__).resolve().parent.parent / "static" / "index.html"
+        with index_path.open() as f:
+            return f.read()
+    except Exception as e:
+        logger.error("Failed to load index.html: %s", e)
+        return "<html><body>Dashboard not available</body></html>"
+
+
+@app.get("/api/training/status")
+async def training_status() -> dict:
+    """État des tâches de training en cours.
+
+    Returns:
+        Dict avec liste des jobs de training.
+    """
+    # Placeholder - intégration avec ml-compute en Phase suivante
+    return {
+        "jobs": [],
+        "total_running": 0,
+        "total_completed": 0,
+    }
+
+
+@app.get("/api/annotations")
+async def list_annotations(limit: int = 100, offset: int = 0) -> dict:
+    """Lister les annotations avec filtrage.
+
+    Args:
+        limit: Nombre d'annotations max à retourner.
+        offset: Décalage pour pagination.
+
+    Returns:
+        Liste des annotations et statuts.
+    """
+    # Placeholder - intégration avec PostgreSQL en Phase suivante
+    return {
+        "annotations": [],
+        "total": 0,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@app.get("/api/events")
+async def events_stream():
+    """Stream d'événements SSE pour updates en temps réel.
+
+    Returns:
+        Streaming Response avec événements.
+    """
+    from fastapi.responses import StreamingResponse
+
+    async def event_generator():
+        # Placeholder - implémentation réelle en Phase 4
+        while True:
+            data = f"data: {{\"type\": \"ping\", \"timestamp\": \"{__import__('datetime').datetime.utcnow().isoformat()}\"}}\n\n"
+            yield data
+            await asyncio.sleep(10)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache"},
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
 

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bone-annotator — Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #e67e22;
+            font-size: 24px;
+        }
+
+        .version {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-healthy {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-degraded {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-unhealthy {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e67e22;
+            padding-bottom: 10px;
+        }
+
+        .dependency {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .dependency:last-child {
+            border-bottom: none;
+        }
+
+        .dependency-name {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        .dependency-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-ok {
+            background: #27ae60;
+        }
+
+        .status-fail {
+            background: #e74c3c;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e67e22;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 4px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .nav-links a {
+            display: inline-block;
+            padding: 10px 16px;
+            background: #e67e22;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: #d35400;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🦴 bone-annotator</h1>
+                <div class="version" id="version">Chargement...</div>
+            </div>
+            <div id="statusBadge" class="status-badge">Chargement...</div>
+        </header>
+
+        <div class="grid">
+            <!-- Health Status Card -->
+            <div class="card">
+                <h2>État du Service</h2>
+                <div id="healthContent" class="loading">Chargement...</div>
+            </div>
+
+            <!-- Dependencies Card -->
+            <div class="card">
+                <h2>Dépendances</h2>
+                <div id="dependenciesContent" class="loading">Chargement...</div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card">
+                <h2>Statistiques</h2>
+                <div id="statsContent" class="loading">Chargement...</div>
+            </div>
+
+            <!-- Quick Links Card -->
+            <div class="card">
+                <h2>Navigation</h2>
+                <div class="nav-links">
+                    <a href="/annotate/">Annotateur</a>
+                    <a href="/training.html">Training</a>
+                    <a href="/annotations.html">Historique</a>
+                    <a href="/docs">API Docs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboard() {
+            try {
+                // Fetch health
+                const healthResp = await fetch('/health');
+                const health = await healthResp.json();
+                updateHealth(health);
+
+                // Fetch dependencies
+                const depsResp = await fetch('/api/dependencies');
+                const deps = await depsResp.json();
+                updateDependencies(deps);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError('Erreur lors du chargement du dashboard');
+            }
+        }
+
+        function updateHealth(health) {
+            const version = health.version || 'N/A';
+            document.getElementById('version').textContent = `v${version}`;
+
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = health.status.toUpperCase();
+            statusBadge.className = `status-badge status-${health.status === 'healthy' ? 'healthy' : 'degraded'}`;
+
+            const healthContent = document.getElementById('healthContent');
+            let html = `<div style="text-align: center; padding: 20px;">`;
+            html += `<div style="font-size: 32px; margin-bottom: 10px;">`;
+            html += health.status === 'healthy' ? '✓' : '⚠';
+            html += `</div>`;
+            html += `<div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">${health.status.toUpperCase()}</div>`;
+            html += `<div style="color: #7f8c8d; font-size: 12px;">Service ${health.status === 'healthy' ? 'opérationnel' : 'en mode dégradé'}</div>`;
+            html += `</div>`;
+            healthContent.innerHTML = html;
+        }
+
+        function updateDependencies(deps) {
+            const depsContent = document.getElementById('dependenciesContent');
+            let html = '';
+
+            for (const [name, status] of Object.entries(deps.dependencies)) {
+                const isReady = status.ready;
+                html += `
+                    <div class="dependency">
+                        <span class="dependency-name">${formatName(name)}</span>
+                        <span class="dependency-status ${isReady ? 'status-ok' : 'status-fail'}"
+                              title="${isReady ? 'Prêt' : 'Non disponible'}"></span>
+                    </div>
+                `;
+            }
+
+            depsContent.innerHTML = html;
+        }
+
+        function formatName(name) {
+            const names = {
+                'bonestore': 'BoneStore NFS',
+                'postgres': 'PostgreSQL',
+                'qdrant': 'Qdrant',
+                'cvat': 'CVAT API',
+                'redis': 'Redis'
+            };
+            return names[name] || name;
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('header').parentElement.insertBefore(errorDiv, document.querySelector('header'));
+        }
+
+        // Load dashboard on page load
+        loadDashboard();
+
+        // Refresh every 10 seconds
+        setInterval(loadDashboard, 10000);
+    </script>
+</body>
+</html>
