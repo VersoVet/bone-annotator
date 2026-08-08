@@ -9,7 +9,11 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
-from onyx_sdk import OnyxClient
+
+try:
+    from onyx_sdk import OnyxClient
+except ImportError:
+    OnyxClient = None  # type: ignore
 
 # Configure logging
 logger = logging.getLogger("bone-annotator")
@@ -25,7 +29,7 @@ class AppState:
     qdrant_ready: bool = False
     cvat_ready: bool = False
     redis_ready: bool = False
-    onyx_client: OnyxClient | None = None
+    onyx_client: object | None = None
 
 
 app_state = AppState()
@@ -71,13 +75,18 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 bone-annotator starting...")
 
     # Initialiser OnyxClient pour intégration Onyx Dashboard
-    try:
-        app_state.onyx_client = OnyxClient()
-        await app_state.onyx_client.start()  # Signal UP au Dashboard
-        app_state.redis_ready = True
-        logger.info("✓ OnyxClient initialized")
-    except Exception as e:
-        logger.warning(f"⚠ OnyxClient failed: {e}")
+    if OnyxClient:
+        try:
+            app_state.onyx_client = OnyxClient()
+            await app_state.onyx_client.start()  # Signal UP au Dashboard
+            await app_state.onyx_client.working()  # Signal WORKING en cours
+            app_state.redis_ready = True
+            logger.info("✓ OnyxClient initialized")
+        except Exception as e:
+            logger.warning(f"⚠ OnyxClient failed: {e}")
+            app_state.redis_ready = False
+    else:
+        logger.warning("⚠ onyx_sdk not available")
         app_state.redis_ready = False
 
     # TODO: Initialiser les dépendances externes
@@ -186,6 +195,22 @@ async def root() -> dict:
         "docs": "/docs",
         "status": "/api/status",
     }
+
+
+@app.post("/api/working")
+async def working_signal() -> dict:
+    """Signal un traitement en cours pour le Dashboard Onyx.
+
+    Returns:
+        Confirmation du signal WORKING.
+    """
+    if app_state.onyx_client:
+        try:
+            await app_state.onyx_client.working()
+        except Exception as e:
+            logger.warning(f"⚠ Failed to send WORKING signal: {e}")
+
+    return {"status": "working_signaled"}
 
 
 if __name__ == "__main__":
