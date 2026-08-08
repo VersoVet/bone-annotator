@@ -165,15 +165,19 @@ async def health() -> dict:
 
     Returns:
         Dictionnaire avec statut et état des dépendances.
-
-    Raises:
-        HTTPException: Si critiques dépendances non prêtes.
     """
+    # Toutes les dépendances manquantes → unhealthy
+    if not (app_state.postgres_ready or app_state.qdrant_ready or app_state.bonestore_ready):
+        raise HTTPException(status_code=503, detail="no_dependencies_ready")
+
+    status = "healthy"
+
+    # Au moins une dépendance critique manquante → degraded
     if not (app_state.postgres_ready and app_state.qdrant_ready):
-        raise HTTPException(status_code=503, detail="dependencies_not_ready")
+        status = "degraded"
 
     return {
-        "status": "healthy",
+        "status": status,
         "version": __version__,
         "dependencies": {
             "bonestore": app_state.bonestore_ready,
