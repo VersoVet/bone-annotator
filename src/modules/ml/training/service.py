@@ -1,120 +1,207 @@
-"""ML training service — YOLOv8 training orchestration.
+"""ML training service — YOLOv8 training orchestration via ml-compute.
 
-Manages model training runs with background task execution.
+Manages model training runs through Ray Jobs API on ml-compute service.
 """
 
 import asyncio
 import logging
-import os
-import shutil
-from pathlib import Path
 from typing import Any
+
+import httpx
 
 logger = logging.getLogger(__name__)
 
-MODELS_DIR = Path(os.getenv("ML_MODELS_DIR", "/opt/onyx/skills/bone-ml/models"))
-RUNS_DIR = Path(os.getenv("ML_RUNS_DIR", "/opt/onyx/skills/bone-ml/runs"))
-
-_active_run: dict[str, Any] | None = None
+# ml-compute Ray Jobs API endpoint
+ML_COMPUTE_URL = "http://10.0.0.44:9469/api"
+_active_jobs: dict[str, dict[str, Any]] = {}
 
 
 async def start_training(req: Any) -> dict[str, Any]:
-    """Start YOLOv8 training run in background.
+    """Submit YOLOv8 training job to ml-compute Ray Jobs.
 
     Args:
         req: TrainRequest with dataset, model, epochs, etc.
 
     Returns:
-        Dict with run ID and status.
+        Dict with job ID and status.
     """
-    global _active_run
+    try:
+        job_name = req.name or f"{req.task}_{req.model_base.replace('.pt', '')}"
 
-    if _active_run and _active_run.get("running"):
-        return {"status": "already_running", "run": _active_run.get("name")}
+        # Prepare training config for Ray Job
+        training_config = {
+            "task": req.task,
+            "model_base": req.model_base,
+            "dataset_path": req.dataset_path,
+            "epochs": req.epochs,
+            "imgsz": getattr(req, "imgsz", 640),
+            "batch": getattr(req, "batch", 16),
+        }
 
-    run_name = req.name or f"{req.task}_{req.model_base.replace('.pt', '')}"
-    _active_run = {
-        "name": run_name,
-        "running": True,
-        "epochs": req.epochs,
-        "current_epoch": 0,
-        "dataset": req.dataset_path,
-        "task": req.task,
-    }
+        # Submit to ml-compute
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{ML_COMPUTE_URL}/jobs/submit",
+                json={
+                    "name": job_name,
+                    "job_type": "training",
+                    "config": training_config,
+                    "timeout_seconds": 3600,
+                },
+                timeout=30.0,
+            )
 
-    asyncio.create_task(_run_training(req, run_name))
-    return {"status": "started", "run_name": run_name, "epochs": req.epochs}
+            if response.status_code in (200, 201):
+                job_data = response.json()
+                job_id = job_data.get("job_id")
+                _active_jobs[job_id] = {
+                    "name": job_name,
+                    "job_id": job_id,
+                    "status": "submitted",
+                    "epochs": req.epochs,
+                    "submitted_at": job_data.get("submitted_at"),
+                }
+                logger.info("Training job submitted: %s (ID: %s)", job_name, job_id)
+                return {"status": "submitted", "job_id": job_id, "job_name": job_name}
+
+            logger.error("Failed to submit job: %s", response.status_code)
+            return {"status": "error", "message": "Failed to submit training job"}
+    except Exception as e:
+        logger.error("Error submitting training job: %s", e)
+        return {"status": "error", "message": str(e)}
 
 
-async def _run_training(req: Any, run_name: str) -> None:
-    """Execute training in background (async-safe).
-
-    Runs blocking YOLO training in thread pool to avoid
-    blocking FastAPI event loop.
+async def get_training_status(job_id: str | None = None) -> dict[str, Any]:
+    """Get training job status from ml-compute.
 
     Args:
-        req: Training request parameters.
-        run_name: Name for this training run.
+        job_id: Optional job ID. If None, returns all active jobs.
+
+    Returns:
+        Dict with job status(es).
     """
-    global _active_run
     try:
-        from ultralytics import YOLO
-
-        def _train_model() -> Any:
-            model = YOLO(req.model_base)
-            RUNS_DIR.mkdir(parents=True, exist_ok=True)
-            model.train(
-                data=req.dataset_path,
-                epochs=req.epochs,
-                imgsz=req.imgsz,
-                batch=req.batch,
-                project=str(RUNS_DIR),
-                name=run_name,
-                device=0,
-            )
-            return model
-
-        await asyncio.to_thread(_train_model)
-
-        # Save best model
-        best_path = RUNS_DIR / run_name / "weights" / "best.pt"
-        if best_path.exists():
-            MODELS_DIR.mkdir(parents=True, exist_ok=True)
-            dest = MODELS_DIR / f"{run_name}_best.pt"
-            shutil.copy2(best_path, dest)
-            logger.info("Model saved: %s", dest)
-
-        _active_run = {"name": run_name, "running": False, "completed": True}
+        async with httpx.AsyncClient() as client:
+            if job_id:
+                # Get single job status
+                response = await client.get(f"{ML_COMPUTE_URL}/jobs/{job_id}", timeout=10.0)
+                if response.status_code == 200:
+                    job_data = response.json()
+                    _active_jobs[job_id] = job_data
+                    return job_data
+                return {"status": "not_found", "job_id": job_id}
+            else:
+                # Get all active jobs
+                response = await client.get(f"{ML_COMPUTE_URL}/jobs", timeout=10.0)
+                if response.status_code == 200:
+                    jobs = response.json().get("jobs", [])
+                    # Update cache
+                    for job in jobs:
+                        _active_jobs[job.get("job_id", "")] = job
+                    return {"jobs": jobs, "total": len(jobs)}
+                return {"jobs": [], "total": 0}
     except Exception as e:
-        logger.error("Training failed: %s", e)
-        _active_run = {"name": run_name, "running": False, "error": str(e)}
+        logger.error("Error fetching training status: %s", e)
+        return {"status": "error", "message": str(e)}
 
 
-async def get_training_status() -> dict[str, Any]:
-    """Get current training run status.
+async def cancel_training(job_id: str) -> bool:
+    """Cancel an active training job.
 
-    Returns:
-        Dict with run info or idle status.
-    """
-    if _active_run:
-        return _active_run
-    return {"running": False, "status": "idle"}
-
-
-async def list_models() -> dict[str, Any]:
-    """List available trained models.
+    Args:
+        job_id: Job ID to cancel.
 
     Returns:
-        Dict with models list.
+        True if cancellation successful.
     """
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    models = []
-    for pt in sorted(MODELS_DIR.glob("*.pt"), key=lambda p: p.stat().st_mtime, reverse=True):
-        models.append(
-            {
-                "name": pt.stem,
-                "path": str(pt),
-                "size_mb": round(pt.stat().st_size / 1024 / 1024, 1),
-            }
-        )
-    return {"models": models, "count": len(models)}
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{ML_COMPUTE_URL}/jobs/{job_id}/cancel",
+                timeout=10.0,
+            )
+            if response.status_code == 200:
+                logger.info("Training job cancelled: %s", job_id)
+                if job_id in _active_jobs:
+                    _active_jobs[job_id]["status"] = "cancelled"
+                return True
+            return False
+    except Exception as e:
+        logger.error("Error cancelling training job: %s", e)
+        return False
+
+
+async def get_job_metrics(job_id: str) -> dict[str, Any]:
+    """Get training metrics for a job.
+
+    Args:
+        job_id: Job ID.
+
+    Returns:
+        Dict with training metrics (loss, accuracy, etc.).
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{ML_COMPUTE_URL}/jobs/{job_id}/metrics",
+                timeout=10.0,
+            )
+            if response.status_code == 200:
+                return response.json()
+            return {}
+    except Exception as e:
+        logger.error("Error fetching job metrics: %s", e)
+        return {}
+
+
+async def list_training_jobs(limit: int = 50) -> dict[str, Any]:
+    """List training jobs from ml-compute.
+
+    Args:
+        limit: Max jobs to return.
+
+    Returns:
+        Dict with jobs list.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{ML_COMPUTE_URL}/jobs?limit={limit}&job_type=training",
+                timeout=10.0,
+            )
+            if response.status_code == 200:
+                return response.json()
+            return {"jobs": [], "total": 0}
+    except Exception as e:
+        logger.error("Error listing training jobs: %s", e)
+        return {"jobs": [], "total": 0}
+
+
+async def poll_job_status(job_id: str, interval: float = 5.0, max_wait: float = 3600.0) -> dict[str, Any]:
+    """Poll job status until completion.
+
+    Args:
+        job_id: Job ID to poll.
+        interval: Polling interval in seconds.
+        max_wait: Max wait time in seconds.
+
+    Returns:
+        Final job status.
+    """
+    try:
+        elapsed = 0.0
+        while elapsed < max_wait:
+            status = await get_training_status(job_id)
+            state = status.get("status", "unknown")
+
+            if state in ("completed", "failed", "cancelled"):
+                return status
+
+            await asyncio.sleep(interval)
+            elapsed += interval
+
+        logger.warning("Job polling timeout for %s after %.0f seconds", job_id, max_wait)
+        return {"status": "timeout", "job_id": job_id}
+    except Exception as e:
+        logger.error("Error polling job status: %s", e)
+        return {"status": "error", "job_id": job_id, "message": str(e)}

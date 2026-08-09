@@ -6,6 +6,8 @@ Handles authentication, request routing, and error handling for CVAT operations.
 import logging
 from typing import Any
 
+import httpx
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +26,7 @@ class CVATClient:
         self.base_url = f"http://{host}:{port}"
         self.username = username
         self.password = password
-        self.session = None
+        self.client = None
         logger.info("CVATClient initialized for %s:%d", host, port)
 
     async def authenticate(self) -> bool:
@@ -34,16 +36,13 @@ class CVATClient:
             True if authentication successful.
         """
         try:
-            import aiohttp
-
-            self.session = aiohttp.ClientSession()
-            auth = aiohttp.BasicAuth(self.username, self.password)
-            async with self.session.get(f"{self.base_url}/api/v1/auth/login", auth=auth) as resp:
-                if resp.status == 200:
-                    logger.info("CVAT authentication successful")
-                    return True
-                logger.error("CVAT authentication failed: %s", resp.status)
-                return False
+            self.client = httpx.AsyncClient(auth=(self.username, self.password), timeout=30.0)
+            response = await self.client.get(f"{self.base_url}/api/v1/auth/login")
+            if response.status_code == 200:
+                logger.info("CVAT authentication successful")
+                return True
+            logger.error("CVAT authentication failed: %s", response.status_code)
+            return False
         except Exception as e:
             logger.error("CVAT authentication error: %s", e)
             return False
@@ -58,13 +57,13 @@ class CVATClient:
             List of task dicts.
         """
         try:
-            if self.session is None:
+            if self.client is None:
                 return []
-            async with self.session.get(f"{self.base_url}/api/v1/tasks?limit={limit}") as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    return data.get("results", [])
-                return []
+            response = await self.client.get(f"{self.base_url}/api/v1/tasks?limit={limit}")
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("results", [])
+            return []
         except Exception as e:
             logger.error("Error fetching tasks: %s", e)
             return []
@@ -79,12 +78,12 @@ class CVATClient:
             Task dict or None.
         """
         try:
-            if self.session is None:
+            if self.client is None:
                 return None
-            async with self.session.get(f"{self.base_url}/api/v1/tasks/{task_id}") as resp:
-                if resp.status == 200:
-                    return await resp.json()
-                return None
+            response = await self.client.get(f"{self.base_url}/api/v1/tasks/{task_id}")
+            if response.status_code == 200:
+                return response.json()
+            return None
         except Exception as e:
             logger.error("Error fetching task %d: %s", task_id, e)
             return None
@@ -104,20 +103,20 @@ class CVATClient:
             Created task dict or None.
         """
         try:
-            if self.session is None:
+            if self.client is None:
                 return None
             payload: dict[str, Any] = {"name": name}
             if project_id:
                 payload["project_id"] = project_id
 
-            async with self.session.post(
+            response = await self.client.post(
                 f"{self.base_url}/api/v1/tasks",
                 json=payload,
-            ) as resp:
-                if resp.status == 201:
-                    return await resp.json()
-                logger.error("Error creating task: %s", resp.status)
-                return None
+            )
+            if response.status_code == 201:
+                return response.json()
+            logger.error("Error creating task: %s", response.status_code)
+            return None
         except Exception as e:
             logger.error("Error creating task: %s", e)
             return None
@@ -132,12 +131,12 @@ class CVATClient:
             Annotations dict or None.
         """
         try:
-            if self.session is None:
+            if self.client is None:
                 return None
-            async with self.session.get(f"{self.base_url}/api/v1/tasks/{task_id}/annotations") as resp:
-                if resp.status == 200:
-                    return await resp.json()
-                return None
+            response = await self.client.get(f"{self.base_url}/api/v1/tasks/{task_id}/annotations")
+            if response.status_code == 200:
+                return response.json()
+            return None
         except Exception as e:
             logger.error("Error fetching annotations for task %d: %s", task_id, e)
             return None
@@ -157,22 +156,22 @@ class CVATClient:
             True if successful.
         """
         try:
-            if self.session is None:
+            if self.client is None:
                 return False
-            async with self.session.put(
+            response = await self.client.put(
                 f"{self.base_url}/api/v1/tasks/{task_id}/annotations",
                 json=annotations,
-            ) as resp:
-                if resp.status in (200, 201):
-                    logger.info("Annotations updated for task %d", task_id)
-                    return True
-                logger.error("Error updating annotations: %s", resp.status)
-                return False
+            )
+            if response.status_code in (200, 201):
+                logger.info("Annotations updated for task %d", task_id)
+                return True
+            logger.error("Error updating annotations: %s", response.status_code)
+            return False
         except Exception as e:
             logger.error("Error updating annotations: %s", e)
             return False
 
     async def close(self) -> None:
         """Close client session."""
-        if self.session:
-            await self.session.close()
+        if self.client:
+            await self.client.aclose()
