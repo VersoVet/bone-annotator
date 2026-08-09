@@ -434,4 +434,6 @@ Collections: bone_atlas, bone_annotations
 
 ---
 
-**Dernière mise à jour**: 2026-08-08
+**Dernière mise à jour**: 2026-08-09
+**Phase**: 2 (CVAT & ml-compute Training)
+**Version**: v0.1.11+
