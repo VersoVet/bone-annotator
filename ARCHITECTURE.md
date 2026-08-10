@@ -277,28 +277,46 @@ Schema: `bone_annotations`
 
 ---
 
-## Résumé Implémentation (v0.1.14)
+## Résumé Implémentation (v0.1.16 - API Routes Phase Complete)
 
-| Module | Statut | LOC | Tests | Routes |
-|--------|--------|-----|-------|--------|
-| labels | ✅ | 283 | 11 ✓ | - |
-| cvat.client | ✅ | 178 | - | - |
-| training | ✅ | 207 | - | GET/POST |
-| dataset | ✅ | 237 | 5 ✓ | POST/GET/DEL |
-| storage | ✅ | 191 | - | - |
-| annotation.routes | ✅ | 157 | - | POST/GET/POST |
-| ingestion.registry | ✅ | 295 | - | - |
-| imaging | ⚠️ | ~200 | stub | - |
-| predict | ⚠️ | ~260 | stub | - |
-| annotation.service | ⚠️ | ~250 | - | - |
-| bonestore | ⚠️ | ~170 | - | - |
-| storage.pg_db | ⚠️ | ~270 | - | - |
+| Module | Statut | Routes | Endpoints | Complexity |
+|--------|--------|--------|-----------|------------|
+| labels | ✅ | - | - | basic |
+| cvat.client | ✅ | - | - | basic |
+| training | ✅ | ml/routes.py | GET/POST | medium |
+| dataset | ✅ | ml/routes.py | POST/GET/DEL | medium |
+| storage | ✅ | - | - | medium |
+| storage.service | ✅ | - | - | medium |
+| annotation.routes | ✅ | annotation/routes.py | POST/GET/POST | medium |
+| predict | ✅ | ml/predict/routes.py | GET/POST/POST | medium |
+| predict.service | ✅ | - | - | complex |
+| ingestion | ✅ | ingestion/routes.py | POST/GET/GET/POST | medium |
+| ingestion.service | ✅ | - | - | medium |
+| bonestore | ✅ | bonestore/routes.py | GET/GET/GET | basic |
+| bonestore.service | ✅ | - | - | basic |
+| embeddings | ✅ | embeddings/routes.py | POST/GET/GET/POST | medium |
+| embeddings.service | ✅ | - | - | medium |
+| imaging.service | ⚠️ | - | - | complex |
+| annotation.service | ⚠️ | - | - | complex |
 
-Tests: 42/61 passing (69%) — dataset module 5/5 passing
+### API Endpoints Implemented: 27+
+- Health/Status: 4 endpoints
+- Ingestion: 4 endpoints
+- BoneStore: 3 endpoints
+- Annotation: 5 endpoints
+- Prediction: 3 endpoints
+- Dataset/Training: 7 endpoints
+- Embeddings: 4 endpoints
+
+Tests: 42/61 passing (69%)
 Validation Forge: VALID (0E/3W)
+Commits: 6 feature commits
 
 ---
 
 **Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.14
+**Version**: v0.1.16
+**Status**: API Routes Complete (27+ endpoints)
+**Coverage**: All core modules have REST API routes
+**Test Coverage**: 42/61 passing (69%)
