@@ -5,36 +5,23 @@ Gère l'accès à BoneStore (NFS), PostgreSQL annotations, CVAT, et ml-compute.
 """
 
 import asyncio
-import json
 import logging
 from contextlib import asynccontextmanager
-from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 
 try:
     from onyx_sdk import OnyxClient
 except ImportError:
     OnyxClient = None  # type: ignore
 
+from src.core import __version__
+from src.core.routes import router as core_router
+from src.core.routes import set_app_state
+
 # Configure logging
 logger = logging.getLogger("bone-annotator")
 logging.basicConfig(level=logging.INFO)
-
-
-# Load version from manifest.json
-def _load_version() -> str:
-    """Load version from manifest.json."""
-    try:
-        manifest_path = Path(__file__).resolve().parent.parent / "manifest.json"
-        with manifest_path.open() as f:
-            manifest = json.load(f)
-            return manifest.get("version", "0.1.0")
-    except Exception:
-        return "0.1.0"
-
-
-__version__ = _load_version()
 
 
 # Dépendances globales (à initialiser au démarrage)
@@ -142,6 +129,9 @@ async def lifespan(app: FastAPI):
 
     logger.info("✓ All dependencies initialized")
 
+    # Inject app_state into core routes
+    set_app_state(app_state)
+
     yield
 
     logger.info("🛑 bone-annotator shutting down...")
@@ -160,355 +150,31 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Include annotation module routes
-try:
-    from src.modules.annotation.routes import router as annotation_router
+# Include core routes (health, status, config)
+app.include_router(core_router)
+logger.info("✓ Core routes registered")
 
-    app.include_router(annotation_router)
-    logger.info("✓ Annotation routes registered")
-except ImportError as e:
-    logger.warning("Could not load annotation routes: %s", e)
+# Include module routers
+_module_routers = [
+    ("annotation", "src.modules.annotation.routes"),
+    ("ml", "src.modules.ml.routes"),
+    ("predict", "src.modules.ml.predict.routes"),
+    ("ingestion", "src.modules.ingestion.routes"),
+    ("bonestore", "src.modules.bonestore.routes"),
+    ("embeddings", "src.modules.embeddings.routes"),
+    ("dashboard", "src.modules.dashboard.routes"),
+    ("analysis", "src.modules.analysis.routes"),
+    ("cvat", "src.modules.cvat.routes"),
+    ("labels", "src.modules.labels.routes"),
+]
 
-# Include ML module routes (datasets, training)
-try:
-    from src.modules.ml.routes import router as ml_router
-
-    app.include_router(ml_router)
-    logger.info("✓ ML routes registered")
-except ImportError as e:
-    logger.warning("Could not load ML routes: %s", e)
-
-# Include predict module routes
-try:
-    from src.modules.ml.predict.routes import router as predict_router
-
-    app.include_router(predict_router)
-    logger.info("✓ Predict routes registered")
-except ImportError as e:
-    logger.warning("Could not load predict routes: %s", e)
-
-# Include ingestion module routes
-try:
-    from src.modules.ingestion.routes import router as ingestion_router
-
-    app.include_router(ingestion_router)
-    logger.info("✓ Ingestion routes registered")
-except ImportError as e:
-    logger.warning("Could not load ingestion routes: %s", e)
-
-# Include bonestore module routes
-try:
-    from src.modules.bonestore.routes import router as bonestore_router
-
-    app.include_router(bonestore_router)
-    logger.info("✓ BoneStore routes registered")
-except ImportError as e:
-    logger.warning("Could not load bonestore routes: %s", e)
-
-# Include embeddings module routes
-try:
-    from src.modules.embeddings.routes import router as embeddings_router
-
-    app.include_router(embeddings_router)
-    logger.info("✓ Embeddings routes registered")
-except ImportError as e:
-    logger.warning("Could not load embeddings routes: %s", e)
-
-# Include dashboard module routes (monitoring, SSE events)
-try:
-    from src.modules.dashboard.routes import router as dashboard_router
-
-    app.include_router(dashboard_router)
-    logger.info("✓ Dashboard routes registered")
-except ImportError as e:
-    logger.warning("Could not load dashboard routes: %s", e)
-
-# Include analysis module routes (post-annotation analysis)
-try:
-    from src.modules.analysis.routes import router as analysis_router
-
-    app.include_router(analysis_router)
-    logger.info("✓ Analysis routes registered")
-except ImportError as e:
-    logger.warning("Could not load analysis routes: %s", e)
-
-# Include CVAT module routes (annotation workflow)
-try:
-    from src.modules.cvat.routes import router as cvat_router
-
-    app.include_router(cvat_router)
-    logger.info("✓ CVAT routes registered")
-except ImportError as e:
-    logger.warning("Could not load CVAT routes: %s", e)
-
-# Include labels module routes (anatomical label management)
-try:
-    from src.modules.labels.routes import router as labels_router
-
-    app.include_router(labels_router)
-    logger.info("✓ Labels routes registered")
-except ImportError as e:
-    logger.warning("Could not load labels routes: %s", e)
-
-
-@app.get("/health")
-async def health() -> dict:
-    """Endpoint de santé du service.
-
-    Returns:
-        Dictionnaire avec statut et état des dépendances.
-    """
-    # Toutes les dépendances manquantes → unhealthy
-    if not (app_state.postgres_ready or app_state.qdrant_ready or app_state.bonestore_ready):
-        raise HTTPException(status_code=503, detail="no_dependencies_ready")
-
-    status = "healthy"
-
-    # Au moins une dépendance critique manquante → degraded
-    if not (app_state.postgres_ready and app_state.qdrant_ready):
-        status = "degraded"
-
-    return {
-        "status": status,
-        "version": __version__,
-        "dependencies": {
-            "bonestore": app_state.bonestore_ready,
-            "postgres": app_state.postgres_ready,
-            "qdrant": app_state.qdrant_ready,
-            "cvat": app_state.cvat_ready,
-            "redis": app_state.redis_ready,
-        },
-    }
-
-
-@app.get("/ready")
-async def ready() -> dict:
-    """Endpoint de readiness pour orchestration.
-
-    Returns:
-        Statut de disponibilité du service.
-    """
-    all_ready = all(
-        [
-            app_state.bonestore_ready,
-            app_state.postgres_ready,
-            app_state.qdrant_ready,
-        ]
-    )
-    status = "ready" if all_ready else "not_ready"
-    return {"status": status}
-
-
-@app.get("/api/status")
-async def status() -> dict:
-    """Endpoint de statut détaillé.
-
-    Returns:
-        État détaillé de l'application et des modules.
-    """
-    return {
-        "service": "bone-annotator",
-        "version": __version__,
-        "status": "development",
-        "dependencies": {
-            "bonestore": "✓" if app_state.bonestore_ready else "✗",
-            "postgres": "✓" if app_state.postgres_ready else "✗",
-            "qdrant": "✓" if app_state.qdrant_ready else "✗",
-            "cvat": "✓" if app_state.cvat_ready else "✗",
-            "redis": "✓" if app_state.redis_ready else "✗",
-        },
-    }
-
-
-@app.get("/")
-async def root() -> dict:
-    """Endpoint racine — informations générales du service."""
-    return {
-        "service": "bone-annotator",
-        "version": __version__,
-        "description": "Annotation des images d'os nus (fluoroscopie 360°)",
-        "docs": "/docs",
-        "status": "/api/status",
-    }
-
-
-@app.post("/api/working")
-async def working_signal() -> dict:
-    """Signal un traitement en cours pour le Dashboard Onyx.
-
-    Returns:
-        Confirmation du signal WORKING.
-    """
-    if app_state.onyx_client:
-        try:
-            await app_state.onyx_client.working()
-        except Exception as e:
-            logger.warning(f"⚠ Failed to send WORKING signal: {e}")
-
-    return {"status": "working_signaled"}
-
-
-@app.get("/cron")
-async def cron_tasks() -> dict:
-    """Endpoint GET /cron — Liste et statut des tâches cron.
-
-    Returns:
-        Configuration des tâches cron définies dans cron.json.
-    """
-    return {
-        "tasks": [
-            {
-                "id": "daily-health-check",
-                "name": "Daily Health Check",
-                "schedule": "0 0 * * *",
-                "enabled": True,
-                "description": "Vérification quotidienne de la santé du skill",
-            },
-            {
-                "id": "hourly-sync-ingestion",
-                "name": "Hourly Ingestion Sync",
-                "schedule": "0 * * * *",
-                "enabled": True,
-                "description": "Synchronisation toutes les heures du registre d'ingestion",
-            },
-        ],
-        "total": 2,
-        "enabled": 2,
-    }
-
-
-@app.get("/api/config")
-async def config_endpoint() -> dict:
-    """Endpoint de configuration des dépendances externes.
-
-    Returns:
-        Dictionnaire avec configuration de toutes les dépendances.
-    """
-    from src.config import (
-        BONESTORE_ROOT,
-        get_cvat_config,
-        get_ml_compute_config,
-        get_postgres_config,
-        get_qdrant_config,
-        get_redis_config,
-    )
-
-    return {
-        "service": "bone-annotator",
-        "version": __version__,
-        "bonestore": {"root": BONESTORE_ROOT},
-        "postgres": get_postgres_config(),
-        "qdrant": get_qdrant_config(),
-        "cvat": {**get_cvat_config(), "password": "***"},
-        "ml_compute": get_ml_compute_config(),
-        "redis": get_redis_config(),
-    }
-
-
-@app.get("/api/dependencies")
-async def dependencies_endpoint() -> dict:
-    """Endpoint détaillé de l'état de toutes les dépendances.
-
-    Returns:
-        État de chaque dépendance avec détails.
-    """
-    from src.config import check_all_dependencies
-
-    deps_status = await check_all_dependencies()
-    critical = ["postgres", "qdrant"]
-    critical_ready = all(deps_status.get(dep) for dep in critical)
-
-    return {
-        "service": "bone-annotator",
-        "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
-        "dependencies": {
-            "bonestore": {"ready": app_state.bonestore_ready, "critical": False},
-            "postgres": {"ready": app_state.postgres_ready, "critical": True},
-            "qdrant": {"ready": app_state.qdrant_ready, "critical": True},
-            "cvat": {"ready": app_state.cvat_ready, "critical": False},
-            "redis": {"ready": app_state.redis_ready, "critical": False},
-        },
-        "critical_ready": critical_ready,
-        "overall_health": "healthy" if critical_ready else "degraded",
-    }
-
-
-@app.get("/annotate/")
-async def annotate_page() -> str:
-    """Dashboard principal d'annotation.
-
-    Returns:
-        Contenu HTML du dashboard.
-    """
+for module_name, module_path in _module_routers:
     try:
-        from pathlib import Path
-
-        index_path = Path(__file__).resolve().parent.parent / "static" / "index.html"
-        with index_path.open() as f:
-            return f.read()
-    except Exception as e:
-        logger.error("Failed to load index.html: %s", e)
-        return "<html><body>Dashboard not available</body></html>"
-
-
-@app.get("/api/training/status")
-async def training_status() -> dict:
-    """État des tâches de training en cours.
-
-    Returns:
-        Dict avec liste des jobs de training.
-    """
-    # Placeholder - intégration avec ml-compute en Phase suivante
-    return {
-        "jobs": [],
-        "total_running": 0,
-        "total_completed": 0,
-    }
-
-
-@app.get("/api/annotations")
-async def list_annotations(limit: int = 100, offset: int = 0) -> dict:
-    """Lister les annotations avec filtrage.
-
-    Args:
-        limit: Nombre d'annotations max à retourner.
-        offset: Décalage pour pagination.
-
-    Returns:
-        Liste des annotations et statuts.
-    """
-    # Placeholder - intégration avec PostgreSQL en Phase suivante
-    return {
-        "annotations": [],
-        "total": 0,
-        "limit": limit,
-        "offset": offset,
-    }
-
-
-@app.get("/api/events")
-async def events_stream():
-    """Stream d'événements SSE pour updates en temps réel.
-
-    Returns:
-        Streaming Response avec événements.
-    """
-    from fastapi.responses import StreamingResponse
-
-    async def event_generator():
-        # Placeholder - implémentation réelle en Phase 4
-        while True:
-            data = (
-                f'data: {{"type": "ping", "timestamp": "{__import__("datetime").datetime.utcnow().isoformat()}"}}\n\n'
-            )
-            yield data
-            await asyncio.sleep(10)
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache"},
-    )
+        module = __import__(module_path, fromlist=["router"])
+        app.include_router(module.router)
+        logger.info(f"✓ {module_name} routes registered")
+    except ImportError as e:
+        logger.warning(f"Could not load {module_name} routes: {e}")
 
 
 if __name__ == "__main__":
