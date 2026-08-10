@@ -579,6 +579,78 @@ Supprimer un dataset.
 
 ---
 
+## Embeddings & Semantic Search
+
+### `POST /api/embeddings/search/bone-atlas`
+Search bone atlas with semantic embedding vector.
+
+**Request**:
+```json
+{
+  "embedding": [0.5, -0.2, 0.1, ...],  // 512D vector
+  "limit": 10,
+  "min_confidence": 0.3
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "query_vector_size": 512,
+  "results": [
+    {
+      "id": "bone_001",
+      "distance": 0.15,
+      "bone_type": "humerus",
+      "side": "left",
+      "region": "proximal"
+    }
+  ],
+  "total": 3
+}
+```
+
+### `GET /api/embeddings/similar/{bone_id}`
+Find bones similar to a reference bone.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "reference_bone_id": "bone_001",
+  "similar_bones": [
+    {"id": "bone_042", "distance": 0.12},
+    {"id": "bone_089", "distance": 0.18}
+  ],
+  "total": 2
+}
+```
+
+### `GET /api/embeddings/stats`
+Get vector collection statistics.
+
+**Response** (200):
+```json
+{
+  "status": "ready",
+  "collections": {
+    "bone_atlas": {
+      "vector_size": 512,
+      "distance_metric": "cosine",
+      "description": "Reference bone anatomy embeddings"
+    },
+    "bone_annotations": {
+      "vector_size": 768,
+      "distance_metric": "cosine",
+      "description": "Annotation labels embeddings"
+    }
+  }
+}
+```
+
+---
+
 ## Codes de Réponse
 
 | Code | Description |
@@ -613,4 +685,4 @@ Collections: bone_atlas, bone_annotations
 
 **Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.15
+**Version**: v0.1.16
