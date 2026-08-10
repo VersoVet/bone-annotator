@@ -241,6 +241,15 @@ try:
 except ImportError as e:
     logger.warning("Could not load CVAT routes: %s", e)
 
+# Include labels module routes (anatomical label management)
+try:
+    from src.modules.labels.routes import router as labels_router
+
+    app.include_router(labels_router)
+    logger.info("✓ Labels routes registered")
+except ImportError as e:
+    logger.warning("Could not load labels routes: %s", e)
+
 
 @app.get("/health")
 async def health() -> dict:

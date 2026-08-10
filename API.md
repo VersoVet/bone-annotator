@@ -740,6 +740,160 @@ Get vector collection statistics.
 
 ---
 
+## Labels (Anatomical Reference)
+
+### `GET /api/labels/status`
+Get label service status and available bone types.
+
+**Response** (200):
+```json
+{
+  "status": "ready",
+  "service": "labels",
+  "components": {
+    "service": "labels",
+    "cache_loaded": true,
+    "bone_types_available": ["humerus", "radius", "ulna", "femur"],
+    "total_zones": 24,
+    "total_landmarks": 18
+  }
+}
+```
+
+### `GET /api/labels/anatomy`
+Get all anatomical labels for all bone types.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "bone_types": ["humerus", "radius", "ulna"],
+  "labels": {
+    "humerus": {
+      "zones": [...],
+      "landmarks": [...],
+      "lesion_criteria": {...}
+    }
+  }
+}
+```
+
+### `GET /api/labels/bones/{bone_type}`
+Get complete label hierarchy for a specific bone type.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "bone_type": "humerus",
+  "labels": {
+    "bone_type": "humerus",
+    "zones": [
+      {"id": "proximal_humerus", "name": "Proximal Humerus", "region": "proximal"}
+    ],
+    "landmarks": [
+      {"id": "greater_tubercle", "name": "Greater Tubercle"}
+    ],
+    "lesion_criteria": {...},
+    "regions": ["proximal", "distal", "entire"]
+  }
+}
+```
+
+### `GET /api/labels/bones/{bone_type}/zones`
+Get anatomical zones for a bone type with optional region filtering.
+
+**Query params**: `region` (proximal, distal, entire)
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "bone_type": "humerus",
+  "region": "proximal",
+  "zones": [
+    {"id": "proximal_humerus", "name": "Proximal Humerus"},
+    {"id": "metaphysis", "name": "Metaphysis"}
+  ],
+  "count": 2
+}
+```
+
+### `GET /api/labels/bones/{bone_type}/landmarks`
+Get anatomical landmarks for a bone type.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "bone_type": "humerus",
+  "landmarks": [
+    {"id": "greater_tubercle", "name": "Greater Tubercle", "region": "proximal"},
+    {"id": "medial_epicondyle", "name": "Medial Epicondyle", "region": "distal"}
+  ],
+  "count": 2
+}
+```
+
+### `GET /api/labels/bones/{bone_type}/lesion-criteria`
+Get lesion criteria and pathology classification for a bone type.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "bone_type": "humerus",
+  "criteria": {
+    "fracture": {"severity": "high", "types": ["proximal", "diaphyseal", "distal"]},
+    "osteoporosis": {"severity": "medium", "indicators": ["density_loss", "trabecular_thinning"]}
+  }
+}
+```
+
+### `POST /api/labels/validate/zone`
+Validate that a zone annotation is applicable for a bone type and region.
+
+**Query params**: `bone_type`, `zone_id`, `region` (optional)
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "valid": true,
+  "bone_type": "humerus",
+  "zone_id": "proximal_humerus",
+  "region": "any"
+}
+```
+
+### `POST /api/labels/validate/landmark`
+Validate that a landmark annotation is applicable for a bone type.
+
+**Query params**: `bone_type`, `landmark_id`
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "valid": true,
+  "bone_type": "humerus",
+  "landmark_id": "greater_tubercle"
+}
+```
+
+### `POST /api/labels/sync`
+Synchronize labels from label-generator service.
+
+**Response** (200):
+```json
+{
+  "status": "synced",
+  "bone_types_updated": 4
+}
+```
+
+---
+
 ## Analysis (Post-Annotation)
 
 ### `GET /api/analysis/status`
@@ -1050,5 +1204,5 @@ Collections: bone_atlas, bone_annotations
 
 **Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.18
-**Endpoints**: 40+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Analysis 5, CVAT 8)
+**Version**: v0.1.19
+**Endpoints**: 50+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8)
