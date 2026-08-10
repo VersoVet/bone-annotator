@@ -214,6 +214,15 @@ try:
 except ImportError as e:
     logger.warning("Could not load embeddings routes: %s", e)
 
+# Include dashboard module routes (monitoring, SSE events)
+try:
+    from src.modules.dashboard.routes import router as dashboard_router
+
+    app.include_router(dashboard_router)
+    logger.info("✓ Dashboard routes registered")
+except ImportError as e:
+    logger.warning("Could not load dashboard routes: %s", e)
+
 
 @app.get("/health")
 async def health() -> dict:
