@@ -223,6 +223,24 @@ try:
 except ImportError as e:
     logger.warning("Could not load dashboard routes: %s", e)
 
+# Include analysis module routes (post-annotation analysis)
+try:
+    from src.modules.analysis.routes import router as analysis_router
+
+    app.include_router(analysis_router)
+    logger.info("✓ Analysis routes registered")
+except ImportError as e:
+    logger.warning("Could not load analysis routes: %s", e)
+
+# Include CVAT module routes (annotation workflow)
+try:
+    from src.modules.cvat.routes import router as cvat_router
+
+    app.include_router(cvat_router)
+    logger.info("✓ CVAT routes registered")
+except ImportError as e:
+    logger.warning("Could not load CVAT routes: %s", e)
+
 
 @app.get("/health")
 async def health() -> dict:

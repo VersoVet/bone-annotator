@@ -277,7 +277,7 @@ Schema: `bone_annotations`
 
 ---
 
-## Résumé Implémentation (v0.1.17 - API Routes Complete with Dashboard)
+## Résumé Implémentation (v0.1.18 - Complete API Routes with Analysis & CVAT)
 
 | Module | Statut | Routes | Endpoints | Complexity |
 |--------|--------|--------|-----------|------------|
@@ -298,10 +298,14 @@ Schema: `bone_annotations`
 | embeddings.service | ✅ | - | - | medium |
 | dashboard | ✅ | dashboard/routes.py | GET/GET/GET/GET/GET/GET/POST | medium |
 | dashboard.service | ✅ | - | - | medium |
+| analysis | ✅ | analysis/routes.py | GET/POST/POST/POST/POST | medium |
+| analysis.service | ✅ | - | - | medium |
+| cvat | ✅ | cvat/routes.py | POST/GET/GET/GET/POST/GET/POST/GET | medium |
+| cvat.service | ✅ | - | - | medium |
 | imaging.service | ⚠️ | - | - | complex |
 | annotation.service | ⚠️ | - | - | complex |
 
-### API Endpoints Implemented: 34+
+### API Endpoints Implemented: 40+
 - Health/Status: 4 endpoints
 - Ingestion: 4 endpoints
 - BoneStore: 3 endpoints
@@ -310,6 +314,8 @@ Schema: `bone_annotations`
 - Dataset/Training: 7 endpoints
 - Embeddings: 4 endpoints
 - Dashboard/Monitoring: 7 endpoints
+- Analysis/Post-Processing: 5 endpoints
+- CVAT/Workflow: 8 endpoints
 
 Tests: 42/61 passing (69%)
 Validation Forge: VALID (0E/3W)
@@ -319,7 +325,7 @@ Commits: 6 feature commits
 
 **Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.17
-**Status**: API Routes Complete (34+ endpoints including Dashboard monitoring)
-**Coverage**: All core modules + dashboard have REST API routes
+**Version**: v0.1.18
+**Status**: All API Routes Complete (40+ endpoints: Dashboard, Analysis, CVAT integrated)
+**Coverage**: All core modules + dashboard + analysis + CVAT have REST API routes
 **Test Coverage**: 42/61 passing (69%)

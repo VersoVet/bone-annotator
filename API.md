@@ -740,6 +740,282 @@ Get vector collection statistics.
 
 ---
 
+## Analysis (Post-Annotation)
+
+### `GET /api/analysis/status`
+Get analysis service status and available models.
+
+**Response** (200):
+```json
+{
+  "status": "ready",
+  "service": "analysis",
+  "components": {
+    "status": "ready",
+    "conformation_models": ["humerus", "radius", "ulna"]
+  }
+}
+```
+
+### `POST /api/analysis/density`
+Analyze bone density from segmentation mask.
+
+**Request**:
+```json
+{
+  "density_mask": [[0, 1, 1], [1, 2, 1]],
+  "image_data": [[0.5, 0.6], [0.7, 0.8]]
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "analysis": {
+    "mean_density": 0.65,
+    "std_density": 0.12,
+    "cortical_thickness": 2.3
+  }
+}
+```
+
+### `POST /api/analysis/conformation`
+Analyze bone conformation from landmarks.
+
+**Request**:
+```json
+{
+  "bone_type": "humerus",
+  "landmarks": [
+    {"id": "proximal", "x": 50, "y": 100},
+    {"id": "distal", "x": 200, "y": 400}
+  ],
+  "image_size": 512
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "bone_type": "humerus",
+  "analysis": {
+    "morphology_score": 0.87,
+    "alignment": "normal"
+  }
+}
+```
+
+### `POST /api/analysis/anomalies`
+Detect density anomalies.
+
+**Request**:
+```json
+{
+  "density_stats": {
+    "mean": 0.65,
+    "std": 0.12,
+    "min": 0.2,
+    "max": 0.95
+  },
+  "reference_stats": null
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "anomalies": [
+    {"type": "low_density", "severity": "medium", "region": "distal"}
+  ],
+  "count": 1
+}
+```
+
+### `POST /api/analysis/axis`
+Compute principal bone axis from landmarks.
+
+**Request**:
+```json
+{
+  "landmarks": [
+    {"id": "proximal", "x": 50, "y": 100},
+    {"id": "midpoint", "x": 125, "y": 250},
+    {"id": "distal", "x": 200, "y": 400}
+  ],
+  "bone_type": "humerus"
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "bone_type": "humerus",
+  "axis": {
+    "angle_deg": 12.5,
+    "direction": [0.21, 0.98],
+    "length": 424.3
+  }
+}
+```
+
+---
+
+## CVAT (Annotation Workflow)
+
+### `POST /api/cvat/connect`
+Connect and authenticate with CVAT server.
+
+**Response** (200):
+```json
+{
+  "status": "connected",
+  "authenticated": true
+}
+```
+
+### `GET /api/cvat/tasks`
+List all CVAT tasks.
+
+**Query params**: `limit` (default 100, max 500)
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "total": 45,
+  "limit": 100,
+  "tasks": [
+    {
+      "id": 42,
+      "name": "bone_annotation_batch_1",
+      "status": "in_progress",
+      "frames": 120
+    }
+  ]
+}
+```
+
+### `GET /api/cvat/tasks/{task_id}`
+Get details of a specific CVAT task.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "task": {
+    "id": 42,
+    "name": "bone_annotation_batch_1",
+    "status": "in_progress",
+    "frames": 120,
+    "assignee": "radiologist@hospital.fr"
+  }
+}
+```
+
+### `POST /api/cvat/tasks`
+Create a new CVAT task.
+
+**Request**:
+```json
+{
+  "name": "bone_annotation_humerus",
+  "project_id": null
+}
+```
+
+**Response** (201):
+```json
+{
+  "status": "created",
+  "task": {
+    "id": 43,
+    "name": "bone_annotation_humerus"
+  }
+}
+```
+
+### `GET /api/cvat/tasks/{task_id}/annotations`
+Pull annotations from a CVAT task.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "task_id": 42,
+  "annotations": {
+    "zones": [
+      {"id": "zone_1", "type": "metaphysis", "bbox": [20, 50, 200, 300]}
+    ],
+    "landmarks": [...]
+  }
+}
+```
+
+### `POST /api/cvat/tasks/{task_id}/annotations`
+Push annotations to a CVAT task.
+
+**Request**:
+```json
+{
+  "task_id": 42,
+  "annotations": {
+    "zones": [...],
+    "landmarks": [...]
+  }
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "pushed",
+  "task_id": 42
+}
+```
+
+### `POST /api/cvat/tasks/{task_id}/sync`
+Synchronize annotations bidirectionally.
+
+**Request**:
+```json
+{
+  "task_id": 42,
+  "local_annotations": {...},
+  "strategy": "local_wins"
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "synced",
+  "task_id": 42,
+  "strategy": "local_wins",
+  "annotations": {...}
+}
+```
+
+### `GET /api/cvat/status`
+Get CVAT service status.
+
+**Response** (200):
+```json
+{
+  "status": "ready",
+  "service": "cvat",
+  "components": {
+    "status": "connected",
+    "authenticated": true
+  }
+}
+```
+
+---
+
 ## Codes de Réponse
 
 | Code | Description |
@@ -774,4 +1050,5 @@ Collections: bone_atlas, bone_annotations
 
 **Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.17
+**Version**: v0.1.18
+**Endpoints**: 40+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Analysis 5, CVAT 8)
