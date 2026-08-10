@@ -1,6 +1,6 @@
 {
   "name": "bone-annotator",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "core": {
     "name": "bone-annotator",
     "type": "python",
