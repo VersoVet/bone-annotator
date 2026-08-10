@@ -81,10 +81,98 @@ Synchronisation des acquisitions BoneStore → registre ingestion.
 **Response** (200):
 ```json
 {
+  "status": "success",
   "synced": 5,
   "new": 2,
   "pending": 12,
-  "timestamp": "2026-08-08T10:30:00Z"
+  "timestamp": "2026-08-10T10:30:00Z"
+}
+```
+
+### `GET /api/ingestion/pending`
+Récupérer les acquisitions en attente d'annotation.
+
+**Response** (200):
+```json
+{
+  "acquisitions": [
+    {"id": "acq_001", "bone_type": "humerus", "frame_count": 120}
+  ],
+  "total": 45,
+  "limit": 100,
+  "offset": 0
+}
+```
+
+### `GET /api/ingestion/status`
+Statut global de l'ingestion.
+
+**Response** (200):
+```json
+{
+  "status": "ready",
+  "total_acquisitions": 312,
+  "pending": 45,
+  "last_sync": "2026-08-10T00:00:00Z"
+}
+```
+
+---
+
+## BoneStore
+
+### `GET /api/bonestore/acquisitions`
+Lister les acquisitions disponibles.
+
+**Query params**: `bone_type`, `side`, `limit`
+
+**Response** (200):
+```json
+{
+  "acquisitions": [
+    {
+      "id": "acq_001",
+      "bone_type": "humerus",
+      "side": "left",
+      "region": "proximal",
+      "frame_count": 120,
+      "has_timecodes": true,
+      "path": "/mnt/bonestore/humerus_left_proximal/acq_001"
+    }
+  ],
+  "total": 312,
+  "filtered": 45,
+  "limit": 100
+}
+```
+
+### `GET /api/bonestore/acquisitions/{acquisition_id}`
+Détails d'une acquisition avec liste de frames.
+
+**Response** (200):
+```json
+{
+  "acquisition_id": "acq_001",
+  "path": "/mnt/bonestore/...",
+  "frame_count": 120,
+  "frames": [
+    {"index": 0, "filename": "frame_0000.b2nd", "angle_deg": 0.0, "position": 0}
+  ],
+  "timecodes_available": true
+}
+```
+
+### `GET /api/bonestore/stats`
+Statistiques globales du BoneStore.
+
+**Response** (200):
+```json
+{
+  "total_acquisitions": 312,
+  "total_frames": 42560,
+  "acquisitions_by_bone_type": {"humerus": 80, "radius": 75, "ulna": 62},
+  "acquisitions_with_timecodes": 310,
+  "acquisitions_without_timecodes": 2
 }
 ```
 
@@ -162,51 +250,76 @@ Exporter annotations depuis CVAT → format YOLO dataset.
 
 ## Prédiction (YOLO)
 
-### `POST /api/predict`
-Prédictions YOLO sur une acquisition (pré-annotation).
+### `GET /api/predict/model-info`
+Informations sur le modèle YOLO chargé.
+
+**Response** (200):
+```json
+{
+  "model_version": "/opt/onyx/skills/bone-ml/models/yolov8_20260808.pt",
+  "model_loaded": true,
+  "model_type": "yolov8"
+}
+```
+
+### `POST /api/predict/task`
+Prédictions YOLO sur une tâche simple.
 
 **Request**:
 ```json
 {
-  "acquisition_id": "acq_001_humerus",
-  "model_version": "yolov8_20260801",
-  "confidence_threshold": 0.5
+  "id": "task_001",
+  "data": {
+    "image": "/mnt/bonestore/humerus_left_proximal/acq_001/raw/frame_0000.b2nd"
+  }
 }
 ```
 
 **Response** (200):
 ```json
 {
-  "task_id": "pred_12345",
-  "status": "processing",
-  "frames_predicted": 0,
-  "total_frames": 120,
-  "eta_seconds": 45
-}
-```
-
----
-
-### `GET /api/predict/result/{task_id}`
-Récupérer résultats prédiction.
-
-**Response** (200):
-```json
-{
-  "task_id": "pred_12345",
-  "status": "completed",
-  "predictions": [
+  "result": [
     {
-      "frame_idx": 0,
-      "zones": [
-        {"class": "metaphysis", "confidence": 0.94, "bbox": [10, 20, 100, 120]}
-      ],
-      "landmarks": [
-        {"type": "medial_epicondyle", "confidence": 0.87, "x": 55, "y": 80}
-      ]
+      "type": "rectanglelabels",
+      "value": {
+        "x": 20.5,
+        "y": 15.3,
+        "width": 60.2,
+        "height": 70.1,
+        "rectanglelabels": ["metaphysis"]
+      },
+      "score": 0.94,
+      "from_name": "label",
+      "to_name": "image"
     }
   ],
-  "duration_seconds": 45
+  "score": 0.91
+}
+```
+
+### `POST /api/predict/batch`
+Prédictions batch sur plusieurs tâches.
+
+**Request**:
+```json
+{
+  "tasks": [
+    {"id": "task_001", "data": {"image": "..."}},
+    {"id": "task_002", "data": {"image": "..."}}
+  ],
+  "model_version": null
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "completed",
+  "total_tasks": 2,
+  "predictions": {
+    "task_001": {"result": [...], "score": 0.91},
+    "task_002": {"result": [...], "score": 0.88}
+  }
 }
 ```
 
@@ -500,4 +613,4 @@ Collections: bone_atlas, bone_annotations
 
 **Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.14
+**Version**: v0.1.15

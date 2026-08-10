@@ -2,7 +2,7 @@
 
 ## Phase 1: Migration du Code — STATUT
 
-### Modules Complétés ✅ (v0.1.14)
+### Modules Complétés ✅ (v0.1.15)
 - [x] `src/modules/labels/service.py` — Label management avec label-generator API (283 LOC)
 - [x] `src/modules/labels/tests/test_labels.py` — 11 tests
 - [x] `src/modules/cvat/client.py` — REST API client (178 LOC, httpx async)

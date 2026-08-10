@@ -232,3 +232,97 @@ def run_ingestion(
         "failed": failed_acq,
         "total_frames": total_frames,
     }
+
+
+# ========== Async API Wrappers ==========
+
+
+async def sync_acquisitions() -> dict[str, Any]:
+    """Synchronize BoneStore to ingestion registry (async wrapper).
+
+    Returns:
+        Sync result with acquisition counts.
+    """
+    try:
+        from src.modules.bonestore.service import list_acquisitions
+
+        # Get acquisitions from BoneStore
+        acqs = list_acquisitions()
+        registry = IngestionRegistry()
+
+        new_count = 0
+        for acq in acqs:
+            acq_id = acq.get("id")
+            if not registry.is_ingested(acq_id):
+                # Register as pending
+                registry.add_acquisition(
+                    acq_id,
+                    status="pending",
+                    bone_type=acq.get("bone_type"),
+                    side=acq.get("side"),
+                    region=acq.get("region"),
+                    total_frames=acq.get("frame_count", 0),
+                )
+                new_count += 1
+
+        pending = registry.get_pending()
+        return {
+            "status": "success",
+            "synced": len(acqs),
+            "new": new_count,
+            "pending": len(pending),
+            "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        logger.error("Sync failed: %s", e)
+        return {
+            "status": "error",
+            "message": str(e),
+        }
+
+
+async def get_pending_acquisitions(
+    limit: int = 100,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Get pending acquisitions awaiting ingestion.
+
+    Args:
+        limit: Max acquisitions to return.
+        offset: Pagination offset.
+
+    Returns:
+        List of pending acquisition dicts.
+    """
+    try:
+        registry = IngestionRegistry()
+        pending = registry.get_pending()
+        return pending[offset : offset + limit]
+    except Exception as e:
+        logger.error("Error fetching pending acquisitions: %s", e)
+        return []
+
+
+async def get_ingestion_status() -> dict[str, Any]:
+    """Get overall ingestion status and statistics.
+
+    Returns:
+        Ingestion status with registry stats.
+    """
+    try:
+        registry = IngestionRegistry()
+        pending = registry.get_pending()
+        total = len(registry.db)
+
+        return {
+            "status": "ready",
+            "total_acquisitions": total,
+            "pending": len(pending),
+            "last_sync": "2026-08-10T00:00:00Z",  # TODO: track from registry
+        }
+    except Exception as e:
+        logger.error("Error fetching ingestion status: %s", e)
+        return {
+            "status": "error",
+            "message": str(e),
+        }

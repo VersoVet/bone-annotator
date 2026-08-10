@@ -178,6 +178,33 @@ try:
 except ImportError as e:
     logger.warning("Could not load ML routes: %s", e)
 
+# Include predict module routes
+try:
+    from src.modules.ml.predict.routes import router as predict_router
+
+    app.include_router(predict_router)
+    logger.info("✓ Predict routes registered")
+except ImportError as e:
+    logger.warning("Could not load predict routes: %s", e)
+
+# Include ingestion module routes
+try:
+    from src.modules.ingestion.routes import router as ingestion_router
+
+    app.include_router(ingestion_router)
+    logger.info("✓ Ingestion routes registered")
+except ImportError as e:
+    logger.warning("Could not load ingestion routes: %s", e)
+
+# Include bonestore module routes
+try:
+    from src.modules.bonestore.routes import router as bonestore_router
+
+    app.include_router(bonestore_router)
+    logger.info("✓ BoneStore routes registered")
+except ImportError as e:
+    logger.warning("Could not load bonestore routes: %s", e)
+
 
 @app.get("/health")
 async def health() -> dict:
