@@ -205,6 +205,15 @@ try:
 except ImportError as e:
     logger.warning("Could not load bonestore routes: %s", e)
 
+# Include embeddings module routes
+try:
+    from src.modules.embeddings.routes import router as embeddings_router
+
+    app.include_router(embeddings_router)
+    logger.info("✓ Embeddings routes registered")
+except ImportError as e:
+    logger.warning("Could not load embeddings routes: %s", e)
+
 
 @app.get("/health")
 async def health() -> dict:

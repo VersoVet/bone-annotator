@@ -173,3 +173,57 @@ def get_service(
     if _service is None:
         _service = EmbeddingsService(host, port, collection, vector_size)
     return _service
+
+
+# ========== Async API Wrappers ==========
+
+
+async def search_bone_atlas(
+    embedding: list[float],
+    limit: int = 10,
+    min_confidence: float = 0.3,
+) -> list[dict[str, Any]]:
+    """Search bone atlas with embedding vector.
+
+    Args:
+        embedding: Query embedding (512D vector).
+        limit: Max results.
+        min_confidence: Min similarity score.
+
+    Returns:
+        List of similar bones with metadata.
+    """
+    try:
+        service = get_service()
+        results = await service.search_similar(
+            embedding=embedding,
+            limit=limit,
+            score_threshold=min_confidence,
+        )
+        return results
+    except Exception as e:
+        logger.error("Search failed: %s", e)
+        return []
+
+
+async def get_similar_bones(
+    bone_id: str,
+    limit: int = 10,
+) -> list[dict[str, Any]]:
+    """Find bones similar to a reference bone.
+
+    Args:
+        bone_id: Reference bone ID.
+        limit: Max similar bones.
+
+    Returns:
+        List of similar bones or empty if not found.
+    """
+    try:
+        # Note: Qdrant query by ID would require fetching the vector first
+        # This is a placeholder - full implementation in Phase 7+
+        logger.warning("Similar bones query not fully implemented (Phase 7+)")
+        return []
+    except Exception as e:
+        logger.error("Similar bones query failed: %s", e)
+        return []
