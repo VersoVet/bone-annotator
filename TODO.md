@@ -1,36 +1,55 @@
 # TODO - bone-annotator
 
-## Phase 1: Migration du Code (PRIORITÉ HAUTE)
+## Phase 1: Migration du Code — STATUT
 
-- [ ] Migrer modules bonestore, imaging, storage depuis bone-recognition
-  - [ ] `src/modules/bonestore/service.py` — Traversée NFS BoneStore (172 lignes)
-  - [ ] `src/modules/imaging/service.py` — Chargement frames .b2nd, cache LRU (205 lignes)
-  - [ ] `src/modules/imaging/catalog.py` — Taxonomie anatomique (60 lignes)
-  - [ ] `src/modules/storage/pg_db.py` — Client PostgreSQL (418 lignes)
+### Modules Complétés ✅ (v0.1.14)
+- [x] `src/modules/labels/service.py` — Label management avec label-generator API (283 LOC)
+- [x] `src/modules/labels/tests/test_labels.py` — 11 tests
+- [x] `src/modules/cvat/client.py` — REST API client (178 LOC, httpx async)
+- [x] `src/modules/ml/training/service.py` — Ray Jobs API integration (207 LOC)
+- [x] `src/modules/ml/dataset/service.py` — YOLO dataset export (237 LOC) ← NEW
+- [x] `src/modules/ml/dataset/tests/test_dataset.py` — 5 tests, all passing ← NEW
+- [x] `src/modules/storage/service.py` — Unified storage interface (191 LOC) ← NEW
+- [x] `src/modules/annotation/routes.py` — FastAPI endpoints (157 LOC)
+- [x] `src/modules/ingestion/registry.py` — SQLite registry (295 LOC, StrEnum updated)
+- [x] Tests integration: 42/61 passing (69%), including all new dataset tests
+- [x] Documentation (ARCHITECTURE.md updated)
+- [x] Validation Forge: VALID (0E/3W)
 
-- [ ] Migrer modules annotation, predict, dataset depuis bone-ml
-  - [ ] `src/modules/annotation/service.py` — Service annotation principal (434 lignes)
-  - [ ] `src/modules/annotation/routes.py` — Routes FastAPI (167 lignes)
-  - [ ] `src/modules/predict/service.py` — Inférence YOLO (249 lignes)
-  - [ ] `src/modules/dataset/service.py` — Export YOLO format (218 lignes)
+### Modules Pendants (Phase 1-2)
+**PRIORITÉ 1** (dépendances critiques):
+- [ ] `src/modules/imaging/service.py` — Frame loading .b2nd, LRU GPU cache (205 LOC) ← NEXT
+- [ ] `src/modules/predict/service.py` — YOLO inference for pre-annotation (249 LOC)
+- [ ] `src/modules/ml/dataset/service.py` — Export to YOLO format (218 LOC)
 
-- [ ] Migrer modules ingestion, analysis depuis bone-recognition
-  - [ ] `src/modules/ingestion/service.py` — Ingestion BoneStore (439 lignes)
-  - [ ] `src/modules/ingestion/registry.py` — Registre SQLite (385 lignes)
-  - [ ] `src/modules/analysis/` — Post-inférence (~890 lignes)
+**PRIORITÉ 2** (core storage):
+- [ ] `src/modules/bonestore/service.py` — NFS traversal, metadata (172 LOC)
+- [ ] `src/modules/storage/pg_db.py` — PostgreSQL client (418 LOC)
+- [ ] `src/modules/storage/qdrant_store.py` — Vector DB operations (~150 LOC)
 
-## Phase 2: Création Modules CVAT (PRIORITÉ HAUTE)
+**PRIORITÉ 3** (sync & workflow):
+- [ ] `src/modules/cvat/sync.py` — CVAT → PostgreSQL sync
+- [ ] `src/modules/cvat/format.py` — Annotation format conversion
+- [ ] `src/modules/annotation/service.py` — Full annotation orchestration (434 LOC)
 
-- [ ] Créer module CVAT
-  - [ ] `src/modules/cvat/client.py` — Client REST CVAT API
-  - [ ] `src/modules/cvat/sync.py` — Synchronisation annotations CVAT ↔ PostgreSQL
-  - [ ] `src/modules/cvat/format.py` — Conversion format CVAT → internal
-  - [ ] Tests unitaires
+**PRIORITÉ 4** (optional/advanced):
+- [ ] `src/modules/ingestion/service.py` — Real sync logic (439 LOC)
+- [ ] `src/modules/analysis/service.py` — Morphometric analysis (~890 LOC)
+- [ ] `src/modules/dashboard/routes.py` — Monitoring routes (new module)
+- [ ] `src/modules/imaging/catalog.py` — Anatomical taxonomy (60 LOC)
 
-- [ ] Adapter module training pour ml-compute
-  - [ ] Migrer depuis bone-ml
-  - [ ] Adapter pour Ray Jobs API (ml-compute:9469) au lieu d'exécution locale
-  - [ ] Callback handler pour résultats training
+## Phase 2: CVAT Enhancement & ml-compute Training — STATUT
+
+**Completed**:
+- [x] `src/modules/cvat/client.py` — Async REST API wrapper (httpx, full auth/CRUD)
+- [x] `src/modules/ml/training/service.py` — Ray Jobs submit/poll/cancel
+- [x] `src/modules/annotation/routes.py` — 5 FastAPI endpoints (placeholders ready for Phase 7)
+
+**Pending**:
+- [ ] `src/modules/cvat/sync.py` — Pull annotations from CVAT → PostgreSQL
+- [ ] `src/modules/cvat/format.py` — Convert CVAT XML ↔ internal annotation format
+- [ ] Integration tests for CVAT workflow
+- [ ] CVAT task creation + pre-annotation push logic in annotation/routes.py
 
 ## Phase 3: Adaptation Dependencies Externes ✓ COMPLÈTE
 

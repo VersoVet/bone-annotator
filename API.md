@@ -402,6 +402,70 @@ Racine API — informations générales.
 
 ---
 
+## ML — Datasets
+
+### `POST /api/ml/dataset/export`
+Exporter les annotations au format YOLO pour l'entraînement.
+
+**Request**:
+```json
+{
+  "acquisitions": ["acq_001", "acq_002"],
+  "output_dir": "data/datasets/yolo_20260810",
+  "train_ratio": 0.7,
+  "val_ratio": 0.2,
+  "labels_mapping": {
+    "proximal_humerus": 0,
+    "distal_humerus": 1
+  }
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "dataset_path": "/path/to/dataset",
+  "yaml_path": "/path/to/dataset.yaml",
+  "split_stats": {
+    "train": 14,
+    "val": 6,
+    "test": 0
+  },
+  "total_acquisitions": 20
+}
+```
+
+### `GET /api/ml/dataset/{dataset_id}/stats`
+Récupérer les statistiques d'un dataset existant.
+
+**Response** (200):
+```json
+{
+  "dataset_dir": "/data/datasets/yolo_20260810",
+  "splits": {
+    "train": {"images": 14, "labels": 14},
+    "val": {"images": 6, "labels": 6},
+    "test": {"images": 0, "labels": 0}
+  },
+  "total_images": 20,
+  "total_labels": 20
+}
+```
+
+### `DELETE /api/ml/dataset/{dataset_id}`
+Supprimer un dataset.
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "message": "Dataset deleted"
+}
+```
+
+---
+
 ## Codes de Réponse
 
 | Code | Description |
@@ -434,6 +498,6 @@ Collections: bone_atlas, bone_annotations
 
 ---
 
-**Dernière mise à jour**: 2026-08-09
-**Phase**: 2 (CVAT & ml-compute Training)
-**Version**: v0.1.11+
+**Dernière mise à jour**: 2026-08-10
+**Phase**: 2 (CVAT Enhancement & ml-compute Training)
+**Version**: v0.1.14

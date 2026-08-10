@@ -169,6 +169,15 @@ try:
 except ImportError as e:
     logger.warning("Could not load annotation routes: %s", e)
 
+# Include ML module routes (datasets, training)
+try:
+    from src.modules.ml.routes import router as ml_router
+
+    app.include_router(ml_router)
+    logger.info("✓ ML routes registered")
+except ImportError as e:
+    logger.warning("Could not load ML routes: %s", e)
+
 
 @app.get("/health")
 async def health() -> dict:
