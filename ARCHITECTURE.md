@@ -101,23 +101,32 @@ Annotation des images osseuses fluoroscopie 360° avec pré-annotation YOLO auto
 - **Dépendances**: imaging
 - **État**: À migrer
 
-### 7. **training** — Orchestration training GPU
+### 7. **training** — Orchestration training GPU ✅
 - **Responsabilité**: Soumettre jobs ML à ml-compute (Ray)
-- **Fonctions**:
-  - `submit_training(dataset_yaml, epochs)` → job_id
-  - `check_job_status(job_id)` → status
-  - Callback: `POST /api/training/callback?job_id=...&status=...`
-- **Source**: Migrer depuis `bone-ml/src/modules/training/service.py`
-- **Dépendances**: ml-compute Ray API
-- **État**: À migrer (adapter pour ml-compute au lieu d'exécution locale)
+- **Statut**: COMPLÉTÉ (v0.1.14)
+- **Implémentation**:
+  - `start_training(config)` → Ray Jobs submission
+  - `get_training_status(job_id)` → query ml-compute
+  - `cancel_training(job_id)` → cancel job
+  - `poll_job_status()` → wait for completion
+- **Dépendances**: ml-compute Ray API (10.0.0.44:9469)
+- **Routes**: 
+  - `GET /api/ml/training/status` → job status
+  - `GET /api/ml/training/jobs` → list active jobs
+  - `POST /api/ml/training/{job_id}/cancel` → cancel
 
-### 8. **dataset** — Export annotations format YOLO
+### 8. **dataset** — Export annotations format YOLO ✅
 - **Responsabilité**: Conversion annotations BD → YOLO dataset format
-- **Fonctions**:
-  - `export_to_yolo(acquisitions: list[str])` → yaml config
-  - Split train/val/test
-- **Source**: Migrer depuis `bone-ml/src/modules/dataset/service.py`
-- **État**: À migrer
+- **Statut**: COMPLÉTÉ (v0.1.14)
+- **Implémentation**:
+  - `export_to_yolo(acquisitions, train_ratio=0.7)` → YOLO dataset
+  - `get_dataset_stats(dataset_dir)` → split info
+  - `delete_dataset(dataset_dir)` → cleanup
+- **Routes**:
+  - `POST /api/ml/dataset/export` → create dataset
+  - `GET /api/ml/dataset/{id}/stats` → get stats
+  - `DELETE /api/ml/dataset/{id}` → delete
+- **Output**: dataset.yaml + train/val/test/{images,labels}/
 
 ### 9. **cvat** — Client CVAT REST API
 - **Responsabilité**: Intégration CVAT (nouveau module)
@@ -268,6 +277,28 @@ Schema: `bone_annotations`
 
 ---
 
-**Dernière mise à jour**: 2026-08-09
+## Résumé Implémentation (v0.1.14)
+
+| Module | Statut | LOC | Tests | Routes |
+|--------|--------|-----|-------|--------|
+| labels | ✅ | 283 | 11 ✓ | - |
+| cvat.client | ✅ | 178 | - | - |
+| training | ✅ | 207 | - | GET/POST |
+| dataset | ✅ | 237 | 5 ✓ | POST/GET/DEL |
+| storage | ✅ | 191 | - | - |
+| annotation.routes | ✅ | 157 | - | POST/GET/POST |
+| ingestion.registry | ✅ | 295 | - | - |
+| imaging | ⚠️ | ~200 | stub | - |
+| predict | ⚠️ | ~260 | stub | - |
+| annotation.service | ⚠️ | ~250 | - | - |
+| bonestore | ⚠️ | ~170 | - | - |
+| storage.pg_db | ⚠️ | ~270 | - | - |
+
+Tests: 42/61 passing (69%) — dataset module 5/5 passing
+Validation Forge: VALID (0E/3W)
+
+---
+
+**Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.11+
+**Version**: v0.1.14
