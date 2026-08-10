@@ -446,52 +446,141 @@ Exporter annotations → YOLO format.
 
 ---
 
-## Dashboard (SSE)
+## Dashboard (Monitoring & SSE)
 
 ### `GET /api/dashboard/events`
-Stream SSE des événements pipeline (WebSocket alternative).
+Real-time SSE stream for pipeline events.
 
 **Headers**:
 ```
 Content-Type: text/event-stream
 Cache-Control: no-cache
+Connection: keep-alive
 ```
 
-**Events**:
+**Event Types**:
 ```
+event: ingestion_started
+data: {"stage": "ingestion", "message": "Started BoneStore sync"}
+
 event: ingestion_complete
-data: {"acquisition_id": "acq_001", "frames": 120}
+data: {"stage": "ingestion", "acquisitions": 45, "frames": 5400}
 
-event: prediction_complete
-data: {"task_id": "pred_123", "accuracy": 0.82}
+event: prediction_progress
+data: {"stage": "prediction", "step": 10, "total": 45}
 
 event: training_update
-data: {"job_id": "ray_job_xyz", "epoch": 45, "loss": 0.12}
+data: {"job_id": "ray_job_xyz", "epoch": 25, "loss": 0.23}
+
+event: stage_completed
+data: {"stage": "prediction", "status": "completed", "metrics": {...}}
 ```
 
----
-
-### `GET /api/dashboard/training-status`
-Statut en direct de tous les training jobs.
+### `GET /api/dashboard/state`
+Current pipeline state snapshot.
 
 **Response** (200):
 ```json
 {
-  "active_jobs": [
+  "status": "success",
+  "timestamp": "2026-08-10T12:30:00Z",
+  "pipeline_state": {
+    "ingestion": {"status": "idle", "pending": 12},
+    "prediction": {"status": "running", "progress": 45},
+    "annotation": {"status": "waiting", "tasks": 8},
+    "training": {"status": "idle", "active_jobs": 0}
+  }
+}
+```
+
+### `GET /api/dashboard/history`
+Recent event history (up to 1000 events).
+
+**Query params**: `limit` (default 200, max 1000)
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "total": 150,
+  "limit": 200,
+  "events": [
     {
-      "job_id": "ray_job_xyz789",
-      "status": "running",
-      "progress_percent": 45,
-      "eta_minutes": 65
-    }
-  ],
-  "recent_completed": [
-    {
-      "job_id": "ray_job_abc123",
-      "status": "success",
-      "map": 0.82
+      "type": "ingestion_started",
+      "timestamp": "2026-08-10T12:25:00Z",
+      "data": {...}
     }
   ]
+}
+```
+
+### `GET /api/dashboard/metrics`
+Performance metrics for pipeline stages.
+
+**Query params**: `stage` (optional, e.g., "prediction", "training", or omit for all)
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "stage": "prediction",
+  "metrics": {
+    "total_time": 245.5,
+    "throughput": 12.3,
+    "avg_confidence": 0.87,
+    "errors": 0
+  }
+}
+```
+
+### `GET /api/dashboard/status`
+Dashboard service health and statistics.
+
+**Response** (200):
+```json
+{
+  "status": "ready",
+  "service": "dashboard",
+  "components": {
+    "status": "ready",
+    "pipeline_state": {"ingestion": {...}},
+    "subscribers": 3,
+    "history_size": 245
+  }
+}
+```
+
+### `GET /api/dashboard/logs`
+Recent application logs (alias for history with limit=100).
+
+**Query params**: `limit` (default 100, max 500)
+
+**Response** (200):
+```json
+{
+  "status": "success",
+  "total": 87,
+  "logs": [...]
+}
+```
+
+### `POST /api/dashboard/event`
+Publish a custom event (for testing/monitoring).
+
+**Request**:
+```json
+{
+  "event_type": "custom_test",
+  "data": {"message": "Manual test event"}
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "published",
+  "event_type": "custom_test",
+  "data": {...}
 }
 ```
 
@@ -685,4 +774,4 @@ Collections: bone_atlas, bone_annotations
 
 **Dernière mise à jour**: 2026-08-10
 **Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.16
+**Version**: v0.1.17
