@@ -160,6 +160,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Include annotation module routes
+try:
+    from src.modules.annotation.routes import router as annotation_router
+
+    app.include_router(annotation_router)
+    logger.info("✓ Annotation routes registered")
+except ImportError as e:
+    logger.warning("Could not load annotation routes: %s", e)
+
 
 @app.get("/health")
 async def health() -> dict:
