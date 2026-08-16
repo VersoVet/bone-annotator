@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 BONESTORE_ROOT = os.getenv("BONESTORE_ROOT", "/mnt/bonestore")
 
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "10.0.0.44")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "10.0.0.59")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 POSTGRES_USER = os.getenv("POSTGRES_USER", "bone")
-POSTGRES_DBNAME = os.getenv("POSTGRES_DBNAME", "bone_annotations")
+POSTGRES_DBNAME = os.getenv("POSTGRES_DBNAME", "bone_recognition")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
 
 QDRANT_HOST = os.getenv("QDRANT_HOST", "10.0.0.59")
@@ -105,18 +105,18 @@ async def check_cvat() -> bool:
     try:
         import httpx
 
-        url = f"http://{CVAT_HOST}:{CVAT_PORT}/api/v1/auth/login"
+        url = f"http://{CVAT_HOST}:{CVAT_PORT}/api/server/about"
         async with httpx.AsyncClient() as client:
             response = await client.get(url, timeout=5.0)
-            if response.status_code == 401:  # 401 means API is up but auth failed
+            if response.status_code == 200:
                 logger.info("✓ CVAT API accessible: %s:%d", CVAT_HOST, CVAT_PORT)
                 return True
-            elif response.status_code == 200:
-                logger.info("✓ CVAT API accessible: %s:%d", CVAT_HOST, CVAT_PORT)
+            # 401/403 means API is up but auth required — still accessible
+            if response.status_code in (401, 403):
+                logger.info("✓ CVAT API accessible (auth required): %s:%d", CVAT_HOST, CVAT_PORT)
                 return True
-            else:
-                logger.error("CVAT API check failed: status %d", response.status_code)
-                return False
+            logger.error("CVAT API check failed: status %d", response.status_code)
+            return False
     except Exception as e:
         logger.error("CVAT check failed: %s", e)
         return False
@@ -247,18 +247,23 @@ def get_dataset_pacs_config() -> dict[str, Any]:
     }
 
 
-async def load_pacs_credentials_from_vault() -> None:
-    """Load PACS credentials from Vault into module globals."""
-    global DATASET_PACS_USER, DATASET_PACS_PASSWORD
+async def load_credentials_from_vault() -> None:
+    """Load PostgreSQL and PACS credentials from Vault."""
+    global POSTGRES_PASSWORD, DATASET_PACS_USER, DATASET_PACS_PASSWORD
+    if not POSTGRES_PASSWORD:
+        pg_pass = await load_vault_secret("bone_postgres_password")
+        if pg_pass:
+            POSTGRES_PASSWORD = pg_pass
+            logger.info("PostgreSQL password loaded from Vault")
+    if not DATASET_PACS_USER:
+        user = await load_vault_secret("orthanc_training_user")
+        if user:
+            DATASET_PACS_USER = user
+    if not DATASET_PACS_PASSWORD:
+        password = await load_vault_secret("orthanc_training_password")
+        if password:
+            DATASET_PACS_PASSWORD = password
     if DATASET_PACS_USER and DATASET_PACS_PASSWORD:
-        return
-    user = await load_vault_secret("orthanc_training_user")
-    password = await load_vault_secret("orthanc_training_password")
-    if user:
-        DATASET_PACS_USER = user
-    if password:
-        DATASET_PACS_PASSWORD = password
-    if user and password:
         logger.info("PACS credentials loaded from Vault")
 
 
