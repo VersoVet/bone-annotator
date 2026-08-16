@@ -38,11 +38,7 @@ async def health() -> dict:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")
 
     # Toutes les dépendances manquantes → unhealthy
-    if not (
-        _app_state.postgres_ready
-        or _app_state.qdrant_ready
-        or _app_state.bonestore_ready
-    ):
+    if not (_app_state.postgres_ready or _app_state.qdrant_ready or _app_state.bonestore_ready):
         raise HTTPException(status_code=503, detail="no_dependencies_ready")
 
     status = "healthy"
@@ -216,7 +212,6 @@ async def dependencies_endpoint() -> dict:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")
 
     from src.config import check_all_dependencies
-
 
     deps_status = await check_all_dependencies()
     critical = ["postgres", "qdrant"]
