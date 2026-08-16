@@ -175,13 +175,13 @@ async def request_pre_annotation(task_id: int) -> dict[str, Any]:
 @router.post("/export")
 async def export_annotations(
     task_ids: list[int] | None = None,
-    format: str = "yolo",
+    export_format: str = "yolo",
 ) -> dict[str, Any]:
     """Export validated annotations to training format.
 
     Args:
         task_ids: Task IDs to export (None = all validated).
-        format: Export format (yolo).
+        export_format: Export format (yolo).
 
     Returns:
         Export result with dataset path.

@@ -1,5 +1,6 @@
 """Annotation workflow service — orchestrates CVAT, labels, preparation, and storage."""
 
+import asyncio
 import logging
 from typing import Any
 
@@ -75,18 +76,22 @@ class AnnotationWorkflowService:
         await self.cvat.authenticate()
         task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
         cvat_task = await self.cvat.create_task(task_name)
-        cvat_task_id = cvat_task["id"] if cvat_task else None
-        cvat_url = f"{self.cvat.base_url}/tasks/{cvat_task_id}" if cvat_task_id else None
+        if not cvat_task:
+            msg = "Failed to create CVAT task"
+            raise RuntimeError(msg)
+        cvat_task_id = cvat_task["id"]
+        cvat_url = f"{self.cvat.base_url}/tasks/{cvat_task_id}"
 
-        # 5. Set labels on CVAT task
-        if cvat_task_id and cvat_labels:
-            await self.cvat.set_labels(cvat_task_id, cvat_labels)
-
-        # 6. Upload prepared images to CVAT
-        if cvat_task_id:
-            images = self._load_prepared_images(dataset.path / "images")
+        # 5. Set labels + upload images (with rollback on failure)
+        try:
+            if cvat_labels:
+                await self.cvat.set_labels(cvat_task_id, cvat_labels)
+            images = await asyncio.to_thread(self._load_prepared_images, dataset.path / "images")
             if images:
                 await self.cvat.upload_images(cvat_task_id, images)
+        except Exception:
+            logger.error("CVAT setup failed, task %d may be incomplete", cvat_task_id)
+            raise
 
         # 7. Save task to PostgreSQL
         task_id = self.task_db.save_task(

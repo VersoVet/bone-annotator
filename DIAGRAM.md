@@ -5,253 +5,170 @@
 ```mermaid
 graph TB
     subgraph External["Services Externes"]
-        BS["BoneStore NFS<br/>10.0.0.52<br/>/mnt/bonestore"]
-        PG["PostgreSQL<br/>10.0.0.59:5433<br/>bone_annotations"]
-        QD["Qdrant<br/>10.0.0.59:6333<br/>bone_atlas + bone_annotations"]
-        CVAT["CVAT Server<br/>Synapse<br/>Annotation séries"]
-        ML["ml-compute<br/>10.0.0.44:9469<br/>Ray Jobs API"]
+        BS["BoneStore NFS<br/>/mnt/bonestore<br/>Raw .b2nd"]
+        PG["PostgreSQL<br/>10.0.0.44:5432<br/>bone_annotations"]
+        QD["Qdrant<br/>10.0.0.59:6333<br/>bone_atlas"]
+        CVAT["CVAT v2.72<br/>10.0.0.59:8080<br/>Annotation UI"]
+        BONEML["bone-ml<br/>10.0.0.86:9463<br/>YOLO Pre-annotation"]
         LG["label-generator<br/>10.0.0.59:9466<br/>Labels anatomiques"]
+        PACS["OnyxBoneDatasetTraining<br/>10.0.0.90:8042<br/>PNG 16-bit datasets"]
     end
 
     subgraph BoneAnnotator["bone-annotator (FastAPI)<br/>Port 9468 - OnyxSynapse"]
-        Main["main.py<br/>FastAPI App<br/>Lifespan"]
+        Main["main.py<br/>FastAPI + Lifespan"]
         
         subgraph Modules["Modules Fonctionnels"]
+            SourcesM["sources<br/>Config YAML<br/>Multi-source"]
+            PrepM["preparation<br/>imaging-sdk Pipeline<br/>.b2nd → PNG 16-bit"]
+            AnnotationM["annotation<br/>Workflow Orchestration<br/>Create/Sync/Validate"]
             BoneStoreM["bonestore<br/>NFS Traversal"]
-            ImagingM["imaging<br/>Frame Loading<br/>Cache LRU GPU"]
-            AnnotationM["annotation<br/>CVAT Orchestration"]
-            StorageM["storage<br/>PostgreSQL + Qdrant"]
-            IngestionM["ingestion<br/>BoneStore Sync<br/>Registry"]
-            PredictM["predict<br/>YOLO Inference"]
-            TrainingM["training<br/>Ray Jobs Submit"]
-            DatasetM["dataset<br/>Export YOLO Format"]
-            CVATModuleM["cvat<br/>CVAT REST API"]
+            ImagingM["imaging<br/>Frame Loading<br/>Cache LRU"]
+            StorageM["storage<br/>pg_db + task_db"]
+            IngestionM["ingestion<br/>BoneStore Sync"]
+            CVATModuleM["cvat<br/>Client v2 + Sync"]
+            DatasetM["dataset<br/>Export YOLO"]
             DashboardM["dashboard<br/>SSE Events"]
+            LabelsM["labels<br/>label-generator Cache"]
+            AnalysisM["analysis<br/>Morphometrics"]
         end
-        
-        Models["models.py<br/>Pydantic Schemas"]
     end
 
-    subgraph Flows["Flux de Données"]
-        Flow1["Ingestion Pipeline"]
-        Flow2["Pre-annotation Pipeline"]
-        Flow3["Annotation Pipeline"]
-        Flow4["Training Pipeline"]
-    end
+    %% Core workflow
+    SourcesM -->|Config| BoneStoreM
+    BoneStoreM -->|Raw frames| ImagingM
+    ImagingM -->|Load .b2nd| PrepM
+    PrepM -->|PNG 16-bit| PACS
+    AnnotationM -->|Labels| LabelsM
+    AnnotationM -->|Create task| CVATModuleM
+    AnnotationM -->|Pre-annotate| BONEML
+    AnnotationM -->|Store tasks| StorageM
+    CVATModuleM -->|Sync annotations| StorageM
 
-    %% Connections
-    Main --> Modules
-    Modules --> Models
-    
-    BoneStoreM --> BS
-    ImagingM --> BS
-    AnnotationM --> CVAT
+    %% External connections
+    LabelsM --> LG
+    CVATModuleM --> CVAT
     StorageM --> PG
     StorageM --> QD
-    IngestionM --> BS
-    IngestionM --> StorageM
-    PredictM --> ML
-    TrainingM --> ML
     DatasetM --> StorageM
-    CVATModuleM --> CVAT
-    AnnotationM --> CVATModuleM
-    PredictM --> ImagingM
+    IngestionM --> BS
     DashboardM --> Modules
-    
-    %% Flow connections
-    Flow1 -.->|BoneStore NFS Discovery| IngestionM
-    Flow1 -.->|Store Metadata| StorageM
-    
-    Flow2 -.->|Load Frames| ImagingM
-    Flow2 -.->|YOLO Predict| PredictM
-    Flow2 -.->|Push to CVAT| AnnotationM
-    
-    Flow3 -.->|Manual Annotations| AnnotationM
-    Flow3 -.->|Store in DB| StorageM
-    
-    Flow4 -.->|Export Dataset| DatasetM
-    Flow4 -.->|Submit Training| TrainingM
-    Flow4 -.->|Store Models| StorageM
-    
-    LG -.->|Fetch Labels| AnnotationM
+    PrepM -->|Upload prepared| CVAT
 
     style BoneAnnotator fill:#e8f4f8
     style External fill:#fff4e6
     style Modules fill:#f0f8ff
-    style Flows fill:#f0fff0
 ```
 
-## Flux Détaillés
-
-### 1. Ingestion (Sync BoneStore)
+## Workflow Annotation Complet
 
 ```mermaid
 sequenceDiagram
-    participant Cron
-    participant Ingestion as ingestion.service
-    participant NFS as BoneStore NFS
-    participant DB as PostgreSQL
-    participant Registry as ingestion_registry.db
+    participant User as Utilisateur
+    participant BA as bone-annotator
+    participant SDK as imaging-sdk
+    participant LG as label-generator
+    participant CVAT as CVAT v2
+    participant BML as bone-ml
+    participant PG as PostgreSQL
 
-    Cron->>Ingestion: sync_acquisitions()
-    Ingestion->>NFS: Scan /mnt/bonestore
-    NFS-->>Ingestion: List acquisitions
-    Ingestion->>Registry: Get last_sync_time
-    Registry-->>Ingestion: timestamp
-    Ingestion->>DB: Store new acquisitions
-    DB-->>Ingestion: Stored IDs
-    Ingestion->>Registry: Update sync status
-    Registry-->>Ingestion: OK
-    Ingestion-->>Cron: synced=5, new=2, pending=12
+    User->>BA: POST /api/annotation/task
+    BA->>BA: sources.get_acquisition_path()
+    BA->>SDK: prepare_dataset (pipeline)
+    SDK-->>BA: PNG 16-bit images
+    BA->>LG: get_labels_for_bone(type)
+    LG-->>BA: zones + landmarks
+    BA->>CVAT: create_task + set_labels
+    BA->>CVAT: upload_images (PNG)
+    BA->>PG: save annotation_task
+
+    opt Pre-annotation ML
+        BA->>BML: POST /api/cvat/annotate
+        BML->>CVAT: Fetch frames + YOLO predict
+        BML->>CVAT: Push pre-annotations
+    end
+
+    User->>CVAT: Annoter / Corriger
+
+    User->>BA: POST /api/annotation/sync/{id}
+    BA->>CVAT: Pull annotations
+    BA->>CVAT: Get assignee (auteur)
+    BA->>PG: Save frame_annotations (author)
+
+    User->>BA: POST /api/annotation/validate/{id}
+    BA->>PG: Update status=validated
 ```
 
-### 2. Pré-annotation (YOLO)
+## Pipeline Préparation Images
 
 ```mermaid
-sequenceDiagram
-    participant Annotation
-    participant Imaging as imaging.service
-    participant Predict as predict.service
-    participant CVAT as CVAT API
-    participant NFS as BoneStore NFS
+graph LR
+    A["BoneStore<br/>.b2nd raw uint16"] --> B["imaging-sdk<br/>Pipeline filters"]
+    B --> C["PNG 16-bit<br/>Annotation-ready"]
+    C --> D["PACS 10.0.0.90<br/>OnyxBoneDatasetTraining"]
+    C --> E["CVAT Upload<br/>Tâche annotation"]
 
-    Annotation->>Imaging: load_frames(acq_id)
-    Imaging->>NFS: Read .b2nd file
-    NFS-->>Imaging: Frames (GPU cache)
-    Imaging-->>Annotation: Frame array[]
-    Annotation->>Predict: predict(frames)
-    Predict-->>Annotation: Predictions[]
-    Annotation->>CVAT: push_predictions(task_id, preds)
-    CVAT-->>Annotation: OK
-    Annotation-->>Annotation: Display SSE event
-```
+    subgraph Pipelines["Presets imaging-sdk"]
+        P1["replay_membre"]
+        P2["high_contrast"]
+        P3["soft_denoise"]
+    end
 
-### 3. Annotation Manuelle (CVAT)
+    B --- Pipelines
 
-```mermaid
-sequenceDiagram
-    participant Radiologist
-    participant CVAT
-    participant CVATModule as cvat.sync
-    participant DB as PostgreSQL
-    participant Qdrant
-
-    Radiologist->>CVAT: Edit annotations
-    Radiologist->>CVAT: Submit task
-    CVAT-->>CVAT: Task completed
-    CVATModule->>CVAT: sync_from_cvat(task_id)
-    CVAT-->>CVATModule: Annotations XML/JSON
-    CVATModule->>DB: Store zones, landmarks, measurements
-    DB-->>CVATModule: OK
-    CVATModule->>Qdrant: Vectorize + Store embeddings
-    Qdrant-->>CVATModule: OK
-    CVATModule-->>CVATModule: Emit SSE event
-```
-
-### 4. Training Actif (YOLO)
-
-```mermaid
-sequenceDiagram
-    participant Dashboard
-    participant Dataset as dataset.service
-    participant Training as training.service
-    participant MLCompute as ml-compute Ray
-    participant DB as PostgreSQL
-    participant Training as training.callback
-
-    Dashboard->>Dataset: export_to_yolo(acquisitions)
-    Dataset->>DB: Query annotations
-    DB-->>Dataset: Annotations[]
-    Dataset-->>Dataset: Export YAML config
-    Dataset-->>Dashboard: dataset.yaml path
-    
-    Dashboard->>Training: submit_training(dataset.yaml)
-    Training->>MLCompute: POST /api/jobs
-    MLCompute-->>Training: job_id
-    Training-->>Dashboard: job_id, ETA
-    
-    MLCompute->>MLCompute: Training (GPU, epochs)
-    MLCompute->>Training: POST /callback (success)
-    Training->>DB: Store model path, metrics
-    DB-->>Training: OK
-    Training-->>Dashboard: SSE: training_complete
-```
-
-### 5. Boucle d'Apprentissage Actif
-
-```mermaid
-graph TB
-    A["1. Acquisitions<br/>BoneStore"] --> B["2. Pre-annotation<br/>YOLO v1"]
-    B --> C["3. CVAT Task<br/>Created"]
-    C --> D["4. Radiologist<br/>Annotates"]
-    D --> E["5. Export<br/>Dataset"]
-    E --> F["6. Training<br/>YOLO v2"]
-    F --> G["7. Store<br/>Model v2"]
-    G --> B
-    
     style A fill:#e8f4f8
     style B fill:#fff4e6
-    style C fill:#ffe8e8
-    style D fill:#ffe8e8
-    style E fill:#e8f4f8
-    style F fill:#fff4e6
-    style G fill:#f0f8ff
+    style C fill:#f0fff0
+    style D fill:#f0f8ff
+    style E fill:#ffe8e8
 ```
 
 ## Modules & Responsabilités
 
 ```mermaid
 graph LR
-    subgraph IO["I/O Layer"]
+    subgraph Sources["Source Layer"]
+        SM["sources<br/>(YAML Config)"]
         BM["bonestore<br/>(NFS)"]
         IM["imaging<br/>(Frames)"]
     end
-    
+
+    subgraph Preparation["Preparation Layer"]
+        PM["preparation<br/>(imaging-sdk)"]
+    end
+
+    subgraph Workflow["Workflow Layer"]
+        AM["annotation<br/>(Orchestration)"]
+        CM["cvat<br/>(REST v2)"]
+        LM["labels<br/>(label-generator)"]
+    end
+
     subgraph Storage["Storage Layer"]
-        SM["storage<br/>(DB)"]
-        QM["Qdrant<br/>(Vectors)"]
+        DB["storage/pg_db<br/>(Annotations)"]
+        TD["storage/task_db<br/>(Tasks)"]
     end
-    
-    subgraph ML["ML Layer"]
-        PM["predict<br/>(YOLO)"]
-        TM["training<br/>(Ray)"]
-        DM["dataset<br/>(Export)"]
+
+    subgraph Export["Export Layer"]
+        DM["dataset<br/>(YOLO)"]
+        AN["analysis<br/>(Morpho)"]
     end
-    
-    subgraph Integration["Integration Layer"]
-        AM["annotation<br/>(CVAT)"]
-        CM["cvat<br/>(REST API)"]
-        IM2["ingestion<br/>(Sync)"]
-    end
-    
-    subgraph Presentation["Presentation Layer"]
-        Dashboard["dashboard<br/>(SSE)"]
-        API["REST API<br/>(FastAPI)"]
-    end
-    
-    BM --> IM
-    IM --> PM
+
+    SM --> BM --> IM --> PM
     PM --> AM
+    LM --> AM
     AM --> CM
-    CM --> Storage
-    Storage --> TM
-    TM --> DM
-    DM --> Storage
-    IM2 --> BM
-    IM2 --> Storage
-    AM --> Dashboard
-    TM --> Dashboard
-    API --> Dashboard
+    AM --> TD
+    CM --> DB
+    DB --> DM
     
-    style IO fill:#e8f4f8
+    style Sources fill:#e8f4f8
+    style Preparation fill:#fff4e6
+    style Workflow fill:#ffe8e8
     style Storage fill:#f0f8ff
-    style ML fill:#fff4e6
-    style Integration fill:#ffe8e8
-    style Presentation fill:#f0fff0
+    style Export fill:#f0fff0
 ```
 
 ---
 
-**Dernière mise à jour**: 2026-08-09
-**Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.11+
+**Dernière mise à jour**: 2026-08-16
+**Phase**: v0.2.0 (Workflow annotation complet)
+**Version**: v0.2.0
