@@ -129,6 +129,20 @@ async def lifespan(app: FastAPI):
 
     logger.info("✓ All dependencies initialized")
 
+    # Run annotation task schema migrations if PostgreSQL is ready
+    if app_state.postgres_ready:
+        try:
+            from src.config import get_postgres_config
+            from src.modules.storage.task_db import create_task_db
+
+            pg_cfg = get_postgres_config()
+            task_db = create_task_db(**pg_cfg)
+            task_db.run_migrations()
+            task_db.close()
+            logger.info("✓ Annotation task migrations completed")
+        except Exception as e:
+            logger.warning("⚠ Task migrations failed: %s", e)
+
     # Inject app_state into core routes
     set_app_state(app_state)
 
@@ -163,6 +177,8 @@ _module_routers = [
     ("bonestore", "src.modules.bonestore.routes"),
     ("embeddings", "src.modules.embeddings.routes"),
     ("dashboard", "src.modules.dashboard.routes"),
+    ("sources", "src.modules.sources.routes"),
+    ("preparation", "src.modules.preparation.routes"),
     ("imaging", "src.modules.imaging.routes"),
     ("analysis", "src.modules.analysis.routes"),
     ("cvat", "src.modules.cvat.routes"),

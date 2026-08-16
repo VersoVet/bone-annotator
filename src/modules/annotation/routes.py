@@ -1,168 +1,215 @@
 """FastAPI routes for annotation workflow orchestration.
 
-Manages CVAT task creation, status tracking, and annotation export.
+Manages task creation, CVAT sync, validation, and ML pre-annotation.
 """
 
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
-from .service import get_acquisition_status
+from .models import CreateTaskRequest, ValidateRequest
+from .service import get_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/annotation", tags=["annotation"])
 
 
 @router.post("/task")
-async def create_annotation_task(
-    acquisition_id: str,
-    bone_type: str,
-    region: str = "entire",
-    assignee: str | None = None,
-) -> dict[str, Any]:
-    """Create a new CVAT annotation task for an acquisition.
+async def create_annotation_task(request: CreateTaskRequest) -> dict[str, Any]:
+    """Create a new annotation task with CVAT integration.
+
+    Prepares dataset, creates CVAT task, configures labels,
+    and optionally triggers ML pre-annotations.
 
     Args:
-        acquisition_id: BoneStore acquisition ID.
-        bone_type: Type of bone (humerus, radius, etc.).
-        region: Anatomical region (proximal, distal, entire).
-        assignee: Optional task assignee email.
+        request: Task creation parameters.
 
     Returns:
-        Task creation result with task_id and URL.
+        Task info with CVAT URL.
 
     Raises:
-        HTTPException: If CVAT connection fails.
+        HTTPException: If creation fails.
     """
     try:
-        # Get acquisition status
-        acq_status = await get_acquisition_status(acquisition_id)
-        if acq_status.get("status") == "error":
-            raise HTTPException(status_code=404, detail="Acquisition not found")
-
-        # TODO: Implement CVAT task creation via cvat.client
-        # For now, return placeholder
-        return {
-            "status": "pending_implementation",
-            "message": "CVAT task creation coming in Phase 7+",
-            "acquisition_id": acquisition_id,
-        }
-    except HTTPException:
-        raise
+        service = get_service()
+        result = await service.create_task(request)
+        return {"status": "created", "task": result.model_dump()}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error("Error creating annotation task: %s", e)
         raise HTTPException(status_code=500, detail="Failed to create task")
 
 
 @router.get("/task/{task_id}")
-async def get_annotation_task_status(task_id: str) -> dict[str, Any]:
-    """Get status of an annotation task.
+async def get_annotation_task(task_id: int) -> dict[str, Any]:
+    """Get annotation task status.
 
     Args:
-        task_id: CVAT task ID.
+        task_id: Internal task ID.
 
     Returns:
-        Task status with progress and metadata.
+        Task status and metadata.
 
     Raises:
         HTTPException: If task not found.
     """
+    service = get_service()
+    result = await service.get_task(task_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    return {"status": "ok", "task": result.model_dump()}
+
+
+@router.get("/tasks")
+async def list_annotation_tasks(
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    status: str | None = Query(None, description="Filter by status"),
+    bone_type: str | None = Query(None, description="Filter by bone type"),
+) -> dict[str, Any]:
+    """List annotation tasks with filtering.
+
+    Args:
+        limit: Max results.
+        offset: Pagination offset.
+        status: Optional status filter.
+        bone_type: Optional bone type filter.
+
+    Returns:
+        Paginated task list.
+    """
     try:
-        # TODO: Implement via cvat.client.get_task()
-        return {
-            "status": "pending_implementation",
-            "task_id": task_id,
-            "message": "Task status coming in Phase 7+",
-        }
+        service = get_service()
+        result = await service.list_tasks(limit, offset, status, bone_type)
+        return {"status": "ok", **result.model_dump()}
     except Exception as e:
-        logger.error("Error fetching task status: %s", e)
-        raise HTTPException(status_code=500, detail="Failed to fetch task status")
+        logger.error("Error listing tasks: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to list tasks")
 
 
 @router.post("/sync/{task_id}")
-async def sync_task_annotations(task_id: str) -> dict[str, Any]:
-    """Synchronize annotations from CVAT back to PostgreSQL.
+async def sync_task_annotations(task_id: int) -> dict[str, Any]:
+    """Sync annotations from CVAT back to PostgreSQL.
+
+    Pulls annotations, identifies CVAT assignee as author,
+    and stores in frame_annotations.
 
     Args:
-        task_id: CVAT task ID.
+        task_id: Internal task ID.
 
     Returns:
-        Sync result with annotation count and storage status.
+        Sync result with counts.
 
     Raises:
         HTTPException: If sync fails.
     """
     try:
-        # TODO: Implement via cvat.sync.pull_annotations()
-        return {
-            "status": "pending_implementation",
-            "task_id": task_id,
-            "message": "CVAT sync coming in Phase 7+",
-        }
+        service = get_service()
+        result = await service.sync_task(task_id)
+        return {"status": "synced", **result.model_dump()}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error("Error syncing annotations: %s", e)
+        logger.error("Error syncing task %d: %s", task_id, e)
         raise HTTPException(status_code=500, detail="Failed to sync annotations")
 
 
-@router.post("/export")
-async def export_task_annotations(
-    task_ids: list[str],
-    format: str = "yolo",
-) -> dict[str, Any]:
-    """Export annotations from completed tasks to dataset format.
+@router.post("/validate/{task_id}")
+async def validate_task(task_id: int, request: ValidateRequest) -> dict[str, Any]:
+    """Validate or reject a task's annotations.
 
     Args:
-        task_ids: List of CVAT task IDs to export.
-        format: Export format (yolo, coco, voc).
+        task_id: Internal task ID.
+        request: Validation decision and notes.
 
     Returns:
-        Export result with dataset path and statistics.
+        Updated task status.
+
+    Raises:
+        HTTPException: If validation fails.
+    """
+    try:
+        if request.decision not in ("validated", "rejected"):
+            raise HTTPException(status_code=400, detail="Decision must be 'validated' or 'rejected'")
+        service = get_service()
+        result = await service.validate_task(task_id, request)
+        return {"status": request.decision, "task": result.model_dump()}
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Error validating task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Failed to validate task")
+
+
+@router.post("/pre-annotate/{task_id}")
+async def request_pre_annotation(task_id: int) -> dict[str, Any]:
+    """Request ML pre-annotations from bone-ml for a task.
+
+    Calls bone-ml /api/cvat/annotate to run YOLO inference
+    and push predictions to the CVAT task.
+
+    Args:
+        task_id: Internal task ID.
+
+    Returns:
+        Pre-annotation request status.
+
+    Raises:
+        HTTPException: If request fails.
+    """
+    try:
+        service = get_service()
+        result = await service.request_pre_annotation(task_id)
+        return {"status": "requested", **result.model_dump()}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Error requesting pre-annotation for task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Failed to request pre-annotation")
+
+
+@router.post("/export")
+async def export_annotations(
+    task_ids: list[int] | None = None,
+    format: str = "yolo",
+) -> dict[str, Any]:
+    """Export validated annotations to training format.
+
+    Args:
+        task_ids: Task IDs to export (None = all validated).
+        format: Export format (yolo).
+
+    Returns:
+        Export result with dataset path.
 
     Raises:
         HTTPException: If export fails.
     """
     try:
-        if not task_ids:
-            raise HTTPException(status_code=400, detail="No task IDs provided")
+        service = get_service()
+        # Get acquisition IDs from validated tasks
+        result = await service.list_tasks(limit=1000, status="validated")
+        acq_ids = [t["acquisition_id"] for t in result.tasks]
 
-        # TODO: Implement via ml.dataset.export_to_yolo()
-        return {
-            "status": "pending_implementation",
-            "task_ids": task_ids,
-            "format": format,
-            "message": "Export functionality coming in Phase 7+",
-        }
-    except HTTPException:
-        raise
+        if task_ids:
+            filtered = []
+            for tid in task_ids:
+                task = await service.get_task(tid)
+                if task:
+                    filtered.append(task.acquisition_id)
+            acq_ids = filtered
+
+        if not acq_ids:
+            return {"status": "warning", "message": "No validated tasks to export"}
+
+        from src.modules.ml.dataset.service import export_to_yolo
+
+        export = await export_to_yolo(acq_ids)
+        return {"status": "ok", "export": export}
     except Exception as e:
         logger.error("Error exporting annotations: %s", e)
-        raise HTTPException(status_code=500, detail="Failed to export annotations")
-
-
-@router.get("/tasks")
-async def list_annotation_tasks(
-    limit: int = 50,
-    offset: int = 0,
-) -> dict[str, Any]:
-    """List all annotation tasks.
-
-    Args:
-        limit: Max tasks to return.
-        offset: Pagination offset.
-
-    Returns:
-        List of tasks with metadata.
-    """
-    try:
-        # TODO: Implement via cvat.client.get_tasks()
-        return {
-            "tasks": [],
-            "total": 0,
-            "limit": limit,
-            "offset": offset,
-            "message": "Task listing coming in Phase 7+",
-        }
-    except Exception as e:
-        logger.error("Error listing tasks: %s", e)
-        raise HTTPException(status_code=500, detail="Failed to list tasks")
+        raise HTTPException(status_code=500, detail="Failed to export")

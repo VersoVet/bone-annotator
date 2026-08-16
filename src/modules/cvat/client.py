@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class CVATClient:
-    """CVAT REST API client."""
+    """CVAT REST API client (supports v2.x)."""
 
     def __init__(self, host: str, port: int, username: str, password: str) -> None:
         """Initialize CVAT client.
@@ -24,6 +24,7 @@ class CVATClient:
             password: CVAT password.
         """
         self.base_url = f"http://{host}:{port}"
+        self.api_base = f"{self.base_url}/api"
         self.username = username
         self.password = password
         self.client = None
@@ -37,7 +38,7 @@ class CVATClient:
         """
         try:
             self.client = httpx.AsyncClient(auth=(self.username, self.password), timeout=30.0)
-            response = await self.client.get(f"{self.base_url}/api/v1/auth/login")
+            response = await self.client.get(f"{self.api_base}/auth/login")
             if response.status_code == 200:
                 logger.info("CVAT authentication successful")
                 return True
@@ -59,7 +60,7 @@ class CVATClient:
         try:
             if self.client is None:
                 return []
-            response = await self.client.get(f"{self.base_url}/api/v1/tasks?limit={limit}")
+            response = await self.client.get(f"{self.api_base}/tasks?limit={limit}")
             if response.status_code == 200:
                 data = response.json()
                 return data.get("results", [])
@@ -80,7 +81,7 @@ class CVATClient:
         try:
             if self.client is None:
                 return None
-            response = await self.client.get(f"{self.base_url}/api/v1/tasks/{task_id}")
+            response = await self.client.get(f"{self.api_base}/tasks/{task_id}")
             if response.status_code == 200:
                 return response.json()
             return None
@@ -110,7 +111,7 @@ class CVATClient:
                 payload["project_id"] = project_id
 
             response = await self.client.post(
-                f"{self.base_url}/api/v1/tasks",
+                f"{self.api_base}/tasks",
                 json=payload,
             )
             if response.status_code == 201:
@@ -133,7 +134,7 @@ class CVATClient:
         try:
             if self.client is None:
                 return None
-            response = await self.client.get(f"{self.base_url}/api/v1/tasks/{task_id}/annotations")
+            response = await self.client.get(f"{self.api_base}/tasks/{task_id}/annotations")
             if response.status_code == 200:
                 return response.json()
             return None
@@ -159,7 +160,7 @@ class CVATClient:
             if self.client is None:
                 return False
             response = await self.client.put(
-                f"{self.base_url}/api/v1/tasks/{task_id}/annotations",
+                f"{self.api_base}/tasks/{task_id}/annotations",
                 json=annotations,
             )
             if response.status_code in (200, 201):
@@ -170,6 +171,90 @@ class CVATClient:
         except Exception as e:
             logger.error("Error updating annotations: %s", e)
             return False
+
+    async def upload_images(
+        self,
+        task_id: int,
+        images: list[tuple[str, bytes]],
+    ) -> bool:
+        """Upload images to a CVAT task.
+
+        Args:
+            task_id: Task ID.
+            images: List of (filename, png_bytes) tuples.
+
+        Returns:
+            True if successful.
+        """
+        try:
+            if self.client is None:
+                return False
+            files = [(f"client_files[{i}]", (name, data, "image/png")) for i, (name, data) in enumerate(images)]
+            response = await self.client.post(
+                f"{self.api_base}/tasks/{task_id}/data",
+                files=files,
+                data={"image_quality": 95},
+                timeout=120.0,
+            )
+            if response.status_code in (200, 201, 202):
+                logger.info("Uploaded %d images to task %d", len(images), task_id)
+                return True
+            logger.error("Upload failed: %s", response.status_code)
+            return False
+        except Exception as e:
+            logger.error("Error uploading images to task %d: %s", task_id, e)
+            return False
+
+    async def set_labels(
+        self,
+        task_id: int,
+        labels: list[dict[str, Any]],
+    ) -> bool:
+        """Set labels on a CVAT task.
+
+        Args:
+            task_id: Task ID.
+            labels: List of CVAT label dicts.
+
+        Returns:
+            True if successful.
+        """
+        try:
+            if self.client is None:
+                return False
+            response = await self.client.patch(
+                f"{self.api_base}/tasks/{task_id}",
+                json={"labels": labels},
+            )
+            if response.status_code == 200:
+                logger.info("Labels set on task %d (%d labels)", task_id, len(labels))
+                return True
+            logger.error("Set labels failed: %s", response.status_code)
+            return False
+        except Exception as e:
+            logger.error("Error setting labels on task %d: %s", task_id, e)
+            return False
+
+    async def get_task_jobs(self, task_id: int) -> list[dict[str, Any]]:
+        """Get jobs for a CVAT task (includes assignee info).
+
+        Args:
+            task_id: Task ID.
+
+        Returns:
+            List of job dicts.
+        """
+        try:
+            if self.client is None:
+                return []
+            response = await self.client.get(f"{self.api_base}/tasks/{task_id}/jobs")
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("results", data) if isinstance(data, dict) else data
+            return []
+        except Exception as e:
+            logger.error("Error fetching jobs for task %d: %s", task_id, e)
+            return []
 
     async def close(self) -> None:
         """Close client session."""

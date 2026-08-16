@@ -33,6 +33,12 @@ CVAT_PASSWORD = os.getenv("CVAT_PASSWORD", "")
 ML_COMPUTE_HOST = os.getenv("ML_COMPUTE_HOST", "10.0.0.44")
 ML_COMPUTE_PORT = int(os.getenv("ML_COMPUTE_PORT", "9469"))
 
+BONE_ML_HOST = os.getenv("BONE_ML_HOST", "10.0.0.86")
+BONE_ML_PORT = int(os.getenv("BONE_ML_PORT", "9463"))
+
+DATASET_PACS_HOST = os.getenv("DATASET_PACS_HOST", "10.0.0.90")
+DATASET_PACS_PORT = int(os.getenv("DATASET_PACS_PORT", "8042"))
+
 REDIS_HOST = os.getenv("REDIS_HOST", "10.0.0.44")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 REDIS_DB = int(os.getenv("REDIS_DB", "0"))
@@ -45,11 +51,7 @@ VAULT_TOKEN = os.getenv("ONYX_VAULT_TOKEN", "")
 
 
 async def check_bonestore() -> bool:
-    """Vérifier que BoneStore NFS est montée et accessible.
-
-    Returns:
-        True si BoneStore est prêt.
-    """
+    """Vérifier que BoneStore NFS est montée et accessible."""
     try:
         path = Path(BONESTORE_ROOT)
         if not path.exists() or not path.is_dir():
@@ -65,11 +67,7 @@ async def check_bonestore() -> bool:
 
 
 async def check_postgres() -> bool:
-    """Vérifier la connexion à PostgreSQL.
-
-    Returns:
-        True si PostgreSQL est accessible.
-    """
+    """Vérifier la connexion à PostgreSQL."""
     try:
         import psycopg
 
@@ -86,11 +84,7 @@ async def check_postgres() -> bool:
 
 
 async def check_qdrant() -> bool:
-    """Vérifier la connexion à Qdrant.
-
-    Returns:
-        True si Qdrant est accessible.
-    """
+    """Vérifier la connexion à Qdrant."""
     try:
         from qdrant_client import QdrantClient
 
@@ -105,11 +99,7 @@ async def check_qdrant() -> bool:
 
 
 async def check_cvat() -> bool:
-    """Vérifier la connexion à CVAT API.
-
-    Returns:
-        True si CVAT est accessible.
-    """
+    """Vérifier la connexion à CVAT API."""
     try:
         import httpx
 
@@ -131,11 +121,7 @@ async def check_cvat() -> bool:
 
 
 async def check_ml_compute() -> bool:
-    """Vérifier la connexion à ml-compute Ray API.
-
-    Returns:
-        True si ml-compute est accessible.
-    """
+    """Vérifier la connexion à ml-compute Ray API."""
     try:
         import httpx
 
@@ -154,11 +140,7 @@ async def check_ml_compute() -> bool:
 
 
 async def check_redis() -> bool:
-    """Vérifier la connexion à Redis.
-
-    Returns:
-        True si Redis est accessible.
-    """
+    """Vérifier la connexion à Redis."""
     try:
         import redis
 
@@ -172,14 +154,7 @@ async def check_redis() -> bool:
 
 
 async def load_vault_secret(key: str) -> str | None:
-    """Charger un secret depuis OnyxVault.
-
-    Args:
-        key: Clé du secret.
-
-    Returns:
-        Valeur du secret ou None si échoué.
-    """
+    """Charger un secret depuis OnyxVault."""
     if not VAULT_TOKEN:
         logger.warning("VAULT_TOKEN not set, skipping vault lookup")
         return None
@@ -204,11 +179,7 @@ async def load_vault_secret(key: str) -> str | None:
 
 
 def get_postgres_config() -> dict[str, Any]:
-    """Obtenir la configuration PostgreSQL complète.
-
-    Returns:
-        Dict avec host, port, user, dbname, password.
-    """
+    """Obtenir la configuration PostgreSQL complète."""
     return {
         "host": POSTGRES_HOST,
         "port": POSTGRES_PORT,
@@ -219,11 +190,7 @@ def get_postgres_config() -> dict[str, Any]:
 
 
 def get_qdrant_config() -> dict[str, Any]:
-    """Obtenir la configuration Qdrant complète.
-
-    Returns:
-        Dict avec host, port, collections.
-    """
+    """Obtenir la configuration Qdrant complète."""
     return {
         "host": QDRANT_HOST,
         "port": QDRANT_PORT,
@@ -232,11 +199,7 @@ def get_qdrant_config() -> dict[str, Any]:
 
 
 def get_cvat_config() -> dict[str, Any]:
-    """Obtenir la configuration CVAT complète.
-
-    Returns:
-        Dict avec host, port, username, password.
-    """
+    """Obtenir la configuration CVAT complète."""
     return {
         "host": CVAT_HOST,
         "port": CVAT_PORT,
@@ -246,11 +209,7 @@ def get_cvat_config() -> dict[str, Any]:
 
 
 def get_ml_compute_config() -> dict[str, Any]:
-    """Obtenir la configuration ml-compute.
-
-    Returns:
-        Dict avec host, port.
-    """
+    """Obtenir la configuration ml-compute."""
     return {
         "host": ML_COMPUTE_HOST,
         "port": ML_COMPUTE_PORT,
@@ -258,11 +217,7 @@ def get_ml_compute_config() -> dict[str, Any]:
 
 
 def get_redis_config() -> dict[str, Any]:
-    """Obtenir la configuration Redis.
-
-    Returns:
-        Dict avec host, port, db.
-    """
+    """Obtenir la configuration Redis."""
     return {
         "host": REDIS_HOST,
         "port": REDIS_PORT,
@@ -270,12 +225,25 @@ def get_redis_config() -> dict[str, Any]:
     }
 
 
-async def check_all_dependencies() -> dict[str, bool]:
-    """Vérifier toutes les dépendances.
+def get_bone_ml_config() -> dict[str, Any]:
+    """Obtenir la configuration bone-ml."""
+    return {
+        "host": BONE_ML_HOST,
+        "port": BONE_ML_PORT,
+        "base_url": f"http://{BONE_ML_HOST}:{BONE_ML_PORT}",
+    }
 
-    Returns:
-        Dict avec status de chaque dépendance.
-    """
+
+def get_dataset_pacs_config() -> dict[str, Any]:
+    """Obtenir la configuration PACS dataset training."""
+    return {
+        "host": DATASET_PACS_HOST,
+        "port": DATASET_PACS_PORT,
+    }
+
+
+async def check_all_dependencies() -> dict[str, bool]:
+    """Vérifier toutes les dépendances."""
     return {
         "bonestore": await check_bonestore(),
         "postgres": await check_postgres(),

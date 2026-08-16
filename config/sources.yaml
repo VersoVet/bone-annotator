@@ -1,0 +1,20 @@
+# Configuration des sources d'images pour bone-annotator
+# Chaque source fournit des acquisitions d'images osseuses
+
+sources:
+  bonestore:
+    type: nfs
+    enabled: true
+    root: /mnt/bonestore
+    description: "BoneStore NFS — collections fluoroscopie 360° (raw .b2nd)"
+
+# PACS dédié aux datasets préparés pour annotation/training
+dataset_pacs:
+  host: 10.0.0.90
+  port: 8042
+  name: OnyxBoneDatasetTraining
+  description: "PACS Orthanc — datasets préparés (PNG 16-bit traitées)"
+
+# Fallback stockage local si PACS indisponible
+dataset_storage_fallback:
+  root: /mnt/soma-shared/annotation-datasets

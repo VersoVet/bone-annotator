@@ -1,256 +1,292 @@
-"""Annotation service for bone acquisition management.
+"""Annotation workflow service — orchestrates CVAT, labels, preparation, and storage."""
 
-Manages loading acquisitions from BoneStore, reading frames,
-and persisting annotations. Includes LRU cache for processed frames
-(GPU-accelerated).
-"""
-
-import json
 import logging
-import os
-from pathlib import Path
 from typing import Any
 
-from src.modules.storage.pg_db import AnnotationPgDB
+import httpx
+
+from src.config import get_bone_ml_config, get_cvat_config, get_postgres_config
+from src.modules.cvat.client import CVATClient
+from src.modules.cvat.format import labels_to_cvat_format
+from src.modules.cvat.sync import CVATSync
+from src.modules.labels.service import get_labels_for_bone
+from src.modules.preparation.service import get_service as get_prep_service
+from src.modules.sources.service import get_service as get_source_service
+from src.modules.storage.task_db import AnnotationTaskDB, create_task_db
+
+from .models import (
+    CreateTaskRequest,
+    PreAnnotateResponse,
+    SyncResult,
+    TaskListResponse,
+    TaskResponse,
+    ValidateRequest,
+)
 
 logger = logging.getLogger(__name__)
 
-ANNOTATIONS_DIR = "data/annotations"
-BONESTORE_ROOT = os.getenv("BONESTORE_ROOT", "/mnt/bonestore")
 
+class AnnotationWorkflowService:
+    """Orchestrates the complete annotation workflow."""
 
-class AnnotationService:
-    """Service for annotating bone acquisitions.
-
-    Args:
-        project_root: Project root path.
-        bonestore_root: NFS BoneStore mount point.
-        pg_config: PostgreSQL config dict or None.
-    """
-
-    def __init__(
-        self,
-        project_root: str | Path | None = None,
-        bonestore_root: str | None = None,
-        pg_config: dict[str, Any] | None = None,
-    ) -> None:
-        """Initialize annotation service."""
-        if project_root is None:
-            project_root = Path(__file__).resolve().parent.parent.parent.parent
-        self.project_root = Path(project_root)
-        self.bonestore_root = Path(bonestore_root or BONESTORE_ROOT)
-        self.annotations_dir = self.project_root / ANNOTATIONS_DIR
-        self.annotations_dir.mkdir(parents=True, exist_ok=True)
-        self._taxonomy = self._load_taxonomy()
-        self._pg_db = self._init_pg(pg_config)
-
-    def _init_pg(self, config: dict[str, Any] | None = None) -> AnnotationPgDB | None:
-        """Initialize PostgreSQL connection from config.
-
-        Args:
-            config: PostgreSQL config dict or None.
-
-        Returns:
-            AnnotationPgDB instance or None if failed.
-        """
-        try:
-            if config is None:
-                config_path = self.project_root / "config" / "default.json"
-                if config_path.exists():
-                    with config_path.open() as f:
-                        config = json.load(f).get("postgres", {})
-                else:
-                    config = {}
-
-            host = config.get("host", "10.0.0.59")
-            port = config.get("port", 5433)
-            user = config.get("user", "bone")
-            dbname = config.get("dbname", "bone_recognition")
-
-            # Password: env var > vault > config
-            password = os.environ.get("BONE_PG_PASSWORD", "")
-            if not password:
-                token = os.environ.get("ONYX_VAULT_TOKEN", "")
-                if token:
-                    try:
-                        import httpx
-
-                        r = httpx.get(
-                            "http://10.0.0.44:8050/vault/bone_postgres_password",
-                            headers={"X-Vault-Token": token},
-                            timeout=5.0,
-                        )
-                        if r.status_code == 200:
-                            password = r.json().get("value", "")
-                    except Exception:  # noqa: BLE001
-                        pass
-
-            if not password:
-                password = config.get("password", "")
-
-            if not password:
-                logger.warning("PostgreSQL password not found, falling back to JSON")
-                return None
-
-            db = AnnotationPgDB(host, port, user, password, dbname)
-            logger.info("PostgreSQL annotations connected: %s:%d", host, port)
-            return db
-        except Exception as e:
-            logger.warning("PostgreSQL init failed, falling back to JSON: %s", e)
-            return None
-
-    def _load_taxonomy(self) -> dict[str, Any]:
-        """Load taxonomy from JSON (fallback if SQLite unavailable)."""
-        path = self.project_root / "config" / "anatomy_zones.json"
-        if path.exists():
-            with Path(path).open() as f:
-                return json.load(f)
-        return {}
+    def __init__(self) -> None:
+        """Initialize workflow service with lazy-loaded dependencies."""
+        self._cvat_client: CVATClient | None = None
+        self._task_db: AnnotationTaskDB | None = None
 
     @property
-    def taxonomy(self) -> dict[str, Any]:
-        """Return complete taxonomy."""
-        return self._taxonomy
+    def cvat(self) -> CVATClient:
+        """Lazy-loaded CVAT client."""
+        if self._cvat_client is None:
+            cfg = get_cvat_config()
+            self._cvat_client = CVATClient(cfg["host"], cfg["port"], cfg["username"], cfg["password"])
+        return self._cvat_client
 
-    def reload_taxonomy(self) -> dict[str, Any]:
-        """Reload taxonomy.
+    @property
+    def task_db(self) -> AnnotationTaskDB:
+        """Lazy-loaded task database."""
+        if self._task_db is None:
+            self._task_db = create_task_db(**get_postgres_config())
+        return self._task_db
 
-        Returns:
-            Reloaded taxonomy.
-        """
-        self._taxonomy = self._load_taxonomy()
-        return self._taxonomy
+    async def create_task(self, request: CreateTaskRequest) -> TaskResponse:
+        """Create annotation task: prepare dataset, create CVAT task, configure labels."""
+        source_svc = get_source_service()
+        prep_svc = get_prep_service()
+        # 1. Get acquisition path
+        acq_path = source_svc.get_acquisition_path(request.source_name, request.acquisition_id)
+        if acq_path is None:
+            msg = f"Acquisition not found: {request.acquisition_id}"
+            raise ValueError(msg)
 
-    def get_taxonomy_for_region(self, bone_type: str, region: str = "") -> dict[str, Any]:
-        """Load taxonomy with region filtering.
+        # 2. Prepare dataset (imaging-sdk pipeline → PNG 16-bit)
+        dataset = await prep_svc.prepare_dataset(
+            acquisition_path=acq_path,
+            acquisition_id=request.acquisition_id,
+            bone_type=request.bone_type,
+            pipeline_preset=request.pipeline_preset,
+        )
 
-        Args:
-            bone_type: Bone type.
-            region: Anatomical region (proximal, distal, entire, bilateral).
-                    Empty = return all.
+        # 3. Fetch labels from label-generator
+        anatomy = get_labels_for_bone(request.bone_type)
+        cvat_labels = labels_to_cvat_format(anatomy) if anatomy else []
 
-        Returns:
-            Dict {label, zones, landmarks} filtered by region.
-        """
-        # TODO: Use visible_regions for filtering in future versions
-        # Determine visible regions based on anatomy
-        if region not in ("entire", "bilateral", ""):
-            pass  # region-based filtering not yet implemented
+        # 4. Create CVAT task
+        await self.cvat.authenticate()
+        task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
+        cvat_task = await self.cvat.create_task(task_name)
+        cvat_task_id = cvat_task["id"] if cvat_task else None
+        cvat_url = f"{self.cvat.base_url}/tasks/{cvat_task_id}" if cvat_task_id else None
 
-        # Fallback to JSON taxonomy
-        return self._taxonomy.get(bone_type, {})
+        # 5. Set labels on CVAT task
+        if cvat_task_id and cvat_labels:
+            await self.cvat.set_labels(cvat_task_id, cvat_labels)
 
-    @staticmethod
-    def _build_zone_tree(flat_zones: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Build hierarchical zone tree from flat list.
+        # 6. Upload prepared images to CVAT
+        if cvat_task_id:
+            images = self._load_prepared_images(dataset.path / "images")
+            if images:
+                await self.cvat.upload_images(cvat_task_id, images)
 
-        Args:
-            flat_zones: List of zones with id and parent_id.
+        # 7. Save task to PostgreSQL
+        task_id = self.task_db.save_task(
+            acquisition_id=request.acquisition_id,
+            bone_type=request.bone_type,
+            author=request.assignee or "system",
+            cvat_task_id=cvat_task_id,
+            source_name=request.source_name,
+            region=request.region,
+            assignee=request.assignee,
+            frame_count=dataset.frame_count,
+            dataset_path=str(dataset.path),
+            pipeline_preset=request.pipeline_preset,
+            pipeline_config=dataset.pipeline_config,
+            cvat_url=cvat_url,
+        )
 
-        Returns:
-            Tree of zones with nested children.
-        """
-        by_id: dict[str, Any] = {}
-        for z in flat_zones:
-            node = {
-                "id": z["id"],
-                "label": z["label"],
-                "level": z.get("level", 1),
-                "color": z.get("color", ""),
-                "children": [],
-                "lesion_site": bool(z.get("lesion_site")),
-                "lesion_notes": z.get("lesion_notes", ""),
-            }
-            by_id[z["id"]] = node
-        roots = []
-        for z in flat_zones:
-            node = by_id[z["id"]]
-            parent = z.get("parent_id")
-            if parent and parent in by_id:
-                by_id[parent]["children"].append(node)
-            else:
-                roots.append(node)
-        return roots
+        # 8. Request ML pre-annotations if asked
+        if request.pre_annotate and cvat_task_id:
+            await self._call_bone_ml_annotate(cvat_task_id)
+            self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
 
-    def save_annotation(self, acquisition_id: str, annotation_data: dict[str, Any]) -> str:
-        """Save annotations for acquisition (PostgreSQL + JSON backup).
+        logger.info("Task %d created: %s (CVAT %s)", task_id, task_name, cvat_task_id)
+        return TaskResponse(
+            id=task_id,
+            acquisition_id=request.acquisition_id,
+            cvat_task_id=cvat_task_id,
+            cvat_url=cvat_url,
+            status="annotating" if request.pre_annotate else "created",
+            bone_type=request.bone_type,
+            region=request.region,
+            frame_count=dataset.frame_count,
+            author=request.assignee or "system",
+            assignee=request.assignee,
+            has_pre_annotations=request.pre_annotate,
+            pipeline_preset=request.pipeline_preset,
+            dataset_path=str(dataset.path),
+        )
 
-        Args:
-            acquisition_id: Acquisition ID.
-            annotation_data: Complete annotation data.
+    async def get_task(self, task_id: int) -> TaskResponse | None:
+        """Get task status from local DB."""
+        task = self.task_db.get_task(task_id)
+        if not task:
+            return None
+        return TaskResponse(
+            id=task["id"],
+            acquisition_id=task["acquisition_id"],
+            cvat_task_id=task.get("cvat_task_id"),
+            cvat_url=task.get("cvat_url"),
+            status=task.get("status", "unknown"),
+            bone_type=task["bone_type"],
+            region=task.get("region", "entire"),
+            frame_count=task.get("frame_count", 0),
+            annotated_frames=task.get("annotated_frames", 0),
+            author=task.get("author", "unknown"),
+            assignee=task.get("assignee"),
+            has_pre_annotations=task.get("has_pre_annotations", False),
+            pipeline_preset=task.get("pipeline_preset"),
+            dataset_path=task.get("dataset_path"),
+        )
 
-        Returns:
-            Save path or identifier.
-        """
-        if self._pg_db:
-            try:
-                # Save pipeline
-                pipeline = annotation_data.get("pipeline", [])
-                preset = annotation_data.get("pipeline_preset", "")
-                if pipeline:
-                    self._pg_db.save_pipeline(acquisition_id, pipeline, preset)
-                # Save frame annotations
-                frames = annotation_data.get("frames", {})
-                for frame_fn, ann in frames.items():
-                    self._pg_db.save_frame_annotations(acquisition_id, frame_fn, ann)
-                logger.info(
-                    "Annotations saved to PostgreSQL: %s (%d frames)",
-                    acquisition_id,
-                    len(frames),
+    async def list_tasks(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        status: str | None = None,
+        bone_type: str | None = None,
+    ) -> TaskListResponse:
+        """List annotation tasks with optional filters."""
+        tasks, total = self.task_db.list_tasks(limit, offset, status, bone_type)
+        # Serialize datetimes
+        for t in tasks:
+            for key in ("created_at", "updated_at", "validated_at"):
+                if t.get(key):
+                    t[key] = str(t[key])
+        return TaskListResponse(tasks=tasks, total=total, limit=limit, offset=offset)
+
+    async def sync_task(self, task_id: int) -> SyncResult:
+        """Sync annotations from CVAT to PostgreSQL."""
+        task = self.task_db.get_task(task_id)
+        if not task or not task.get("cvat_task_id"):
+            msg = f"Task {task_id} not found or no CVAT task"
+            raise ValueError(msg)
+
+        cvat_task_id = task["cvat_task_id"]
+        await self.cvat.authenticate()
+
+        # Get assignee from CVAT jobs
+        jobs = await self.cvat.get_task_jobs(cvat_task_id)
+        author = "unknown"
+        if jobs:
+            assignee_info = jobs[0].get("assignee")
+            if assignee_info and isinstance(assignee_info, dict):
+                author = assignee_info.get("username", "unknown")
+            elif isinstance(assignee_info, str):
+                author = assignee_info
+
+        # Pull annotations via sync module
+        sync = CVATSync(self.cvat)
+        annotations = await sync.pull_annotations(cvat_task_id)
+
+        zones_count = 0
+        landmarks_count = 0
+        synced_frames = 0
+
+        if annotations and "images" in annotations:
+            from src.modules.storage.pg_db import AnnotationPgDB
+
+            pg_config = get_postgres_config()
+            db = AnnotationPgDB(**pg_config)
+            for img in annotations["images"]:
+                frame_fn = img.get("name", "")
+                frame_anns: dict[str, list[Any]] = {"zones": [], "landmarks": []}
+                for shape in img.get("shapes", []):
+                    frame_anns["zones"].append(shape)
+                    zones_count += 1
+                for lm in img.get("landmarks", []):
+                    frame_anns["landmarks"].append(lm)
+                    landmarks_count += 1
+                if frame_anns["zones"] or frame_anns["landmarks"]:
+                    db.save_frame_annotations(task["acquisition_id"], frame_fn, frame_anns)
+                    synced_frames += 1
+            db.close()
+
+        self.task_db.update_task(
+            task_id,
+            status="reviewing",
+            annotated_frames=synced_frames,
+        )
+        logger.info(
+            "Task %d synced: %d frames, %d zones, %d landmarks", task_id, synced_frames, zones_count, landmarks_count
+        )
+
+        return SyncResult(
+            task_id=task_id,
+            synced_frames=synced_frames,
+            zones_count=zones_count,
+            landmarks_count=landmarks_count,
+            author=author,
+        )
+
+    async def validate_task(self, task_id: int, request: ValidateRequest) -> TaskResponse:
+        """Validate or reject a task."""
+        self.task_db.validate_task(task_id, request.validated_by, request.decision)
+        if request.notes:
+            self.task_db.update_task(task_id, notes=request.notes)
+        result = await self.get_task(task_id)
+        if result is None:
+            msg = f"Task {task_id} not found"
+            raise ValueError(msg)
+        return result
+
+    async def request_pre_annotation(self, task_id: int) -> PreAnnotateResponse:
+        """Request ML pre-annotations from bone-ml."""
+        task = self.task_db.get_task(task_id)
+        if not task or not task.get("cvat_task_id"):
+            msg = f"Task {task_id} not found or no CVAT task"
+            raise ValueError(msg)
+
+        cvat_task_id = task["cvat_task_id"]
+        ml_status = await self._call_bone_ml_annotate(cvat_task_id)
+        self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
+
+        return PreAnnotateResponse(
+            task_id=task_id,
+            cvat_task_id=cvat_task_id,
+            status="pre_annotation_requested",
+            bone_ml_status=ml_status,
+        )
+
+    async def _call_bone_ml_annotate(self, cvat_task_id: int) -> str:
+        """Call bone-ml to pre-annotate a CVAT task."""
+        ml_config = get_bone_ml_config()
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{ml_config['base_url']}/api/cvat/annotate",
+                    json={"task_id": cvat_task_id},
+                    timeout=30.0,
                 )
-                return f"pg:{acquisition_id}"
-            except Exception as e:
-                logger.warning("PostgreSQL save failed, falling back to JSON: %s", e)
+                data = resp.json()
+                return data.get("status", "unknown")
+        except Exception as e:
+            logger.error("bone-ml pre-annotation failed: %s", e)
+            return f"error: {e}"
 
-        # Fallback: JSON storage (implement if needed)
-        return f"json:{acquisition_id}"
+    def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
+        """Load prepared PNG images from directory."""
+        from pathlib import Path
 
-    def load_annotation(self, acquisition_id: str) -> dict[str, Any] | None:
-        """Load annotations for acquisition (PostgreSQL priority).
-
-        Args:
-            acquisition_id: Acquisition ID.
-
-        Returns:
-            Annotation dict or None if absent.
-        """
-        if self._pg_db:
-            try:
-                data = self._pg_db.load_acquisition_annotations(acquisition_id)
-                if data.get("frames"):
-                    return data
-            except Exception as e:
-                logger.warning("PostgreSQL load failed: %s", e)
-
-        # Fallback: JSON storage
-        return None
-
-    def get_annotation_stats(self) -> dict[str, Any]:
-        """Get global annotation statistics.
-
-        Returns:
-            Dict with annotation counts.
-        """
-        if self._pg_db:
-            try:
-                return self._pg_db.get_stats()
-            except Exception as e:
-                logger.warning("PostgreSQL stats failed: %s", e)
-        return {}
+        return [(p.name, p.read_bytes()) for p in sorted(Path(images_dir).glob("*.png"))]
 
 
-async def get_acquisition_status(acquisition_id: str) -> dict:
-    """Get annotation status for acquisition.
+# Module singleton
+_service: AnnotationWorkflowService | None = None
 
-    Args:
-        acquisition_id: Acquisition ID.
 
-    Returns:
-        Dict with status and metadata.
-    """
-    return {
-        "acquisition_id": acquisition_id,
-        "status": "pending",
-        "frames": 0,
-        "annotated": 0,
-    }
+def get_service() -> AnnotationWorkflowService:
+    """Get or create the annotation workflow service singleton."""
+    global _service
+    if _service is None:
+        _service = AnnotationWorkflowService()
+    return _service

@@ -9,6 +9,49 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+def labels_to_cvat_format(anatomy: dict[str, Any]) -> list[dict[str, Any]]:
+    """Convert label-generator taxonomy to CVAT label format.
+
+    Args:
+        anatomy: Label-generator output for a bone type with zones and landmarks.
+
+    Returns:
+        List of CVAT label dicts with name, color, type.
+    """
+    labels: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    # Zones → rectangle labels
+    for zone in anatomy.get("zones", []):
+        name = zone.get("id", zone.get("label", ""))
+        if name and name not in seen:
+            labels.append(
+                {
+                    "name": name,
+                    "color": zone.get("color", "#00FF00"),
+                    "type": "rectangle",
+                    "attributes": [],
+                }
+            )
+            seen.add(name)
+
+    # Landmarks → point labels
+    for landmark in anatomy.get("landmarks", []):
+        name = landmark.get("id", landmark.get("label", ""))
+        if name and name not in seen:
+            labels.append(
+                {
+                    "name": name,
+                    "color": "#FF0000",
+                    "type": "points",
+                    "attributes": [],
+                }
+            )
+            seen.add(name)
+
+    return labels
+
+
 def convert_to_cvat_xml(annotations: dict[str, Any]) -> str:
     """Convert bone annotations to CVAT XML format.
 
