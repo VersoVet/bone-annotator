@@ -163,6 +163,7 @@ _module_routers = [
     ("bonestore", "src.modules.bonestore.routes"),
     ("embeddings", "src.modules.embeddings.routes"),
     ("dashboard", "src.modules.dashboard.routes"),
+    ("imaging", "src.modules.imaging.routes"),
     ("analysis", "src.modules.analysis.routes"),
     ("cvat", "src.modules.cvat.routes"),
     ("labels", "src.modules.labels.routes"),

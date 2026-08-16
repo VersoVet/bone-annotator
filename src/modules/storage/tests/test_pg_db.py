@@ -3,7 +3,7 @@
 
 def test_pg_db_import():
     """Test import module pg_db."""
-    from src.modules.storage.pg_db import PostgresAnnotationStore  # noqa: F401
+    from src.modules.storage.pg_db import AnnotationPgDB  # noqa: F401
 
     assert True
 

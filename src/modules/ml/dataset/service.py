@@ -5,15 +5,22 @@ with train/val/test splits and generates dataset.yaml configuration.
 """
 
 import logging
+import random
+import shutil
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from .utils import find_frame_image, get_frame_dimensions, zone_to_yolo_line
+
 logger = logging.getLogger(__name__)
 
 # Default YOLO dataset root
 DATASET_ROOT = Path("data/datasets")
+
+# Keep old names importable for tests
+_zone_to_yolo_line = zone_to_yolo_line
 
 
 async def export_to_yolo(
@@ -24,6 +31,9 @@ async def export_to_yolo(
     labels_mapping: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """Export annotations to YOLO dataset format.
+
+    Fetches annotations from PostgreSQL, converts zones to YOLO .txt labels,
+    and copies corresponding frame images into train/val/test splits.
 
     Args:
         acquisitions: List of acquisition IDs to export.
@@ -46,16 +56,16 @@ async def export_to_yolo(
 
     # Setup output directory
     if output_dir is None:
-        from datetime import datetime
+        from datetime import UTC, datetime
 
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
         output_dir = DATASET_ROOT / f"yolo_{timestamp}"
     else:
         output_dir = Path(output_dir)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Import annotation DB to load data
+    # Import annotation DB
     try:
         from src.config import get_postgres_config
         from src.modules.storage.pg_db import AnnotationPgDB
@@ -67,10 +77,10 @@ async def export_to_yolo(
             "dataset_path": str(output_dir),
         }
 
-    # Get PostgreSQL configuration
+    # Connect to PostgreSQL
     try:
         pg_config = get_postgres_config()
-        _ = AnnotationPgDB(**pg_config)  # Verify connection (not used for now)
+        db = AnnotationPgDB(**pg_config)
     except Exception as e:
         logger.error("Failed to initialize PostgreSQL client: %s", e)
         return {
@@ -90,45 +100,81 @@ async def export_to_yolo(
             "distal_ulna": 5,
         }
 
-    # Reverse mapping for YAML
     class_names = {v: k for k, v in labels_mapping.items()}
 
     # Create directory structure
-    splits = ["train", "val", "test"]
-    for split in splits:
+    for split in ["train", "val", "test"]:
         (output_dir / split / "images").mkdir(parents=True, exist_ok=True)
         (output_dir / split / "labels").mkdir(parents=True, exist_ok=True)
 
-    # Load annotations for all acquisitions
-    split_counts = {"train": 0, "val": 0, "test": 0}
-
+    # Collect annotated frames from PostgreSQL
+    all_frames: list[tuple[str, str, dict[str, Any]]] = []
     try:
-        # Placeholder: In real implementation, query PostgreSQL
-        # for annotations linked to acquisitions
-        # For now, return proper structure but note implementation needed
-        logger.warning("Dataset export: PostgreSQL query not implemented in Phase %d", 1)
-
-        # Distribute acquisitions across splits (test_ratio calculated but unused in placeholder)
-        total = len(acquisitions)
-        train_count = int(total * train_ratio)
-        val_count = int(total * val_ratio)
-
-        for i, acq_id in enumerate(acquisitions):
-            if i < train_count:
-                split = "train"
-            elif i < train_count + val_count:
-                split = "val"
-            else:
-                split = "test"
-            split_counts[split] += 1
-
+        for acq_id in acquisitions:
+            acq_data = db.load_acquisition_annotations(acq_id)
+            for fname, anns in acq_data.get("frames", {}).items():
+                if anns.get("zones"):
+                    all_frames.append((acq_id, fname, anns))
     except Exception as e:
-        logger.error("Error loading annotations: %s", e)
+        logger.error("Error loading annotations from PostgreSQL: %s", e)
+        db.close()
         return {
             "status": "error",
-            "message": str(e),
+            "message": f"Failed to load annotations: {e}",
             "dataset_path": str(output_dir),
         }
+
+    if not all_frames:
+        db.close()
+        return {
+            "status": "warning",
+            "message": "No annotated frames found for given acquisitions",
+            "dataset_path": str(output_dir),
+            "total_frames": 0,
+        }
+
+    # Shuffle and distribute across splits
+    random.shuffle(all_frames)
+    total = len(all_frames)
+    train_end = int(total * train_ratio)
+    val_end = train_end + int(total * val_ratio)
+
+    split_counts = {"train": 0, "val": 0, "test": 0}
+    skipped = 0
+
+    for i, (acq_id, frame_filename, annotations) in enumerate(all_frames):
+        split = "train" if i < train_end else ("val" if i < val_end else "test")
+
+        frame_path = find_frame_image(acq_id, frame_filename)
+        if frame_path is None:
+            logger.warning("Frame not found: %s/%s", acq_id, frame_filename)
+            skipped += 1
+            continue
+
+        img_w, img_h = get_frame_dimensions(frame_path)
+
+        yolo_lines = [
+            line
+            for zone in annotations.get("zones", [])
+            if (line := zone_to_yolo_line(zone, labels_mapping, img_w, img_h))
+        ]
+
+        if not yolo_lines:
+            skipped += 1
+            continue
+
+        # Write YOLO label file
+        label_name = f"{acq_id}_{frame_path.stem}.txt"
+        (output_dir / split / "labels" / label_name).write_text("\n".join(yolo_lines) + "\n")
+
+        # Copy frame image
+        image_dest = output_dir / split / "images" / f"{acq_id}_{frame_path.name}"
+        if not image_dest.exists():
+            shutil.copy2(frame_path, image_dest)
+
+        split_counts[split] += 1
+
+    db.close()
 
     # Generate dataset.yaml
     dataset_yaml = {
@@ -144,11 +190,14 @@ async def export_to_yolo(
     with yaml_path.open("w") as f:
         yaml.dump(dataset_yaml, f, default_flow_style=False)
 
+    total_exported = sum(split_counts.values())
     logger.info(
-        "Dataset exported: train=%d, val=%d, test=%d",
+        "Dataset exported: %d frames (train=%d, val=%d, test=%d, skipped=%d)",
+        total_exported,
         split_counts["train"],
         split_counts["val"],
         split_counts["test"],
+        skipped,
     )
 
     return {
@@ -158,6 +207,8 @@ async def export_to_yolo(
         "split_stats": split_counts,
         "dataset_config": dataset_yaml,
         "total_acquisitions": len(acquisitions),
+        "total_frames_exported": total_exported,
+        "skipped_frames": skipped,
     }
 
 
@@ -178,7 +229,7 @@ async def get_dataset_stats(dataset_dir: str | Path) -> dict[str, Any]:
             "message": f"Dataset directory not found: {dataset_dir}",
         }
 
-    stats = {
+    stats: dict[str, Any] = {
         "dataset_dir": str(dataset_dir.resolve()),
         "splits": {},
         "total_images": 0,
@@ -188,15 +239,12 @@ async def get_dataset_stats(dataset_dir: str | Path) -> dict[str, Any]:
     for split in ["train", "val", "test"]:
         img_dir = dataset_dir / split / "images"
         lbl_dir = dataset_dir / split / "labels"
-
         img_count = len(list(img_dir.glob("*"))) if img_dir.exists() else 0
         lbl_count = len(list(lbl_dir.glob("*.txt"))) if lbl_dir.exists() else 0
-
         stats["splits"][split] = {"images": img_count, "labels": lbl_count}
         stats["total_images"] += img_count
         stats["total_labels"] += lbl_count
 
-    # Load dataset.yaml if present
     yaml_path = dataset_dir / "dataset.yaml"
     if yaml_path.exists():
         with yaml_path.open() as f:
@@ -214,20 +262,11 @@ async def delete_dataset(dataset_dir: str | Path) -> dict[str, Any]:
     Returns:
         Status dict.
     """
-    import shutil
-
     dataset_dir = Path(dataset_dir)
-
     try:
         shutil.rmtree(dataset_dir)
         logger.info("Dataset deleted: %s", dataset_dir)
-        return {
-            "status": "success",
-            "message": f"Dataset deleted: {dataset_dir}",
-        }
+        return {"status": "success", "message": f"Dataset deleted: {dataset_dir}"}
     except Exception as e:
         logger.error("Failed to delete dataset: %s", e)
-        return {
-            "status": "error",
-            "message": str(e),
-        }
+        return {"status": "error", "message": str(e)}

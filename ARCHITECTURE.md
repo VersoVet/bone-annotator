@@ -58,15 +58,25 @@ Annotation des images osseuses fluoroscopie 360° avec pré-annotation YOLO auto
 - **Source**: Migrer depuis `bone-recognition/src/annotation/bonestore.py`
 - **État**: À migrer
 
-### 3. **imaging** — Pipeline chargement frames
-- **Responsabilité**: Décodage .b2nd, cache LRU GPU, pipeline imaging-sdk
-- **Fonctions**:
-  - `load_frame(acquisition_id, frame_idx)` → numpy array
-  - Cache LRU en mémoire GPU (10-20 acquisitions)
-  - Normalisation / prétraitement
-- **Source**: Migrer depuis `bone-recognition/src/annotation/imaging.py`
-- **Dépendances**: imaging-sdk, bonestore
-- **État**: À migrer
+### 3. **imaging** — Pipeline chargement frames ✅
+- **Responsabilité**: Décodage .b2nd, cache LRU CPU, PNG conversion, catalogue anatomique
+- **Statut**: COMPLÉTÉ (v0.1.20)
+- **Implémentation**:
+  - `imaging.py` — Blosc2 frame loading, uint16→PNG normalization (148 LOC)
+  - `frame_cache.py` — Thread-safe LRU OrderedDict cache (59 LOC)
+  - `catalog.py` — Bone taxonomy parser (70 LOC)
+  - `service.py` — Async service wrapper (106 LOC)
+  - `routes.py` — 7 FastAPI endpoints (150 LOC)
+- **Routes**:
+  - `GET /api/imaging/status` → service status + cache stats
+  - `GET /api/imaging/cache/stats` → cache sizes
+  - `POST /api/imaging/cache/clear` → clear caches
+  - `POST /api/imaging/frame/png` → load frame → PNG response
+  - `GET /api/imaging/frame/info` → frame metadata
+  - `GET /api/imaging/catalog` → imaging filters
+  - `POST /api/imaging/parse-category` → parse BoneStore dirname
+- **Tests**: 21 tests (LRU cache, catalog parsing, PNG conversion, frame index extraction)
+- **Dépendances**: blosc2, Pillow, imaging-sdk (optional)
 
 ### 4. **storage** — Persistance annotations
 - **Responsabilité**: PostgreSQL + Qdrant pour annotations
@@ -117,9 +127,12 @@ Annotation des images osseuses fluoroscopie 360° avec pré-annotation YOLO auto
 
 ### 8. **dataset** — Export annotations format YOLO ✅
 - **Responsabilité**: Conversion annotations BD → YOLO dataset format
-- **Statut**: COMPLÉTÉ (v0.1.14)
+- **Statut**: COMPLÉTÉ (v0.1.20 — export réel implémenté)
 - **Implémentation**:
-  - `export_to_yolo(acquisitions, train_ratio=0.7)` → YOLO dataset
+  - `export_to_yolo(acquisitions, train_ratio=0.7)` → fetch annotations PostgreSQL, convert zones → YOLO .txt, copy images
+  - `_zone_to_yolo_line()` — zone bbox → normalized YOLO format (class_id x_center y_center w h)
+  - `_find_frame_image()` — locate frame in BoneStore
+  - `_get_frame_dimensions()` — read .b2nd or standard image dimensions
   - `get_dataset_stats(dataset_dir)` → split info
   - `delete_dataset(dataset_dir)` → cleanup
 - **Routes**:
@@ -302,10 +315,11 @@ Schema: `bone_annotations`
 | analysis.service | ✅ | - | - | medium |
 | cvat | ✅ | cvat/routes.py | POST/GET/GET/GET/POST/GET/POST/GET | medium |
 | cvat.service | ✅ | - | - | medium |
-| imaging.service | ⚠️ | - | - | complex |
+| imaging | ✅ | imaging/routes.py | GET/GET/POST/POST/GET/GET/POST | medium |
+| imaging.service | ✅ | - | - | medium |
 | annotation.service | ⚠️ | - | - | complex |
 
-### API Endpoints Implemented: 50+
+### API Endpoints Implemented: 57+
 - Health/Status: 4 endpoints
 - Ingestion: 4 endpoints
 - BoneStore: 3 endpoints
@@ -317,16 +331,16 @@ Schema: `bone_annotations`
 - Labels/Anatomy: 10 endpoints
 - Analysis/Post-Processing: 5 endpoints
 - CVAT/Workflow: 8 endpoints
+- Imaging: 7 endpoints
 
-Tests: 42/61 passing (69%)
-Validation Forge: VALID (0E/3W)
-Commits: 6 feature commits
+Tests: 85 passing (unit + module)
+Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-08-10
-**Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.19
-**Status**: All API Routes Complete (50+ endpoints: Labels, Dashboard, Analysis, CVAT)
-**Coverage**: All core modules + labels + dashboard + analysis + CVAT have REST API routes
-**Test Coverage**: 42/61 passing (69%)
+**Dernière mise à jour**: 2026-08-16
+**Phase**: Priority 1 modules implementation
+**Version**: v0.1.20
+**Status**: Imaging routes + real dataset export + comprehensive tests
+**Coverage**: All modules have REST API routes (57+ endpoints)
+**Test Coverage**: 85 passing

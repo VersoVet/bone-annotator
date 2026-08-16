@@ -1,26 +1,25 @@
 # TODO - bone-annotator
 
-## Phase 1: Migration du Code — STATUT
+## Phase 1-2: API Routes & Module Integration — STATUT
 
-### Modules Complétés ✅ (v0.1.16 - API Routes Complete)
+### Modules Complétés ✅ (v0.1.20 - 57+ API Endpoints, All Modules with Routes)
 - [x] `src/modules/labels/service.py` — Label management avec label-generator API (283 LOC)
 - [x] `src/modules/labels/tests/test_labels.py` — 11 tests
 - [x] `src/modules/cvat/client.py` — REST API client (178 LOC, httpx async)
 - [x] `src/modules/ml/training/service.py` — Ray Jobs API integration (207 LOC)
-- [x] `src/modules/ml/dataset/service.py` — YOLO dataset export (237 LOC) ← NEW
-- [x] `src/modules/ml/dataset/tests/test_dataset.py` — 5 tests, all passing ← NEW
-- [x] `src/modules/storage/service.py` — Unified storage interface (191 LOC) ← NEW
+- [x] `src/modules/ml/dataset/service.py` — YOLO dataset export réel (PostgreSQL → .txt) ← UPDATED v0.1.20
+- [x] `src/modules/ml/dataset/tests/test_dataset.py` — 11 tests (zone→YOLO, validation, stats, delete)
+- [x] `src/modules/storage/service.py` — Unified storage interface (191 LOC)
 - [x] `src/modules/annotation/routes.py` — FastAPI endpoints (157 LOC)
 - [x] `src/modules/ingestion/registry.py` — SQLite registry (295 LOC, StrEnum updated)
-- [x] Tests integration: 42/61 passing (69%), including all new dataset tests
-- [x] Documentation (ARCHITECTURE.md updated)
-- [x] Validation Forge: VALID (0E/3W)
+- [x] `src/modules/imaging/routes.py` — 7 endpoints (frame loading, PNG, cache, catalog) ← NEW v0.1.20
+- [x] `src/modules/imaging/tests/test_stub.py` — 21 tests (LRU cache, catalog, PNG conversion) ← NEW v0.1.20
+- [x] `src/modules/ml/predict/tests/test_stub.py` — 11 tests (annotations format, confidence, security) ← NEW v0.1.20
+- [x] Tests: 85 passing (unit + module)
+- [x] Documentation (ARCHITECTURE.md, API.md updated)
+- [x] Validation Forge: VALID (0E/4W)
 
 ### Modules Pendants (Phase 1-2)
-**PRIORITÉ 1** (dépendances critiques):
-- [ ] `src/modules/imaging/service.py` — Frame loading .b2nd, LRU GPU cache (205 LOC) ← NEXT
-- [ ] `src/modules/predict/service.py` — YOLO inference for pre-annotation (249 LOC)
-- [ ] `src/modules/ml/dataset/service.py` — Export to YOLO format (218 LOC)
 
 **PRIORITÉ 2** (core storage):
 - [ ] `src/modules/bonestore/service.py` — NFS traversal, metadata (172 LOC)
@@ -175,5 +174,5 @@ predict → imaging → bonestore
 
 ---
 
-**Dernière mise à jour**: 2026-08-08
-**État**: Initialisation terminée, migration en cours
+**Dernière mise à jour**: 2026-08-16
+**État**: Priority 1 complétée — imaging routes, real dataset export, 85 tests

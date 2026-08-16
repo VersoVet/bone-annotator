@@ -1170,6 +1170,118 @@ Get CVAT service status.
 
 ---
 
+## Imaging (Frame Loading & Cache)
+
+### `GET /api/imaging/status`
+Get imaging service status with cache statistics.
+
+**Response** (200):
+```json
+{
+  "status": "ready",
+  "service": "imaging",
+  "cache_stats": {
+    "raw_cache_size": 12,
+    "processed_cache_size": 5
+  }
+}
+```
+
+### `GET /api/imaging/cache/stats`
+Get frame cache statistics.
+
+**Response** (200):
+```json
+{
+  "status": "ok",
+  "cache": {
+    "raw_cache_size": 12,
+    "processed_cache_size": 5
+  }
+}
+```
+
+### `POST /api/imaging/cache/clear`
+Clear all frame caches (raw + processed).
+
+**Response** (200):
+```json
+{
+  "status": "ok",
+  "message": "Caches cleared"
+}
+```
+
+### `POST /api/imaging/frame/png`
+Load a .b2nd frame and return as PNG image.
+
+**Request**:
+```json
+{
+  "path": "/mnt/bonestore/humerus_left/acq_001/raw/frame_0042.b2nd",
+  "size": 768
+}
+```
+
+**Response** (200): PNG image bytes (`Content-Type: image/png`)
+
+### `GET /api/imaging/frame/info`
+Get frame metadata (shape, dtype, size) without full loading.
+
+**Query params**: `path` (required)
+
+**Response** (200):
+```json
+{
+  "status": "ok",
+  "path": "/mnt/bonestore/.../frame_0042.b2nd",
+  "shape": [1380, 1380],
+  "dtype": "uint16",
+  "size_bytes": 3808800
+}
+```
+
+### `GET /api/imaging/catalog`
+Get available imaging filters catalog.
+
+**Response** (200):
+```json
+{
+  "status": "ok",
+  "filters": {
+    "clahe": {
+      "category": "enhancement",
+      "description": "Contrast Limited Adaptive Histogram Equalization",
+      "gpu": true,
+      "params": [...]
+    }
+  },
+  "count": 12
+}
+```
+
+### `POST /api/imaging/parse-category`
+Parse bone category from BoneStore directory name.
+
+**Request**:
+```json
+{
+  "dirname": "001^humerus_left_proximal"
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "ok",
+  "bone_type": "humerus",
+  "side": "left",
+  "region": "proximal"
+}
+```
+
+---
+
 ## Codes de Réponse
 
 | Code | Description |
@@ -1202,7 +1314,7 @@ Collections: bone_atlas, bone_annotations
 
 ---
 
-**Dernière mise à jour**: 2026-08-10
-**Phase**: 2 (CVAT Enhancement & ml-compute Training)
-**Version**: v0.1.19
-**Endpoints**: 50+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8)
+**Dernière mise à jour**: 2026-08-16
+**Phase**: 2 (Priority 1 modules implementation)
+**Version**: v0.1.20
+**Endpoints**: 57+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7)
