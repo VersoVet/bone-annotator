@@ -38,6 +38,8 @@ BONE_ML_PORT = int(os.getenv("BONE_ML_PORT", "9463"))
 
 DATASET_PACS_HOST = os.getenv("DATASET_PACS_HOST", "10.0.0.90")
 DATASET_PACS_PORT = int(os.getenv("DATASET_PACS_PORT", "8042"))
+DATASET_PACS_USER = os.getenv("DATASET_PACS_USER", "")
+DATASET_PACS_PASSWORD = os.getenv("DATASET_PACS_PASSWORD", "")
 
 REDIS_HOST = os.getenv("REDIS_HOST", "10.0.0.44")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
@@ -239,7 +241,25 @@ def get_dataset_pacs_config() -> dict[str, Any]:
     return {
         "host": DATASET_PACS_HOST,
         "port": DATASET_PACS_PORT,
+        "user": DATASET_PACS_USER,
+        "password": DATASET_PACS_PASSWORD,
+        "base_url": f"http://{DATASET_PACS_HOST}:{DATASET_PACS_PORT}",
     }
+
+
+async def load_pacs_credentials_from_vault() -> None:
+    """Load PACS credentials from Vault into module globals."""
+    global DATASET_PACS_USER, DATASET_PACS_PASSWORD
+    if DATASET_PACS_USER and DATASET_PACS_PASSWORD:
+        return
+    user = await load_vault_secret("orthanc_training_user")
+    password = await load_vault_secret("orthanc_training_password")
+    if user:
+        DATASET_PACS_USER = user
+    if password:
+        DATASET_PACS_PASSWORD = password
+    if user and password:
+        logger.info("PACS credentials loaded from Vault")
 
 
 async def check_all_dependencies() -> dict[str, bool]:

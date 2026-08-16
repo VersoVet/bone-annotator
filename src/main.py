@@ -93,13 +93,19 @@ async def lifespan(app: FastAPI):
         logger.warning("⚠ onyx_sdk not available")
         app_state.redis_ready = False
 
-    # Vérifier les dépendances externes avec backoff exponentiel
+    # Charger les credentials PACS depuis le Vault
     from src.config import (
         check_bonestore,
         check_cvat,
         check_postgres,
         check_qdrant,
+        load_pacs_credentials_from_vault,
     )
+
+    try:
+        await load_pacs_credentials_from_vault()
+    except Exception as e:
+        logger.warning("Failed to load PACS credentials from Vault: %s", e)
 
     logger.info("Initializing external dependencies...")
     app_state.bonestore_ready = await wait_for_dependency(
