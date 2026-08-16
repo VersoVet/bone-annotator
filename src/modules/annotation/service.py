@@ -82,7 +82,7 @@ class AnnotationWorkflowService:
         cvat_task_id = cvat_task["id"]
         cvat_url = f"{self.cvat.base_url}/tasks/{cvat_task_id}"
 
-        # 5. Set labels + upload images (with rollback on failure)
+        # 5. Set labels + upload images (delete CVAT task on failure)
         try:
             if cvat_labels:
                 await self.cvat.set_labels(cvat_task_id, cvat_labels)
@@ -90,11 +90,17 @@ class AnnotationWorkflowService:
             if images:
                 await self.cvat.upload_images(cvat_task_id, images)
         except Exception:
-            logger.error("CVAT setup failed, task %d may be incomplete", cvat_task_id)
+            logger.error("CVAT setup failed, deleting task %d", cvat_task_id)
+            try:
+                if self.cvat.client:
+                    await self.cvat.client.delete(f"{self.cvat.api_base}/tasks/{cvat_task_id}")
+            except Exception as cleanup_err:
+                logger.warning("CVAT cleanup failed: %s", cleanup_err)
             raise
 
-        # 7. Save task to PostgreSQL
-        task_id = self.task_db.save_task(
+        # 7. Save task to PostgreSQL (offloaded to thread for sync psycopg)
+        task_id = await asyncio.to_thread(
+            self.task_db.save_task,
             acquisition_id=request.acquisition_id,
             bone_type=request.bone_type,
             author=request.assignee or "system",

@@ -25,6 +25,10 @@ BONE_TYPES = ["femur", "humerus", "radius", "ulna", "scapula", "fibula"]
 LANDMARK_NAMES: dict[str, list[str]] = {
     "femur": ["femoral_head_center", "intercondylar_fossa"],
     "humerus": ["head_center", "trochlea"],
+    "radius": ["radial_head", "styloid_process"],
+    "ulna": ["olecranon", "ulnar_styloid"],
+    "scapula": ["glenoid_center", "acromion"],
+    "fibula": ["fibular_head", "lateral_malleolus"],
 }
 
 
@@ -78,7 +82,7 @@ class ShapeModel:
         self.components = Vt[:n_comp]  # (K, 2N)
         total_var = np.sum(S**2) / (len(specimens) - 1)
         self.explained_variance = (S[:n_comp] ** 2) / (len(specimens) - 1)
-        self.explained_variance_ratio = self.explained_variance / total_var
+        self.explained_variance_ratio = self.explained_variance / total_var if total_var > 1e-12 else np.zeros(n_comp)
 
         # Covariance inverse for Mahalanobis distance
         shape_codes = centered @ self.components.T  # (M, K)
@@ -113,6 +117,9 @@ class ShapeModel:
         if self.mean_shape is None:
             msg = "Model not fitted"
             raise RuntimeError(msg)
+        if shape_vector.shape != self.mean_shape.shape:
+            msg = f"Shape mismatch: got {shape_vector.shape}, expected {self.mean_shape.shape}"
+            raise ValueError(msg)
         centered = shape_vector - self.mean_shape
         return centered @ self.components.T
 

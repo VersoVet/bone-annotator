@@ -43,21 +43,28 @@ class BoneAtlasStore:
             collection,
         )
 
-    def ensure_collection(self) -> None:
-        """Create the collection if it doesn't exist."""
-        try:
+    def _get_client(self) -> Any:
+        """Get or create Qdrant client (thread-safe lazy init)."""
+        if self.client is None:
             from qdrant_client import QdrantClient
+
+            self.client = QdrantClient(host=self.host, port=self.port)
+        return self.client
+
+    def ensure_collection(self) -> None:
+        """Create the collection if it doesn't exist (idempotent)."""
+        try:
             from qdrant_client.http import models as qmodels
 
-            if self.client is None:
-                self.client = QdrantClient(host=self.host, port=self.port)
-
-            collections = [c.name for c in self.client.get_collections().collections]
-            if self.collection in collections:
+            client = self._get_client()
+            try:
+                client.get_collection(self.collection)
                 logger.info("Collection '%s' already exists", self.collection)
                 return
+            except Exception:
+                pass  # Collection doesn't exist, create it
 
-            self.client.create_collection(
+            client.create_collection(
                 collection_name=self.collection,
                 vectors_config=qmodels.VectorParams(
                     size=self.vector_size,
@@ -87,25 +94,25 @@ class BoneAtlasStore:
 
     def upsert_bone(
         self,
-        point_id: str,
+        point_id: str | int,
         embedding: list[float],
         payload: dict[str, Any],
     ) -> None:
         """Insert or update a bone entry in the atlas.
 
         Args:
-            point_id: Point ID.
+            point_id: Point ID (int or UUID string).
             embedding: 512D vector.
             payload: Rich metadata.
         """
         try:
-            from qdrant_client import QdrantClient
             from qdrant_client.http import models as qmodels
 
-            if self.client is None:
-                self.client = QdrantClient(host=self.host, port=self.port)
-
-            self.client.upsert(
+            client = self._get_client()
+            # Ensure point_id is a valid type for Qdrant (int or UUID)
+            if isinstance(point_id, str) and point_id.isdigit():
+                point_id = int(point_id)
+            client.upsert(
                 collection_name=self.collection,
                 points=[
                     qmodels.PointStruct(
@@ -117,6 +124,8 @@ class BoneAtlasStore:
             )
         except ImportError:
             logger.warning("qdrant-client not available")
+        except Exception as e:
+            logger.error("Qdrant upsert failed for %s: %s", point_id, e)
 
     def upsert_batch(
         self,
@@ -128,31 +137,26 @@ class BoneAtlasStore:
             points: List of point dicts.
         """
         try:
-            from qdrant_client import QdrantClient
             from qdrant_client.http import models as qmodels
 
-            if self.client is None:
-                self.client = QdrantClient(host=self.host, port=self.port)
-
+            client = self._get_client()
             qdrant_points = [
                 qmodels.PointStruct(
-                    id=p["id"],
+                    id=int(p["id"]) if isinstance(p["id"], str) and p["id"].isdigit() else p["id"],
                     vector=p["embedding"],
                     payload=p["payload"],
                 )
                 for p in points
             ]
-            # Upsert in chunks of 100
             chunk_size = 100
             for i in range(0, len(qdrant_points), chunk_size):
                 chunk = qdrant_points[i : i + chunk_size]
-                self.client.upsert(
-                    collection_name=self.collection,
-                    points=chunk,
-                )
+                client.upsert(collection_name=self.collection, points=chunk)
             logger.info("Upserted %d points to '%s'", len(points), self.collection)
         except ImportError:
             logger.warning("qdrant-client not available")
+        except Exception as e:
+            logger.error("Qdrant batch upsert failed: %s", e)
 
     def search_similar(
         self,
@@ -177,11 +181,9 @@ class BoneAtlasStore:
             List of search results.
         """
         try:
-            from qdrant_client import QdrantClient
             from qdrant_client.http import models as qmodels
 
-            if self.client is None:
-                self.client = QdrantClient(host=self.host, port=self.port)
+            client = self._get_client()
 
             # Build filter conditions
             conditions: list = []
@@ -211,7 +213,7 @@ class BoneAtlasStore:
             if conditions:
                 query_filter = qmodels.Filter(must=conditions)
 
-            results = self.client.query_points(
+            results = client.query_points(
                 collection_name=self.collection,
                 query=embedding,
                 query_filter=query_filter,
@@ -248,13 +250,10 @@ class BoneAtlasStore:
             List of atypical bones.
         """
         try:
-            from qdrant_client import QdrantClient
             from qdrant_client.http import models as qmodels
 
-            if self.client is None:
-                self.client = QdrantClient(host=self.host, port=self.port)
-
-            results = self.client.scroll(
+            client = self._get_client()
+            results = client.scroll(
                 collection_name=self.collection,
                 scroll_filter=qmodels.Filter(
                     must=[
@@ -286,12 +285,9 @@ class BoneAtlasStore:
             Dict with population statistics.
         """
         try:
-            from qdrant_client import QdrantClient
             from qdrant_client.http import models as qmodels
 
-            if self.client is None:
-                self.client = QdrantClient(host=self.host, port=self.port)
-
+            client = self._get_client()
             # Count total
             count_filter = None
             if bone_type:
@@ -304,7 +300,7 @@ class BoneAtlasStore:
                     ]
                 )
 
-            count = self.client.count(
+            count = client.count(
                 collection_name=self.collection,
                 count_filter=count_filter,
             ).count
@@ -322,7 +318,7 @@ class BoneAtlasStore:
                             )
                         ]
                     )
-                    stats[bt] = self.client.count(
+                    stats[bt] = client.count(
                         collection_name=self.collection,
                         count_filter=bt_filter,
                     ).count
@@ -335,12 +331,8 @@ class BoneAtlasStore:
     def delete_collection(self) -> None:
         """Delete the entire collection (use with caution)."""
         try:
-            from qdrant_client import QdrantClient
-
-            if self.client is None:
-                self.client = QdrantClient(host=self.host, port=self.port)
-
-            self.client.delete_collection(self.collection)
+            client = self._get_client()
+            client.delete_collection(self.collection)
             logger.info("Deleted collection '%s'", self.collection)
         except ImportError:
             logger.warning("qdrant-client not available")
