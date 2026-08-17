@@ -31,18 +31,24 @@ class CVATClient:
         logger.info("CVATClient initialized for %s:%d", host, port)
 
     async def authenticate(self) -> bool:
-        """Authenticate with CVAT server.
-
-        Returns:
-            True if authentication successful.
-        """
+        """Authenticate with CVAT server via login then use session token."""
         try:
-            self.client = httpx.AsyncClient(auth=(self.username, self.password), timeout=30.0)
-            response = await self.client.get(f"{self.api_base}/auth/login")
-            if response.status_code == 200:
-                logger.info("CVAT authentication successful")
+            # Login to get session token
+            tmp = httpx.AsyncClient(timeout=30.0)
+            resp = await tmp.post(
+                f"{self.api_base}/auth/login",
+                json={"username": self.username, "password": self.password},
+            )
+            await tmp.aclose()
+            if resp.status_code == 200:
+                token = resp.json().get("key", "")
+                self.client = httpx.AsyncClient(
+                    headers={"Authorization": f"Token {token}"},
+                    timeout=30.0,
+                )
+                logger.info("CVAT authentication successful (token)")
                 return True
-            logger.error("CVAT authentication failed: %s", response.status_code)
+            logger.error("CVAT authentication failed: %s", resp.status_code)
             return False
         except Exception as e:
             logger.error("CVAT authentication error: %s", e)
