@@ -4,9 +4,7 @@ import asyncio
 import logging
 from typing import Any
 
-import httpx
-
-from src.config import get_bone_ml_config, get_cvat_config, get_postgres_config
+from src.config import get_cvat_config, get_postgres_config
 from src.modules.cvat.client import CVATClient
 from src.modules.cvat.format import labels_to_cvat_format
 from src.modules.cvat.sync import CVATSync
@@ -117,7 +115,9 @@ class AnnotationWorkflowService:
 
         # 8. Request ML pre-annotations if asked
         if request.pre_annotate and cvat_task_id:
-            await self._call_bone_ml_annotate(cvat_task_id)
+            from .ml_bridge import call_bone_ml_annotate
+
+            await call_bone_ml_annotate(cvat_task_id)
             self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
 
         logger.info("Task %d created: %s (CVAT %s)", task_id, task_name, cvat_task_id)
@@ -218,7 +218,20 @@ class AnnotationWorkflowService:
                     frame_anns["landmarks"].append(lm)
                     landmarks_count += 1
                 if frame_anns["zones"] or frame_anns["landmarks"]:
-                    db.save_frame_annotations(task["acquisition_id"], frame_fn, frame_anns)
+                    # Detect provenance from first annotation
+                    first = (frame_anns["zones"] or frame_anns["landmarks"])[0]
+                    source = first.get("source", "manual")
+                    confidence = first.get("confidence")
+                    model_ver = first.get("model_version")
+                    db.save_frame_annotations(
+                        task["acquisition_id"],
+                        frame_fn,
+                        frame_anns,
+                        author=author,
+                        source=source,
+                        confidence=confidence,
+                        model_version=model_ver,
+                    )
                     synced_frames += 1
             db.close()
 
@@ -240,7 +253,7 @@ class AnnotationWorkflowService:
         )
 
     async def validate_task(self, task_id: int, request: ValidateRequest) -> TaskResponse:
-        """Validate or reject a task."""
+        """Validate or reject a task. Triggers training if enough validated tasks."""
         self.task_db.validate_task(task_id, request.validated_by, request.decision)
         if request.notes:
             self.task_db.update_task(task_id, notes=request.notes)
@@ -248,17 +261,46 @@ class AnnotationWorkflowService:
         if result is None:
             msg = f"Task {task_id} not found"
             raise ValueError(msg)
+        # Auto-trigger training if enough validated tasks
+        if request.decision == "validated" and result.bone_type:
+            await self._maybe_trigger_training(result.bone_type)
+        return result
+
+    async def re_annotate_task(self, task_id: int, pre_annotate: bool = True) -> TaskResponse:
+        """Create a re-annotation task from a validated parent task."""
+        parent = self.task_db.get_task(task_id)
+        if not parent:
+            msg = f"Task {task_id} not found"
+            raise ValueError(msg)
+        if parent.get("status") != "validated":
+            msg = f"Task {task_id} is not validated (status={parent.get('status')})"
+            raise ValueError(msg)
+
+        from .models import CreateTaskRequest
+
+        request = CreateTaskRequest(
+            source_name=parent.get("source_name", "bonestore"),
+            acquisition_id=parent["acquisition_id"],
+            bone_type=parent["bone_type"],
+            region=parent.get("region", "entire"),
+            pipeline_preset=parent.get("pipeline_preset", "replay_membre"),
+            pre_annotate=pre_annotate,
+        )
+        result = await self.create_task(request)
+        self.task_db.update_task(result.id, parent_task_id=task_id)
         return result
 
     async def request_pre_annotation(self, task_id: int) -> PreAnnotateResponse:
         """Request ML pre-annotations from bone-ml."""
+        from .ml_bridge import call_bone_ml_annotate
+
         task = self.task_db.get_task(task_id)
         if not task or not task.get("cvat_task_id"):
             msg = f"Task {task_id} not found or no CVAT task"
             raise ValueError(msg)
 
         cvat_task_id = task["cvat_task_id"]
-        ml_status = await self._call_bone_ml_annotate(cvat_task_id)
+        ml_status = await call_bone_ml_annotate(cvat_task_id)
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
 
         return PreAnnotateResponse(
@@ -268,21 +310,12 @@ class AnnotationWorkflowService:
             bone_ml_status=ml_status,
         )
 
-    async def _call_bone_ml_annotate(self, cvat_task_id: int) -> str:
-        """Call bone-ml to pre-annotate a CVAT task."""
-        ml_config = get_bone_ml_config()
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    f"{ml_config['base_url']}/api/cvat/annotate",
-                    json={"task_id": cvat_task_id},
-                    timeout=30.0,
-                )
-                data = resp.json()
-                return data.get("status", "unknown")
-        except Exception as e:
-            logger.error("bone-ml pre-annotation failed: %s", e)
-            return f"error: {e}"
+    async def _maybe_trigger_training(self, bone_type: str) -> None:
+        """Trigger fine-tuning if enough validated tasks since last run."""
+        from .ml_bridge import maybe_trigger_training
+
+        conn = self.task_db._get_conn()
+        await maybe_trigger_training(conn, bone_type)
 
     def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
         """Load prepared PNG images from directory."""

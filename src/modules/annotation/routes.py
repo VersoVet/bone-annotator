@@ -172,6 +172,34 @@ async def request_pre_annotation(task_id: int) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail="Failed to request pre-annotation")
 
 
+@router.post("/re-annotate/{task_id}")
+async def re_annotate_task(
+    task_id: int,
+    pre_annotate: bool = True,
+) -> dict[str, Any]:
+    """Create a re-annotation task from a validated parent.
+
+    Args:
+        task_id: Parent task ID (must be validated).
+        pre_annotate: Request ML pre-annotations with latest model.
+
+    Returns:
+        New task info.
+
+    Raises:
+        HTTPException: If parent not found or not validated.
+    """
+    try:
+        service = get_service()
+        result = await service.re_annotate_task(task_id, pre_annotate)
+        return {"status": "created", "task": result.model_dump(), "parent_task_id": task_id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Error re-annotating task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Failed to re-annotate")
+
+
 @router.post("/export")
 async def export_annotations(
     task_ids: list[int] | None = None,

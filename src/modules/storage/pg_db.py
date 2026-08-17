@@ -112,23 +112,36 @@ class AnnotationPgDB:
         acq_id: str,
         frame_filename: str,
         annotations: dict[str, Any],
+        *,
+        author: str = "unknown",
+        source: str = "manual",
+        confidence: float | None = None,
+        model_version: str | None = None,
     ) -> int:
-        """Save all annotations for a frame.
+        """Save annotations for a frame using soft-replace.
 
-        Deletes old annotations for the frame, then inserts new ones.
+        Marks existing rows as superseded, then inserts new ones
+        with provenance tracking.
 
         Args:
             acq_id: Acquisition ID.
             frame_filename: Frame filename (.b2nd).
             annotations: Dict {zones: [...], landmarks: [...], ...}.
+            author: Who created these annotations.
+            source: Origin ('manual', 'ml', 'import').
+            confidence: ML confidence score (None for manual).
+            model_version: ML model version (None for manual).
 
         Returns:
             Number of annotations inserted.
         """
         conn = self._get_conn()
-        # Delete old annotations for this frame
+        # Soft-replace: mark existing as superseded
         conn.execute(
-            "DELETE FROM bone_annotations.frame_annotations WHERE acquisition_id=%s AND frame_filename=%s",
+            """UPDATE bone_annotations.frame_annotations
+            SET source = source || '_superseded'
+            WHERE acquisition_id=%s AND frame_filename=%s
+            AND source NOT LIKE '%%_superseded'""",
             (acq_id, frame_filename),
         )
         count = 0
@@ -136,11 +149,15 @@ class AnnotationPgDB:
             for item in annotations.get(ann_type, []):
                 ann_id = item.get("id", f"{ann_type}_{count}")
                 label = item.get("label", item.get("name", ""))
+                item_conf = item.get("confidence", confidence)
+                item_source = item.get("source", source)
+                item_model = item.get("model_version", model_version)
                 conn.execute(
                     """INSERT INTO bone_annotations.frame_annotations
                     (acquisition_id, frame_filename, annotation_type,
-                     annotation_id, label, data)
-                    VALUES (%s, %s, %s, %s, %s, %s)""",
+                     annotation_id, label, data, author, source,
+                     confidence, model_version)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         acq_id,
                         frame_filename,
@@ -148,6 +165,10 @@ class AnnotationPgDB:
                         ann_id,
                         label,
                         json.dumps(item),
+                        author,
+                        item_source,
+                        item_conf,
+                        item_model,
                     ),
                 )
                 count += 1

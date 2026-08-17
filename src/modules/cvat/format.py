@@ -52,6 +52,24 @@ def labels_to_cvat_format(anatomy: dict[str, Any]) -> list[dict[str, Any]]:
     return labels
 
 
+def _extract_provenance_attrs(elem: Any) -> dict[str, Any]:
+    """Extract provenance attributes (source, confidence, model_version) from CVAT element."""
+    provenance: dict[str, Any] = {}
+    for attr in elem.findall("attribute"):
+        name = attr.get("name", "")
+        value = attr.text or ""
+        if name == "source":
+            provenance["source"] = value
+        elif name == "confidence":
+            try:
+                provenance["confidence"] = float(value)
+            except ValueError:
+                pass
+        elif name == "model_version":
+            provenance["model_version"] = value
+    return provenance
+
+
 def convert_to_cvat_xml(annotations: dict[str, Any]) -> str:
     """Convert bone annotations to CVAT XML format.
 
@@ -148,16 +166,16 @@ def convert_from_cvat_xml(xml_string: str) -> dict[str, Any]:
 
             # Parse boxes
             for box in img_elem.findall("box"):
-                img["shapes"].append(
-                    {
-                        "type": "box",
-                        "label": box.get("label", ""),
-                        "x1": int(float(box.get("xtl", "0"))),
-                        "y1": int(float(box.get("ytl", "0"))),
-                        "x2": int(float(box.get("xbr", "0"))),
-                        "y2": int(float(box.get("ybr", "0"))),
-                    }
-                )
+                shape: dict[str, Any] = {
+                    "type": "box",
+                    "label": box.get("label", ""),
+                    "x1": int(float(box.get("xtl", "0"))),
+                    "y1": int(float(box.get("ytl", "0"))),
+                    "x2": int(float(box.get("xbr", "0"))),
+                    "y2": int(float(box.get("ybr", "0"))),
+                }
+                shape.update(_extract_provenance_attrs(box))
+                img["shapes"].append(shape)
 
             # Parse polygons
             for poly in img_elem.findall("polygon"):
@@ -180,14 +198,14 @@ def convert_from_cvat_xml(xml_string: str) -> dict[str, Any]:
 
             # Parse points (landmarks)
             for point in img_elem.findall("point"):
-                img["landmarks"].append(
-                    {
-                        "name": point.get("label", ""),
-                        "x": float(point.get("x", "0")),
-                        "y": float(point.get("y", "0")),
-                        "confidence": 1.0,
-                    }
-                )
+                lm: dict[str, Any] = {
+                    "name": point.get("label", ""),
+                    "x": float(point.get("x", "0")),
+                    "y": float(point.get("y", "0")),
+                    "confidence": 1.0,
+                }
+                lm.update(_extract_provenance_attrs(point))
+                img["landmarks"].append(lm)
 
             annotations["images"].append(img)
 

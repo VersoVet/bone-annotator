@@ -28,6 +28,9 @@ _MIGRATIONS = [
         ADD COLUMN IF NOT EXISTS validated_at TIMESTAMPTZ""",
     f"""ALTER TABLE {SCHEMA}.frame_annotations
         ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()""",
+    # model_version on frame_annotations
+    f"""ALTER TABLE {SCHEMA}.frame_annotations
+        ADD COLUMN IF NOT EXISTS model_version VARCHAR(200)""",
     # Create annotation_tasks table
     f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.annotation_tasks (
         id SERIAL PRIMARY KEY,
@@ -51,6 +54,31 @@ _MIGRATIONS = [
         validated_at TIMESTAMPTZ,
         validated_by VARCHAR(100),
         notes TEXT
+    )""",
+    # parent_task_id for re-annotation chains
+    f"""ALTER TABLE {SCHEMA}.annotation_tasks
+        ADD COLUMN IF NOT EXISTS parent_task_id INTEGER""",
+    # training_runs table for active learning
+    f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.training_runs (
+        id SERIAL PRIMARY KEY,
+        run_name VARCHAR(200) NOT NULL UNIQUE,
+        generation INTEGER NOT NULL DEFAULT 1,
+        parent_run_id INTEGER,
+        model_base VARCHAR(500) NOT NULL,
+        model_output_path VARCHAR(500),
+        dataset_path VARCHAR(500) NOT NULL,
+        dataset_hash VARCHAR(64),
+        label_map JSONB NOT NULL,
+        bone_type VARCHAR(50) NOT NULL,
+        epochs INTEGER NOT NULL,
+        imgsz INTEGER NOT NULL DEFAULT 1408,
+        batch_size INTEGER NOT NULL DEFAULT 4,
+        map50 FLOAT, map50_95 FLOAT,
+        precision_score FLOAT, recall_score FLOAT,
+        total_images INTEGER,
+        status VARCHAR(20) DEFAULT 'pending',
+        started_at TIMESTAMPTZ, completed_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW()
     )""",
 ]
 
@@ -164,6 +192,7 @@ class AnnotationTaskDB:
             "validated_at",
             "notes",
             "dataset_path",
+            "parent_task_id",
         }
         updates = {k: v for k, v in kwargs.items() if k in allowed}
         if not updates:
