@@ -225,6 +225,10 @@ class AnnotationWorkflowService:
             pg_config = get_postgres_config()
             db = AnnotationPgDB(**pg_config)
 
+            # Resolve label IDs to names from task metadata
+            cvat_task_data = await self.cvat.get_task(cvat_task_id)
+            label_map = {lbl["id"]: lbl["name"] for lbl in (cvat_task_data.get("labels", []) if cvat_task_data else [])}
+
             # Group shapes by frame number
             frames: dict[int, dict[str, list[Any]]] = {}
             for shape in raw_annotations.get("shapes", []):
@@ -233,8 +237,9 @@ class AnnotationWorkflowService:
                     frames[frame_num] = {"zones": [], "landmarks": []}
                 # Extract provenance from CVAT attributes
                 provenance = _extract_shape_provenance(shape.get("attributes", []))
+                label_name = label_map.get(shape.get("label_id"), str(shape.get("label_id", "")))
                 shape_data = {
-                    "label": shape.get("label", {}).get("name", shape.get("label_id", "")),
+                    "label": label_name,
                     "type": shape.get("type", "rectangle"),
                     **provenance,
                 }
@@ -343,7 +348,8 @@ class AnnotationWorkflowService:
         try:
             parent_anns = await self.cvat.get_annotations(parent_cvat_id)
             if parent_anns and parent_anns.get("shapes"):
-                await self.cvat.update_annotations(new_cvat_id, {"shapes": parent_anns["shapes"]})
+                payload = {"version": 0, "shapes": parent_anns["shapes"], "tracks": [], "tags": []}
+                await self.cvat.update_annotations(new_cvat_id, payload)
                 logger.info(
                     "Copied %d shapes from CVAT %d to %d", len(parent_anns["shapes"]), parent_cvat_id, new_cvat_id
                 )
