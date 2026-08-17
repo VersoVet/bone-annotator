@@ -81,7 +81,7 @@ async def lifespan(app: FastAPI):
     # Initialiser OnyxClient pour intégration Onyx Dashboard
     if OnyxClient:
         try:
-            app_state.onyx_client = OnyxClient()
+            app_state.onyx_client = OnyxClient("bone-annotator")
             await app_state.onyx_client.start()  # Signal UP au Dashboard
             await app_state.onyx_client.working()  # Signal WORKING en cours
             app_state.redis_ready = True
