@@ -225,6 +225,16 @@ class AnnotationWorkflowService:
             pg_config = get_postgres_config()
             db = AnnotationPgDB(**pg_config)
 
+            # Ensure acquisition exists in DB before saving annotations
+            db.ensure_acquisition(
+                acq_id=task["acquisition_id"],
+                category=task.get("bone_type", ""),
+                bone_type=task.get("bone_type", ""),
+                side=task.get("region", "entire"),
+                region=task.get("region", "entire"),
+                frame_count=task.get("frame_count", 0),
+            )
+
             # Resolve label IDs to names (CVAT v2: labels are at /api/labels?task_id=N)
             label_map: dict[int, str] = {}
             if self.cvat.client:
