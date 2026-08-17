@@ -1,37 +1,27 @@
 # FastAPI & Web
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-
-# Onyx SDK (OBLIGATOIRE pour intégration Onyx)
-onyx-sdk==2.1.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
 
 # Database
-psycopg2-binary==2.9.9
-sqlalchemy==2.0.23
-qdrant-client==2.7.0
+psycopg[binary]>=3.1.0
+qdrant-client>=1.7.0
 
 # HTTP
-httpx==0.25.2
-aiohttp==3.9.1
+httpx>=0.25.0
 
-# ML & Computer Vision
-numpy==1.26.3
-opencv-python==4.8.1.78
-pillow==10.1.0
+# Imaging
+numpy>=1.26.0
+pillow>=10.1.0
+blosc2>=2.5.0
 
-# ML models
-torch==2.1.1
-torchvision==0.16.1
-ultralytics==8.0.228  # YOLO
+# YAML config
+pyyaml>=6.0
 
-# Development
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-ruff==0.1.9
-mypy==1.7.1
-black==23.12.0
+# Redis
+redis>=5.0.0
 
-# Logging & Monitoring
-python-json-logger==2.0.7
+# Testing (dev only)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
