@@ -86,7 +86,9 @@ async def lifespan(app: FastAPI):
                 await app_state.onyx_client.start_async()
             elif hasattr(app_state.onyx_client, "start"):
                 await app_state.onyx_client.start()
-            await app_state.onyx_client.working()
+            result = app_state.onyx_client.working()
+            if hasattr(result, "__await__"):
+                await result
             app_state.redis_ready = True
             logger.info("✓ OnyxClient initialized")
         except Exception as e:
