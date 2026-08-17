@@ -32181,6 +32181,13 @@
             "zotero_key": "6IB9CNCZ",
             "citation": "Tinga et al. (2018), Discussion",
             "table_ref": ""
+          },
+          {
+            "id": 779,
+            "criteria_id": "amplitude_flexion_extension_grasset_locomotion",
+            "zotero_key": "E5DQAWFW",
+            "citation": "Freund et al. (2016), AJVR 77(7):749-755, Discussion",
+            "table_ref": ""
           }
         ]
       },
@@ -32393,6 +32400,13 @@
             "criteria_id": "angle_articulaire_grasset",
             "zotero_key": "CGNX36MZ",
             "citation": "\u0160ev\u010d\u00edk et al. (2021), Methods et Results",
+            "table_ref": ""
+          },
+          {
+            "id": 778,
+            "criteria_id": "angle_articulaire_grasset",
+            "zotero_key": "E5DQAWFW",
+            "citation": "Freund et al. (2016), AJVR 77(7):749-755, Results/Discussion",
             "table_ref": ""
           }
         ]
