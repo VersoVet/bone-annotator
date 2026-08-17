@@ -7,7 +7,6 @@ from typing import Any
 from src.config import get_cvat_config, get_postgres_config
 from src.modules.cvat.client import CVATClient
 from src.modules.cvat.format import labels_to_cvat_format
-from src.modules.cvat.sync import CVATSync
 from src.modules.labels.service import get_labels_for_bone
 from src.modules.preparation.service import get_service as get_prep_service
 from src.modules.sources.service import get_service as get_source_service
@@ -23,6 +22,24 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
+
+_PROVENANCE_KEYS = {"source", "confidence", "model_version"}
+
+
+def _extract_shape_provenance(attributes: list[dict[str, Any]]) -> dict[str, Any]:
+    """Extract provenance fields from CVAT shape attributes JSON."""
+    result: dict[str, Any] = {}
+    for attr in attributes:
+        name = attr.get("name", "")
+        value = attr.get("value", "")
+        if name == "confidence":
+            try:
+                result["confidence"] = float(value)
+            except (ValueError, TypeError):
+                pass
+        elif name in _PROVENANCE_KEYS:
+            result[name] = value
+    return result
 
 
 class AnnotationWorkflowService:
@@ -176,7 +193,7 @@ class AnnotationWorkflowService:
         return TaskListResponse(tasks=tasks, total=total, limit=limit, offset=offset)
 
     async def sync_task(self, task_id: int) -> SyncResult:
-        """Sync annotations from CVAT to PostgreSQL."""
+        """Sync annotations from CVAT JSON REST API to PostgreSQL."""
         task = self.task_db.get_task(task_id)
         if not task or not task.get("cvat_task_id"):
             msg = f"Task {task_id} not found or no CVAT task"
@@ -195,44 +212,63 @@ class AnnotationWorkflowService:
             elif isinstance(assignee_info, str):
                 author = assignee_info
 
-        # Pull annotations via sync module
-        sync = CVATSync(self.cvat)
-        annotations = await sync.pull_annotations(cvat_task_id)
+        # Pull annotations as JSON (not XML)
+        raw_annotations = await self.cvat.get_annotations(cvat_task_id)
 
         zones_count = 0
         landmarks_count = 0
         synced_frames = 0
 
-        if annotations and "images" in annotations:
+        if raw_annotations and "shapes" in raw_annotations:
             from src.modules.storage.pg_db import AnnotationPgDB
 
             pg_config = get_postgres_config()
             db = AnnotationPgDB(**pg_config)
-            for img in annotations["images"]:
-                frame_fn = img.get("name", "")
-                frame_anns: dict[str, list[Any]] = {"zones": [], "landmarks": []}
-                for shape in img.get("shapes", []):
-                    frame_anns["zones"].append(shape)
-                    zones_count += 1
-                for lm in img.get("landmarks", []):
-                    frame_anns["landmarks"].append(lm)
+
+            # Group shapes by frame number
+            frames: dict[int, dict[str, list[Any]]] = {}
+            for shape in raw_annotations.get("shapes", []):
+                frame_num = shape.get("frame", 0)
+                if frame_num not in frames:
+                    frames[frame_num] = {"zones": [], "landmarks": []}
+                # Extract provenance from CVAT attributes
+                provenance = _extract_shape_provenance(shape.get("attributes", []))
+                shape_data = {
+                    "label": shape.get("label", {}).get("name", shape.get("label_id", "")),
+                    "type": shape.get("type", "rectangle"),
+                    **provenance,
+                }
+                if shape.get("type") == "points":
+                    pts = shape.get("points", [])
+                    if len(pts) >= 2:
+                        shape_data["x"] = pts[0]
+                        shape_data["y"] = pts[1]
+                    frames[frame_num]["landmarks"].append(shape_data)
                     landmarks_count += 1
-                if frame_anns["zones"] or frame_anns["landmarks"]:
-                    # Detect provenance from first annotation
-                    first = (frame_anns["zones"] or frame_anns["landmarks"])[0]
-                    source = first.get("source", "manual")
-                    confidence = first.get("confidence")
-                    model_ver = first.get("model_version")
-                    db.save_frame_annotations(
-                        task["acquisition_id"],
-                        frame_fn,
-                        frame_anns,
-                        author=author,
-                        source=source,
-                        confidence=confidence,
-                        model_version=model_ver,
-                    )
-                    synced_frames += 1
+                else:
+                    pts = shape.get("points", [])
+                    if len(pts) >= 4:
+                        shape_data["x"] = pts[0]
+                        shape_data["y"] = pts[1]
+                        shape_data["width"] = pts[2] - pts[0]
+                        shape_data["height"] = pts[3] - pts[1]
+                    frames[frame_num]["zones"].append(shape_data)
+                    zones_count += 1
+
+            # Save each frame's annotations
+            for frame_num, anns in frames.items():
+                frame_fn = f"frame_{frame_num:04d}.png"
+                first = (anns["zones"] or anns["landmarks"])[0]
+                db.save_frame_annotations(
+                    task["acquisition_id"],
+                    frame_fn,
+                    anns,
+                    author=author,
+                    source=first.get("source", "manual"),
+                    confidence=first.get("confidence"),
+                    model_version=first.get("model_version"),
+                )
+                synced_frames += 1
             db.close()
 
         self.task_db.update_task(
@@ -267,7 +303,7 @@ class AnnotationWorkflowService:
         return result
 
     async def re_annotate_task(self, task_id: int, pre_annotate: bool = True) -> TaskResponse:
-        """Create a re-annotation task from a validated parent task."""
+        """Create a re-annotation task pre-populated with parent annotations."""
         parent = self.task_db.get_task(task_id)
         if not parent:
             msg = f"Task {task_id} not found"
@@ -284,11 +320,35 @@ class AnnotationWorkflowService:
             bone_type=parent["bone_type"],
             region=parent.get("region", "entire"),
             pipeline_preset=parent.get("pipeline_preset", "replay_membre"),
-            pre_annotate=pre_annotate,
+            pre_annotate=False,  # We'll push parent annotations instead
         )
         result = await self.create_task(request)
         self.task_db.update_task(result.id, parent_task_id=task_id)
+
+        # Copy validated annotations from parent into new CVAT task
+        if result.cvat_task_id and parent.get("cvat_task_id"):
+            await self._copy_parent_annotations(parent["cvat_task_id"], result.cvat_task_id)
+
+        # Optionally request ML pre-annotations on top
+        if pre_annotate and result.cvat_task_id:
+            from .ml_bridge import call_bone_ml_annotate
+
+            await call_bone_ml_annotate(result.cvat_task_id)
+            self.task_db.update_task(result.id, has_pre_annotations=True)
+
         return result
+
+    async def _copy_parent_annotations(self, parent_cvat_id: int, new_cvat_id: int) -> None:
+        """Copy annotations from parent CVAT task to new task."""
+        try:
+            parent_anns = await self.cvat.get_annotations(parent_cvat_id)
+            if parent_anns and parent_anns.get("shapes"):
+                await self.cvat.update_annotations(new_cvat_id, {"shapes": parent_anns["shapes"]})
+                logger.info(
+                    "Copied %d shapes from CVAT %d to %d", len(parent_anns["shapes"]), parent_cvat_id, new_cvat_id
+                )
+        except Exception as e:
+            logger.warning("Failed to copy parent annotations: %s", e)
 
     async def request_pre_annotation(self, task_id: int) -> PreAnnotateResponse:
         """Request ML pre-annotations from bone-ml."""
