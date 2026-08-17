@@ -225,9 +225,13 @@ class AnnotationWorkflowService:
             pg_config = get_postgres_config()
             db = AnnotationPgDB(**pg_config)
 
-            # Resolve label IDs to names from task metadata
-            cvat_task_data = await self.cvat.get_task(cvat_task_id)
-            label_map = {lbl["id"]: lbl["name"] for lbl in (cvat_task_data.get("labels", []) if cvat_task_data else [])}
+            # Resolve label IDs to names (CVAT v2: labels are at /api/labels?task_id=N)
+            label_map: dict[int, str] = {}
+            if self.cvat.client:
+                lbl_resp = await self.cvat.client.get(f"{self.cvat.api_base}/labels?task_id={cvat_task_id}")
+                if lbl_resp.status_code == 200:
+                    for lbl in lbl_resp.json().get("results", []):
+                        label_map[lbl["id"]] = lbl["name"]
 
             # Group shapes by frame number
             frames: dict[int, dict[str, list[Any]]] = {}
