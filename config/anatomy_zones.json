@@ -15383,6 +15383,40 @@
         ]
       },
       {
+        "id": "classification_dejour_dysplasie_trochleenne",
+        "bone_type": "rotule",
+        "name": "Classification de D\u00e9jour de la dysplasie trochl\u00e9enne",
+        "name_en": "D\u00e9jour classification of trochlear dysplasia",
+        "normal_unit": "classification qualitative (types A, B, C, D)",
+        "measurement_method": "\u00c9valuation qualitative de la morphologie du sillon trochl\u00e9en sur coupes tomodensitom\u00e9triques axiales et reconstructions 3D ; type A = quasi-normal, type D = trochl\u00e9e plate ou convexe (profondeur et angles d'inclinaison nuls)",
+        "landmarks_required": [
+          "crete_trochleenne_laterale",
+          "crete_trochleenne_mediale"
+        ],
+        "clinical_use": "Grading de la s\u00e9v\u00e9rit\u00e9 de la dysplasie trochl\u00e9enne, \u00e0 corr\u00e9ler avec profondeur_trochleaire, angle_sulcus et les nouveaux angles d'inclinaison lat\u00e9rale/m\u00e9diale ; utile \u00e0 la d\u00e9cision chirurgicale en cas de luxation patellaire m\u00e9diale",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.297579+00:00",
+        "reviewed_at": "2026-08-17T08:06:47.568568+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 618,
+            "criteria_id": "classification_dejour_dysplasie_trochleenne",
+            "zotero_key": "8QCTVT53",
+            "citation": "Source incertaine - section 'extraction' du document, incompatible avec les m\u00e9tadonn\u00e9es bibliographiques de Garnoeva (2022) ; \u00e0 v\u00e9rifier avant int\u00e9gration en base",
+            "table_ref": ""
+          },
+          {
+            "id": 652,
+            "criteria_id": "classification_dejour_dysplasie_trochleenne",
+            "zotero_key": "6SJ7884D",
+            "citation": "Garnoeva (2025), Results paragraphes 1-3, Table 1",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
         "id": "hauteur_patellaire",
         "bone_type": "rotule",
         "name": "Hauteur patellaire (PH)",
@@ -20563,6 +20597,24 @@
             "page": "",
             "quote": "",
             "confidence": "medium"
+          },
+          {
+            "id": 1659,
+            "zone_id": "grasset",
+            "zotero_key": "7FT8M7EH",
+            "citation": "D'Anjou et al. (2008), Abstract",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1670,
+            "zone_id": "grasset",
+            "zotero_key": "JD7QJRTV",
+            "citation": "Karatrantos et al. (2025), texte entier",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
           }
         ],
         "children": [
@@ -20620,6 +20672,15 @@
                 "zone_id": "aire_intercondylienne_grasset",
                 "zotero_key": "2J3PFGI7",
                 "citation": "Kivumbi & Bennett (1981), Abstract",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1651,
+                "zone_id": "aire_intercondylienne_grasset",
+                "zotero_key": "7FT8M7EH",
+                "citation": "D'Anjou et al. (2008), R\u00e9sultats/Discussion",
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
@@ -20762,6 +20823,24 @@
                 "zone_id": "articulation_femoro_patellaire",
                 "zotero_key": "2J3PFGI7",
                 "citation": "Kivumbi & Bennett (1981), Abstract",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1649,
+                "zone_id": "articulation_femoro_patellaire",
+                "zotero_key": "9EGZM7XC",
+                "citation": "Tirgari & Vaughan (1975), Abstract",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1669,
+                "zone_id": "articulation_femoro_patellaire",
+                "zotero_key": "JD7QJRTV",
+                "citation": "Karatrantos et al. (2025), M\u00e9thodes, r\u00e9f. [6]",
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
@@ -21898,6 +21977,24 @@
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
+              },
+              {
+                "id": 1650,
+                "zone_id": "articulation_femoro_tibiale",
+                "zotero_key": "9EGZM7XC",
+                "citation": "Tirgari & Vaughan (1975), Abstract",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1657,
+                "zone_id": "articulation_femoro_tibiale",
+                "zotero_key": "7FT8M7EH",
+                "citation": "D'Anjou et al. (2008), M\u00e9thodologie",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
               }
             ],
             "children": [
@@ -22728,6 +22825,15 @@
                     "page": "",
                     "quote": "",
                     "confidence": "medium"
+                  },
+                  {
+                    "id": 1662,
+                    "zone_id": "menisques_grasset",
+                    "zotero_key": "JD7QJRTV",
+                    "citation": "Karatrantos et al. (2025), Discussion",
+                    "page": "",
+                    "quote": "",
+                    "confidence": "medium"
                   }
                 ],
                 "children": [
@@ -23014,6 +23120,15 @@
                             "zone_id": "noyau_central_menisque",
                             "zotero_key": "TVM6GBE9",
                             "citation": "Van der Vekens et al. (2019), Introduction",
+                            "page": "",
+                            "quote": "",
+                            "confidence": "medium"
+                          },
+                          {
+                            "id": 1637,
+                            "zone_id": "noyau_central_menisque",
+                            "zotero_key": "C86DM7Z5",
+                            "citation": "Stone et al. (1992), Results, Histologic findings",
                             "page": "",
                             "quote": "",
                             "confidence": "medium"
@@ -24188,6 +24303,33 @@
                         "page": "",
                         "quote": "",
                         "confidence": "medium"
+                      },
+                      {
+                        "id": 1640,
+                        "zone_id": "menisque_lateral",
+                        "zotero_key": "WMZ2G7TK",
+                        "citation": "Hsu et al. (2025), Discussion, qualitative findings",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
+                      },
+                      {
+                        "id": 1647,
+                        "zone_id": "menisque_lateral",
+                        "zotero_key": "2AM9GBRN",
+                        "citation": "Arokoski et al. (1996), Results",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
+                      },
+                      {
+                        "id": 1661,
+                        "zone_id": "menisque_lateral",
+                        "zotero_key": "JD7QJRTV",
+                        "citation": "Karatrantos et al. (2025), Discussion",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
                       }
                     ],
                     "children": [
@@ -24923,6 +25065,24 @@
                         "page": "",
                         "quote": "",
                         "confidence": "medium"
+                      },
+                      {
+                        "id": 1648,
+                        "zone_id": "menisque_medial",
+                        "zotero_key": "2AM9GBRN",
+                        "citation": "Arokoski et al. (1996), Results, Table 1",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
+                      },
+                      {
+                        "id": 1660,
+                        "zone_id": "menisque_medial",
+                        "zotero_key": "JD7QJRTV",
+                        "citation": "Karatrantos et al. (2025), Discussion",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
                       }
                     ],
                     "children": []
@@ -25443,6 +25603,24 @@
                 "zone_id": "capsule_articulaire_grasset",
                 "zotero_key": "ZHG6Z82W",
                 "citation": "Miller et al. (2007), Discussion (limitations)",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1655,
+                "zone_id": "capsule_articulaire_grasset",
+                "zotero_key": "7FT8M7EH",
+                "citation": "D'Anjou et al. (2008), R\u00e9sultats",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1666,
+                "zone_id": "capsule_articulaire_grasset",
+                "zotero_key": "JD7QJRTV",
+                "citation": "Karatrantos et al. (2025), R\u00e9sultats/Conclusions",
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
@@ -26002,6 +26180,33 @@
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
+              },
+              {
+                "id": 1642,
+                "zone_id": "cartilage_articulaire_grasset",
+                "zotero_key": "2AM9GBRN",
+                "citation": "Arokoski et al. (1996), Results, Tables 1-4",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1656,
+                "zone_id": "cartilage_articulaire_grasset",
+                "zotero_key": "7FT8M7EH",
+                "citation": "D'Anjou et al. (2008), Discussion",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1667,
+                "zone_id": "cartilage_articulaire_grasset",
+                "zotero_key": "JD7QJRTV",
+                "citation": "Karatrantos et al. (2025), R\u00e9sultats/Conclusions",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
               }
             ],
             "children": []
@@ -26319,6 +26524,24 @@
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
+              },
+              {
+                "id": 1639,
+                "zone_id": "condyle_femoral",
+                "zotero_key": "WMZ2G7TK",
+                "citation": "Hsu et al. (2025), Results/Histology",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1652,
+                "zone_id": "condyle_femoral",
+                "zotero_key": "7FT8M7EH",
+                "citation": "D'Anjou et al. (2008), Discussion",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
               }
             ],
             "children": [
@@ -26415,6 +26638,15 @@
                     "page": "",
                     "quote": "",
                     "confidence": "medium"
+                  },
+                  {
+                    "id": 1644,
+                    "zone_id": "condyle_femoral_medial",
+                    "zotero_key": "2AM9GBRN",
+                    "citation": "Arokoski et al. (1996), Results, Table 1",
+                    "page": "",
+                    "quote": "",
+                    "confidence": "medium"
                   }
                 ],
                 "children": []
@@ -26500,6 +26732,24 @@
                     "zone_id": "condyle_femoral_lateral",
                     "zotero_key": "3SSR8XD2",
                     "citation": "El-Bably & Noor (2017), Results",
+                    "page": "",
+                    "quote": "",
+                    "confidence": "medium"
+                  },
+                  {
+                    "id": 1643,
+                    "zone_id": "condyle_femoral_lateral",
+                    "zotero_key": "2AM9GBRN",
+                    "citation": "Arokoski et al. (1996), Results, Table 3, Fig 5-6",
+                    "page": "",
+                    "quote": "",
+                    "confidence": "medium"
+                  },
+                  {
+                    "id": 1663,
+                    "zone_id": "condyle_femoral_lateral",
+                    "zotero_key": "JD7QJRTV",
+                    "citation": "Karatrantos et al. (2025), Discussion",
                     "page": "",
                     "quote": "",
                     "confidence": "medium"
@@ -26921,6 +27171,15 @@
                 "zone_id": "ligament_croise_caudal",
                 "zotero_key": "4D8P6DCU",
                 "citation": "Muir (2010), Introduction, Multiple ligamentous injuries, Treatment, p.109-111",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1641,
+                "zone_id": "ligament_croise_caudal",
+                "zotero_key": "WMZ2G7TK",
+                "citation": "Hsu et al. (2025), Discussion, qualitative findings",
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
@@ -27925,6 +28184,15 @@
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
+              },
+              {
+                "id": 1658,
+                "zone_id": "ligament_croise_cranial",
+                "zotero_key": "7FT8M7EH",
+                "citation": "D'Anjou et al. (2008), M\u00e9thodologie",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
               }
             ],
             "children": [
@@ -28427,6 +28695,15 @@
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
+              },
+              {
+                "id": 1665,
+                "zone_id": "ligament_patellaire",
+                "zotero_key": "JD7QJRTV",
+                "citation": "Karatrantos et al. (2025), Discussion",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
               }
             ],
             "children": []
@@ -28773,6 +29050,24 @@
                 "zone_id": "membrane_synoviale_grasset",
                 "zotero_key": "WXD43RMG",
                 "citation": "Luca Rovesti & B\u00f6hme (2024), Qualitative findings",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1654,
+                "zone_id": "membrane_synoviale_grasset",
+                "zotero_key": "7FT8M7EH",
+                "citation": "D'Anjou et al. (2008), R\u00e9sultats/Discussion",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1668,
+                "zone_id": "membrane_synoviale_grasset",
+                "zotero_key": "JD7QJRTV",
+                "citation": "Karatrantos et al. (2025), Discussion, citant Gnudi & Bertoni [70]",
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
@@ -29375,6 +29670,15 @@
                     "page": "",
                     "quote": "",
                     "confidence": "medium"
+                  },
+                  {
+                    "id": 1653,
+                    "zone_id": "condyle_tibial",
+                    "zotero_key": "7FT8M7EH",
+                    "citation": "D'Anjou et al. (2008), Discussion",
+                    "page": "",
+                    "quote": "",
+                    "confidence": "medium"
                   }
                 ],
                 "children": [
@@ -29468,6 +29772,24 @@
                         "zone_id": "condyle_tibial_lateral",
                         "zotero_key": "R45UPTE3",
                         "citation": "Pozzi & Kim (2017), Normal stifle",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
+                      },
+                      {
+                        "id": 1645,
+                        "zone_id": "condyle_tibial_lateral",
+                        "zotero_key": "2AM9GBRN",
+                        "citation": "Arokoski et al. (1996), Results, Table 3",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
+                      },
+                      {
+                        "id": 1664,
+                        "zone_id": "condyle_tibial_lateral",
+                        "zotero_key": "JD7QJRTV",
+                        "citation": "Karatrantos et al. (2025), Discussion",
                         "page": "",
                         "quote": "",
                         "confidence": "medium"
@@ -29583,6 +29905,15 @@
                         "zone_id": "condyle_tibial_medial",
                         "zotero_key": "R45UPTE3",
                         "citation": "Pozzi & Kim (2017), Normal stifle",
+                        "page": "",
+                        "quote": "",
+                        "confidence": "medium"
+                      },
+                      {
+                        "id": 1646,
+                        "zone_id": "condyle_tibial_medial",
+                        "zotero_key": "2AM9GBRN",
+                        "citation": "Arokoski et al. (1996), Results, Table 1",
                         "page": "",
                         "quote": "",
                         "confidence": "medium"
@@ -29781,6 +30112,15 @@
                 "zone_id": "epiphyse_tibiale_proximale",
                 "zotero_key": "98AHMMPP",
                 "citation": "Healey et al. (2019), Materials and methods/Radiographic measurements",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
+              },
+              {
+                "id": 1671,
+                "zone_id": "epiphyse_tibiale_proximale",
+                "zotero_key": "JD7QJRTV",
+                "citation": "Karatrantos et al. (2025), Discussion, citant Jeon et al. [156]",
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
@@ -30638,6 +30978,12 @@
             "landmark_id": "fenetre_echographique_menisque_lateral",
             "zotero_key": "TVM6GBE9",
             "citation": "Van der Vekens et al. (2019), R\u00e9sultats"
+          },
+          {
+            "id": 423,
+            "landmark_id": "fenetre_echographique_menisque_lateral",
+            "zotero_key": "JD7QJRTV",
+            "citation": "Karatrantos et al. (2025), Discussion"
           }
         ]
       },
@@ -30672,6 +31018,12 @@
             "landmark_id": "fenetre_echographique_menisque_medial",
             "zotero_key": "TVM6GBE9",
             "citation": "Van der Vekens et al. (2019), R\u00e9sultats"
+          },
+          {
+            "id": 424,
+            "landmark_id": "fenetre_echographique_menisque_medial",
+            "zotero_key": "JD7QJRTV",
+            "citation": "Karatrantos et al. (2025), Discussion, citant Mahn et al."
           }
         ]
       },
@@ -36436,6 +36788,565 @@
             "criteria_id": "score_arthrite_radiographique_grasset_vas",
             "zotero_key": "JAF5I3R2",
             "citation": "Hoenecke et al. (2025), Results, paragraphe 3",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "score_epanchement_articulaire_cr_irm",
+        "bone_type": "grasset",
+        "name": "Score d'\u00e9panchement articulaire (CR vs IRM)",
+        "name_en": "Joint effusion score (CR vs MRI)",
+        "formula": "Score ordinal de s\u00e9v\u00e9rit\u00e9 de l'\u00e9panchement intra-articulaire du grasset, \u00e9valu\u00e9 s\u00e9par\u00e9ment en CR et en IRM",
+        "normal_unit": "score ordinal",
+        "measurement_method": "\u00c9valuation radiographique et IRM (s\u00e9quence T2w FSE avec saturation de graisse) de l'\u00e9panchement, aux m\u00eames temps de suivi ; limitation par le champ de vue (FOV) pour les grands \u00e9panchements en IRM",
+        "clinical_use": "Suivi temporel de l'\u00e9panchement articulaire post-transection du LCC (pic \u00e0 la semaine 8 puis r\u00e9gression partielle non significative \u00e0 la semaine 26)",
+        "status": "accepted",
+        "created_at": "2026-08-17T09:49:39.783314+00:00",
+        "reviewed_at": "2026-08-17T10:04:43.992417+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 776,
+            "criteria_id": "score_epanchement_articulaire_cr_irm",
+            "zotero_key": "7FT8M7EH",
+            "citation": "D'Anjou et al. (2008), R\u00e9sultats",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "score_sclerose_sous_chondrale_cr_irm",
+        "bone_type": "grasset",
+        "name": "Score de scl\u00e9rose osseuse sous-chondrale (CR vs IRM)",
+        "name_en": "Subchondral bone sclerosis score (CR vs MRI)",
+        "formula": "Score ordinal de s\u00e9v\u00e9rit\u00e9 de la scl\u00e9rose sous-chondrale par compartiment articulaire, compar\u00e9 entre CR et IRM",
+        "normal_unit": "score ordinal",
+        "measurement_method": "Lecture randomis\u00e9e en aveugle des CR et IRM aux m\u00eames temps que le score d'ost\u00e9ophytose ; risque de surestimation en CR du fait de la difficult\u00e9 \u00e0 distinguer la scl\u00e9rose de l'ost\u00e9ophytose p\u00e9riarticulaire superpos\u00e9e",
+        "clinical_use": "Suivi de la s\u00e9v\u00e9rit\u00e9 de l'arthrose exp\u00e9rimentale ; corr\u00e9lation mod\u00e9r\u00e9e entre modalit\u00e9s (r=0.54) sugg\u00e9rant une interpr\u00e9tation prudente en CR",
+        "status": "accepted",
+        "created_at": "2026-08-17T09:49:39.779088+00:00",
+        "reviewed_at": "2026-08-17T10:04:42.086619+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 775,
+            "criteria_id": "score_sclerose_sous_chondrale_cr_irm",
+            "zotero_key": "7FT8M7EH",
+            "citation": "D'Anjou et al. (2008), R\u00e9sultats/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "score_osteophytose_cr_irm",
+        "bone_type": "grasset",
+        "name": "Score semi-quantitatif d'ost\u00e9ophytose (CR vs IRM)",
+        "name_en": "Semi-quantitative osteophytosis score (CR vs MRI)",
+        "formula": "Score de s\u00e9v\u00e9rit\u00e9 par site anatomique (fossette intercondylienne, plateau tibial, condyles f\u00e9moraux, patella), somm\u00e9 pour un score global par articulation, \u00e9valu\u00e9 s\u00e9par\u00e9ment en CR et en IRM",
+        "normal_unit": "score ordinal",
+        "measurement_method": "Lecture randomis\u00e9e et en aveugle des radiographies num\u00e9ris\u00e9es (projections m\u00e9dio-lat\u00e9rale et cranio-caudale) et des s\u00e9quences IRM (T1w-GRE 3D dorsale et sagittale, T2w FSE avec saturation de graisse) avec le baseline comme r\u00e9f\u00e9rence de comparaison, \u00e0 baseline, semaine 4, semaine 8 et semaine 26 post-transection du LCC",
+        "clinical_use": "Suivi longitudinal de la progression de l'ost\u00e9ophytose dans les essais pr\u00e9cliniques de m\u00e9dicaments modificateurs de l'arthrose (DMOADs) ; comparaison de la sensibilit\u00e9 diagnostique IRM vs radiographie",
+        "status": "accepted",
+        "created_at": "2026-08-17T09:49:39.774808+00:00",
+        "reviewed_at": "2026-08-17T10:04:39.429078+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 774,
+            "criteria_id": "score_osteophytose_cr_irm",
+            "zotero_key": "7FT8M7EH",
+            "citation": "D'Anjou et al. (2008), R\u00e9sultats/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "signe_affaissement_tibial_caudal",
+        "bone_type": "grasset",
+        "name": "Signe d'affaissement caudal du tibia (tibial sag sign)",
+        "name_en": "Caudal tibial sag sign",
+        "formula": "\u00c9valuation qualitative, grasset fl\u00e9chi \u00e0 90\u00b0, de la position de la tub\u00e9rosit\u00e9 tibiale par rapport au bord distal de la patella : un recul (affaissement) de la tub\u00e9rosit\u00e9 tibiale par rapport \u00e0 sa position anatomique normale traduit une insuffisance du CaCL, en l'absence de toute manipulation active.",
+        "measurement_method": "Observation statique (sans manipulation manuelle) du profil du grasset fl\u00e9chi, comparant la position relative patella / tub\u00e9rosit\u00e9 tibiale ; distinct du test de tiroir caudal actif car il \u00e9vite l'erreur classique de manipulation \u00e0 partir d'une position non neutre.",
+        "landmarks_required": [
+          "pole_distal_patella",
+          "base_evasement_tuberosite_tibiale"
+        ],
+        "clinical_use": "Signe indirect et diff\u00e9rentiel permettant de suspecter une insuffisance du CaCL (plut\u00f4t qu'une insuffisance du CrCL) sans risque de confusion sur la direction du mouvement tibial excessif, fr\u00e9quente lors du test de tiroir manuel classique.",
+        "status": "accepted",
+        "created_at": "2026-08-13T08:13:06.226185+00:00",
+        "reviewed_at": "2026-08-17T08:06:47.568173+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 214,
+            "criteria_id": "signe_affaissement_tibial_caudal",
+            "zotero_key": "BR3STZ5F",
+            "citation": "Harari (1993), Clinical Presentation and Diagnosis",
+            "table_ref": ""
+          },
+          {
+            "id": 215,
+            "criteria_id": "signe_affaissement_tibial_caudal",
+            "zotero_key": "NCT45KWU",
+            "citation": "Muir (2010), Diagnosis",
+            "table_ref": ""
+          },
+          {
+            "id": 275,
+            "criteria_id": "signe_affaissement_tibial_caudal",
+            "zotero_key": "Q5S2ARVN",
+            "citation": "Fauqueux et al. (2023), Case Details",
+            "table_ref": ""
+          },
+          {
+            "id": 277,
+            "criteria_id": "signe_affaissement_tibial_caudal",
+            "zotero_key": "ICQHN3TD",
+            "citation": "Yu et al. (2023), Introduction, r\u00e9f. 9",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "signe_cazieux_positif",
+        "bone_type": "grasset",
+        "name": "Signe de Cazieux (Cazieux-positif)",
+        "name_en": "Cazieux sign (positive)",
+        "formula": "Signe radiographique qualitatif (pr\u00e9sent/absent) sur vue m\u00e9diolat\u00e9rale en flexion \u00e0 90\u00b0 du grasset, syst\u00e9matiquement associ\u00e9 \u00e0 un d\u00e9placement du s\u00e9samo\u00efde poplit\u00e9",
+        "normal_unit": "pr\u00e9valence (%)",
+        "measurement_method": "Lecture qualitative de la radiographie m\u00e9diolat\u00e9rale en flexion \u00e0 90\u00b0 du grasset.",
+        "landmarks_required": [
+          "position_sesamoide_poplite"
+        ],
+        "clinical_use": "Pr\u00e9sent chez 14.1% (23/163) des chiens, syst\u00e9matiquement corr\u00e9l\u00e9 \u00e0 la pr\u00e9sence d'un PSD ; utile comme signe diagnostique rapide du d\u00e9placement du s\u00e9samo\u00efde poplit\u00e9.",
+        "status": "accepted",
+        "created_at": "2026-08-13T15:03:09.259222+00:00",
+        "reviewed_at": "2026-08-17T08:06:47.568371+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 308,
+            "criteria_id": "signe_cazieux_positif",
+            "zotero_key": "PV2ZBZP4",
+            "citation": "Picavet et al. (2025), Results - Descriptive analysis",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "subluxation_craniale_tibiale_post_stabilisation",
+        "bone_type": "grasset",
+        "name": "Subluxation cr\u00e2niale r\u00e9siduelle du tibia apr\u00e8s stabilisation",
+        "name_en": "Residual cranial tibial subluxation after stabilization",
+        "formula": "Constat radiographique qualitatif (pr\u00e9sence/absence) d'un d\u00e9placement cr\u00e2nial persistant du plateau tibial par rapport au condyle f\u00e9moral sur l'incidence m\u00e9dio-lat\u00e9rale post-stabilisation, ind\u00e9pendamment de la position du CIM ou de l'orientation du vecteur vitesse.",
+        "normal_unit": "cat\u00e9goriel (pr\u00e9sent/absent)",
+        "measurement_method": "Lecture qualitative de l'incidence m\u00e9dio-lat\u00e9rale du grasset apr\u00e8s stabilisation extra-articulaire, en compl\u00e9ment de l'analyse cin\u00e9matique du CIM et du vecteur vitesse.",
+        "landmarks_required": [
+          "condyle_tibial_lateral",
+          "condyle_femoral_lateral"
+        ],
+        "clinical_use": "Met en \u00e9vidence les limites d'une \u00e9valuation cin\u00e9matique isol\u00e9e (CIM/vecteur normaux) : un animal du groupe polypropyl\u00e8ne pr\u00e9sentait une subluxation cr\u00e2niale radiographique malgr\u00e9 des param\u00e8tres cin\u00e9matiques normalis\u00e9s, ce qui souligne la n\u00e9cessit\u00e9 de combiner plusieurs crit\u00e8res pour juger de la stabilit\u00e9 fonctionnelle r\u00e9elle.",
+        "status": "accepted",
+        "created_at": "2026-08-13T15:42:55.359081+00:00",
+        "reviewed_at": "2026-08-17T08:06:47.568435+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 318,
+            "criteria_id": "subluxation_craniale_tibiale_post_stabilisation",
+            "zotero_key": "2KR5W5MC",
+            "citation": "Luis Selmi et al. (2003), Resultados e discuss\u00e3o",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "subluxation_tibiale_craniale_cts",
+        "bone_type": "grasset",
+        "name": "Subluxation tibiale cr\u00e2niale (Cranial Tibial Subluxation, CTS)",
+        "name_en": "Cranial Tibial Subluxation (CTS)",
+        "formula": "Distance lin\u00e9aire entre rep\u00e8res f\u00e9moraux et tibiaux mesur\u00e9e sur radiographie sous contrainte (mise en charge/compression tibiale), quantifiant le d\u00e9placement cr\u00e2nial du tibia par rapport au f\u00e9mur",
+        "normal_unit": "mm",
+        "measurement_method": "Radiographie sous charge/contrainte comparant la position tibiale avant et apr\u00e8s intervention. D'apr\u00e8s une \u00e9tude cit\u00e9e dans l'article (Apelt et al.) : CTS moyenne de 11,1\u00b13,4 mm dans les grassets d\u00e9ficients en LCCr (statistiquement significative par rapport \u00e0 l'\u00e9tat sain) ; -2,9\u00b11,3 mm (subluxation caudale) \u00e0 l'avancement maximal du TTA ; 2,3\u00b12,2 mm au \u00ab point critique \u00bb d'avancement optimal.",
+        "clinical_use": "Quantification radiographique objective de l'instabilit\u00e9 cr\u00e2nio-caudale f\u00e9moro-tibiale, utilis\u00e9e pour valider l'efficacit\u00e9 biom\u00e9canique d'une technique de stabilisation (ex. TTA) et pour d\u00e9finir le degr\u00e9 d'avancement optimal (point critique).",
+        "status": "accepted",
+        "created_at": "2026-08-13T14:55:11.857848+00:00",
+        "reviewed_at": "2026-08-17T08:06:47.568482+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 302,
+            "criteria_id": "subluxation_tibiale_craniale_cts",
+            "zotero_key": "MTT2AW5X",
+            "citation": "Hoffmann et al. (2011), Introduction (citant Apelt et al., r\u00e9f. 26)",
+            "table_ref": ""
+          },
+          {
+            "id": 306,
+            "criteria_id": "subluxation_tibiale_craniale_cts",
+            "zotero_key": "PV2ZBZP4",
+            "citation": "Picavet et al. (2025), Results - Descriptive analysis & Influence of popliteal displacement",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "tiroir_caudal_tibial_cacl",
+        "bone_type": "grasset",
+        "name": "Tiroir caudal tibial (test et signe radiographique de rupture du CaCL)",
+        "name_en": "Caudal tibial drawer sign",
+        "formula": "D\u00e9placement caudal du tibia par rapport au f\u00e9mur, \u00e9valu\u00e9 en extension/flexion sur vue radiographique lat\u00e9rale du grasset, par analogie invers\u00e9e \u00e0 la mesure du tiroir cr\u00e2nial utilis\u00e9e pour le CrCL",
+        "normal_unit": "mm",
+        "measurement_method": "\u00c9valuation radiographique (ou manuelle sous s\u00e9dation) du d\u00e9placement caudal du plateau tibial par rapport aux condyles f\u00e9moraux sur clich\u00e9 lat\u00e9ral en position standardis\u00e9e ; peut \u00eatre confondu avec un tiroir cr\u00e2nial en cas d'interpr\u00e9tation erron\u00e9e, d'o\u00f9 la n\u00e9cessit\u00e9 d'une mesure rigoureuse de la direction du d\u00e9placement",
+        "landmarks_required": [
+          "site_insertion_tibiale_ligament_croise_caudal",
+          "repere_diaphyse_tibiale_proximale_tpa"
+        ],
+        "clinical_use": "Signe cl\u00e9 de rupture du CaCL, \u00e0 diff\u00e9rencier du tiroir cr\u00e2nial (rupture du CrCL) ; son \u00e9valuation est indispensable avant une TPLO car une l\u00e9sion du CaCL contre-indique cette proc\u00e9dure du fait de l'augmentation du stress biom\u00e9canique qu'elle impose sur ce ligament",
+        "status": "accepted",
+        "created_at": "2026-08-12T13:08:01.682917+00:00",
+        "reviewed_at": "2026-08-17T08:06:47.568526+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 180,
+            "criteria_id": "tiroir_caudal_tibial_cacl",
+            "zotero_key": "NCT45KWU",
+            "citation": "Muir (2010), Introduction ; R\u00e9sultats qualitatifs ; Treatment",
+            "table_ref": ""
+          },
+          {
+            "id": 181,
+            "criteria_id": "tiroir_caudal_tibial_cacl",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Veterinary Surgery 39(8):936-941, Methods/Intervention",
+            "table_ref": ""
+          },
+          {
+            "id": 189,
+            "criteria_id": "tiroir_caudal_tibial_cacl",
+            "zotero_key": "6Q9TRDKF",
+            "citation": "Kirby (1993), section Caudal Cruciate Ligament Rupture",
+            "table_ref": ""
+          },
+          {
+            "id": 199,
+            "criteria_id": "tiroir_caudal_tibial_cacl",
+            "zotero_key": "9VFWHFEK",
+            "citation": "Arnoczky & Marshall (1977), Methods",
+            "table_ref": ""
+          },
+          {
+            "id": 210,
+            "criteria_id": "tiroir_caudal_tibial_cacl",
+            "zotero_key": "BR3STZ5F",
+            "citation": "Harari (1993), Clinical Presentation and Diagnosis",
+            "table_ref": ""
+          },
+          {
+            "id": 220,
+            "criteria_id": "tiroir_caudal_tibial_cacl",
+            "zotero_key": "R45UPTE3",
+            "citation": "Pozzi & Kim (2017), Normal stifle",
+            "table_ref": ""
+          },
+          {
+            "id": 237,
+            "criteria_id": "tiroir_caudal_tibial_cacl",
+            "zotero_key": "47PU9BWR",
+            "citation": "Muir (2017), Introduction, citant Pournas et al. 1983; Harari et al. 1987",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "torsion_tibiale_externe_excessive",
+        "bone_type": "grasset",
+        "name": "Torsion tibiale externe excessive",
+        "name_en": "Excessive external tibial torsion",
+        "formula": "Angle de torsion axiale entre l'extr\u00e9mit\u00e9 proximale et l'extr\u00e9mit\u00e9 distale du tibia, refl\u00e9tant une rotation externe anormale du segment tibial distal par rapport au segment proximal",
+        "normal_unit": "degrees",
+        "measurement_method": "Torsion tibiale externe \u00e9valu\u00e9e cliniquement/en imagerie en pr\u00e9- et post-op\u00e9ratoire chez des chiens pr\u00e9sentant une torsion \u226520\u00b0 dans le membre atteint (crit\u00e8re d'inclusion) ; correction chirurgicale vis\u00e9e proche de 0\u00b0 via d\u00e9torsion r\u00e9alis\u00e9e par tPTO au site de l'ost\u00e9otomie proximale du tibia",
+        "clinical_use": "Crit\u00e8re de s\u00e9lection chirurgicale (seuil \u226520\u00b0 justifiant une approche d\u00e9torsionnelle combin\u00e9e plut\u00f4t qu'une TTT isol\u00e9e jug\u00e9e non s\u00fbre/efficace au-del\u00e0 de ce seuil) et crit\u00e8re d'\u00e9valuation du succ\u00e8s du r\u00e9alignement du m\u00e9canisme extenseur du grasset (SEM) apr\u00e8s tPTO ; une torsion excessive non corrig\u00e9e contribue \u00e0 la malposition patellaire r\u00e9cidivante",
+        "status": "accepted",
+        "created_at": "2026-08-13T15:36:52.953924+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.421647+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 315,
+            "criteria_id": "torsion_tibiale_externe_excessive",
+            "zotero_key": "CMS6AD5P",
+            "citation": "Carrera ALC et al. (2025), Abstract, Population (crit\u00e8res d'inclusion) et Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "torsion_tibiale_longitudinale",
+        "bone_type": "grasset",
+        "name": "Torsion tibiale le long de l'axe longitudinal",
+        "name_en": "Tibial torsion (TT)",
+        "formula": "Angle de rotation du fragment tibial distal par rapport au fragment proximal autour de l'axe longitudinal du tibia, calcul\u00e9 par la formule de la corde \u00e0 partir de la largeur radiographique cranio-caudale de la diaphyse tibiale moyenne",
+        "normal_unit": "degrees",
+        "measurement_method": "Mod\u00e8le exp\u00e9rimental ex-vivo : ost\u00e9otomie transverse de la diaphyse tibiale moyenne, rotation interne du fragment distal d'environ 15\u00b0 confirm\u00e9e par rep\u00e8res \u00e0 l'ost\u00e9otome et broches de Kirschner perpendiculaires de part et d'autre de l'ost\u00e9otomie, puis fixation par plaque de compression dynamique 3,5 mm.",
+        "landmarks_required": [
+          "bord_medial_calcaneus",
+          "sulcus_talus"
+        ],
+        "clinical_use": "Diagnostic diff\u00e9rentiel d'une d\u00e9formit\u00e9 anatomique fixe du tibia (torsion) vis-\u00e0-vis d'une instabilit\u00e9 rotationnelle dynamique du grasset (RLS) d'origine ligamentaire ; les deux entit\u00e9s produisent un d\u00e9placement lat\u00e9ral du calcan\u00e9us sur radiographies cranio-caudales du tarse et doivent \u00eatre distingu\u00e9es avant d'imputer une instabilit\u00e9 rotationnelle du membre post\u00e9rieur \u00e0 une rupture du LCC.",
+        "status": "accepted",
+        "created_at": "2026-08-13T13:41:02.311856+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.421860+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 278,
+            "criteria_id": "torsion_tibiale_longitudinale",
+            "zotero_key": "ICQHN3TD",
+            "citation": "Yu et al. (2023), Methods - TT model",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "translation_craniocaudale_femorotibiale_locomotion",
+        "bone_type": "grasset",
+        "name": "Translation cranio-caudale f\u00e9morotibiale durant la marche (subluxation tibiale cr\u00e2niale)",
+        "name_en": "Craniocaudal femorotibial translation during gait (cranial tibial subluxation)",
+        "formula": "D\u00e9placement cranio-caudal du tibia par rapport au f\u00e9mur, mesur\u00e9 image par image via recalage 3D-vers-2D de mod\u00e8les osseux CT sur des s\u00e9quences fluoroscopiques lat\u00e9rales acquises pendant la marche sur tapis roulant",
+        "normal_unit": "mm",
+        "measurement_method": "Recalage d'image 3D-vers-2D (pr\u00e9cision valid\u00e9e \u00e0 1,28 mm) appliqu\u00e9 \u00e0 des mod\u00e8les num\u00e9riques 3D du f\u00e9mur et du tibia (issus de CT) superpos\u00e9s \u00e0 des images fluoroscopiques lat\u00e9rales acquises durant 3 cycles de marche complets ; mesure r\u00e9p\u00e9t\u00e9e \u00e0 chaque instant du cycle, avec comparaison sp\u00e9cifique aux phases mid-stance et mid-swing",
+        "landmarks_required": [
+          "condyle_femoral",
+          "condyle_tibial"
+        ],
+        "clinical_use": "Quantification objective in vivo de l'instabilit\u00e9 translationnelle cranio-caudale associ\u00e9e \u00e0 l'insuffisance du LCCr ; sert de r\u00e9f\u00e9rence pour \u00e9valuer l'efficacit\u00e9 des techniques de stabilisation chirurgicale \u00e0 corriger la subluxation tibiale cr\u00e2niale, y compris en phase d'oscillation o\u00f9 elle persiste de fa\u00e7on inattendue",
+        "status": "accepted",
+        "created_at": "2026-08-14T13:05:21.959987+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.421926+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 566,
+            "criteria_id": "translation_craniocaudale_femorotibiale_locomotion",
+            "zotero_key": "6IB9CNCZ",
+            "citation": "Tinga et al. (2018), Results",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "translation_craniocaudale_tibiale_dynamique",
+        "bone_type": "grasset",
+        "name": "Translation cr\u00e2nio-caudale tibiale dynamique (subluxation tibiale cr\u00e2niale sous fluoroscopie)",
+        "name_en": "Dynamic craniocaudal tibial translation (cranial tibial subluxation under fluoroscopy)",
+        "formula": "Diff\u00e9rence de position cr\u00e2nio-caudale du tibia par rapport au f\u00e9mur, calcul\u00e9e par recalage d'images 3D-vers-2D (mod\u00e8les tomodensitom\u00e9triques) sur s\u00e9quences fluoroscopiques lat\u00e9rales, \u00e0 un instant donn\u00e9 du cycle de marche",
+        "normal_unit": "mm",
+        "measurement_method": "Fluoroscopie lat\u00e9rale monoplan avec recalage d'images 3D-vers-2D de mod\u00e8les osseux tomodensitom\u00e9triques du f\u00e9mur et du tibia (pr\u00e9cision rapport\u00e9e de 1,28 mm), chien en marche sur tapis roulant ; mesure comparative entre la stifle atteinte de rupture du LCCr (pr\u00e9-op\u00e9ratoire) et la stifle controlat\u00e9rale (contr\u00f4le, 6 mois post-op\u00e9ratoire) aux phases mid-stance et mid-swing du cycle de marche",
+        "clinical_use": "Quantification objective de l'instabilit\u00e9 cr\u00e2nio-caudale dynamique associ\u00e9e \u00e0 l'insuffisance du LCCr ; permet de diff\u00e9rencier une stifle instable d'une stifle stable et de guider l'\u00e9valuation post-op\u00e9ratoire des techniques de stabilisation chirurgicale",
+        "status": "accepted",
+        "created_at": "2026-08-14T09:46:54.852548+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.421977+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 535,
+            "criteria_id": "translation_craniocaudale_tibiale_dynamique",
+            "zotero_key": "6IB9CNCZ",
+            "citation": "Tinga et al. (2018), R\u00e9sultats/Abstract",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "translation_tibiale_craniale_ctt",
+        "bone_type": "grasset",
+        "name": "Translation tibiale cr\u00e2niale (CTT)",
+        "name_en": "Cranial Tibial Translation (CTT)",
+        "formula": "D\u00e9placement lin\u00e9aire cr\u00e2nial du tibia par rapport au f\u00e9mur, mesur\u00e9 sous charge axiale standardis\u00e9e appliqu\u00e9e au tibia (avec ou sans simulation de la force du quadriceps via charge patellaire), stifle positionn\u00e9 \u00e0 135\u00b0 de flexion",
+        "normal_mean": 0.42,
+        "normal_sd": 0.21,
+        "normal_unit": "mm",
+        "measurement_method": "Mesure in vitro par capteur de d\u00e9placement (LVDT/potentiom\u00e8tre) entre f\u00e9mur et tibia fix\u00e9s dans un jig standardis\u00e9 \u00e0 135\u00b0 de flexion, sous charge axiale tibiale (20% du poids corporel) avec ou sans charge patellaire simulant le quadriceps (10% du poids corporel) ; corr\u00e9lat clinique : test du tiroir cr\u00e2nial et radiographie sous contrainte (stress radiography) utilis\u00e9s pour objectiver la laxit\u00e9 cr\u00e2niale du grasset en cas de rupture du LCC",
+        "clinical_use": "Crit\u00e8re diagnostique de rupture du ligament crois\u00e9 cr\u00e2nial (\u00e9quivalent du tiroir cr\u00e2nial clinique) et crit\u00e8re d'\u00e9valuation biom\u00e9canique de l'efficacit\u00e9 stabilisatrice des techniques chirurgicales (TTA, TPLO) : plus la CTT r\u00e9siduelle post-chirurgicale est proche de la valeur du grasset intact, plus la stabilisation est jug\u00e9e efficace",
+        "status": "accepted",
+        "created_at": "2026-08-17T06:24:26.880374+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.422023+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 761,
+            "criteria_id": "translation_tibiale_craniale_ctt",
+            "zotero_key": "ZHG6Z82W",
+            "citation": "Miller et al. (2007), Results paragraphe 1, Table 2",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "translation_tibiale_craniale_rupture_lcc",
+        "bone_type": "grasset",
+        "name": "Translation tibiale cr\u00e2niale apr\u00e8s rupture du ligament crois\u00e9 cr\u00e2nial",
+        "name_en": "Cranial tibial translation after CrCL rupture",
+        "formula": "Diff\u00e9rence de position ant\u00e9ro-post\u00e9rieure du tibia par rapport au f\u00e9mur, mesur\u00e9e avant et apr\u00e8s section/rupture du LCC",
+        "normal_unit": "mm",
+        "measurement_method": "Cin\u00e9matique fluoroscopique in vivo comparant la position tibiale en phase d'appui et en phase oscillante terminale, avant et apr\u00e8s section chirurgicale du LCC (suivi jusqu'\u00e0 2 ans)",
+        "clinical_use": "\u00c9quivalent cin\u00e9matique/quantitatif du signe du tiroir cr\u00e2nial ; permet d'objectiver la s\u00e9v\u00e9rit\u00e9 et la persistance de l'instabilit\u00e9 cr\u00e2nio-caudale post-rupture du LCC",
+        "status": "accepted",
+        "created_at": "2026-08-13T16:28:05.584058+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.422072+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 341,
+            "criteria_id": "translation_tibiale_craniale_rupture_lcc",
+            "zotero_key": "83QUN3X4",
+            "citation": "Pozzi & Kim (2017), section 'Cranial cruciate ligament-deficient stifle', citant Tashman et al. 2004",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "translation_tibiale_craniale_post_rupture_lccr",
+        "bone_type": "grasset",
+        "name": "Translation tibiale cr\u00e2niale apr\u00e8s transsection du LCCr",
+        "name_en": "Cranial tibial translation after CrCL transection",
+        "formula": "D\u00e9placement cr\u00e2nio-caudal du tibia par rapport au f\u00e9mur, mesur\u00e9 par cin\u00e9matique in vivo (fluoroscopie/motion capture) pendant la phase d'appui",
+        "normal_mean": 10.0,
+        "normal_unit": "mm",
+        "measurement_method": "Analyse cin\u00e9matique in vivo comparant la position tibiale avant/apr\u00e8s transsection exp\u00e9rimentale du LCCr ; translation cr\u00e2niale d'environ 10 mm constamment observ\u00e9e et soutenue pendant toute la phase d'appui.",
+        "clinical_use": "Quantifie la subluxation tibiale cr\u00e2niale caract\u00e9ristique de la rupture du LCCr, corr\u00e9lat fonctionnel du tiroir cr\u00e2nial observable radiographiquement ou lors de l'examen clinique.",
+        "status": "accepted",
+        "created_at": "2026-08-14T07:17:46.260691+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.422117+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 495,
+            "criteria_id": "translation_tibiale_craniale_post_rupture_lccr",
+            "zotero_key": "R45UPTE3",
+            "citation": "Pozzi & Kim (2017), Cranial cruciate ligament-deficient stifle",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "translation_tibiale_craniale_crcl_rupture",
+        "bone_type": "grasset",
+        "name": "Translation tibiale cr\u00e2niale post-rupture du LCCr",
+        "name_en": "Cranial tibial translation after CrCL rupture/transection",
+        "formula": "D\u00e9placement cr\u00e2nial de la position du plateau tibial par rapport au condyle f\u00e9moral, par rapport \u00e0 la position dans un grasset intact",
+        "normal_unit": "mm",
+        "measurement_method": "Cin\u00e9matique fluoroscopique tridimensionnelle in vivo ; ~10 mm de translation tibiale cr\u00e2niale soutenue pendant toute la phase d'appui apr\u00e8s transection du LCCr, et d\u00e9calage cr\u00e2nial persistant d'~5 mm mesur\u00e9 en fin de phase pendulaire deux ans apr\u00e8s transection (Tashman et al. 2004).",
+        "clinical_use": "Corr\u00e9lat biom\u00e9canique du tiroir cr\u00e2nial et du test de compression tibiale utilis\u00e9s en clinique et sur radiographies dynamiques/de stress pour objectiver l'instabilit\u00e9 cranio-caudale du grasset d\u00e9ficient en LCCr ; utile pour interpr\u00e9ter la subluxation tibiale visible sur radiographie standard en charge.",
+        "status": "accepted",
+        "created_at": "2026-08-12T11:54:59.250531+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.422175+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 171,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "R45UPTE3",
+            "citation": "Pozzi & Kim (2017), section 'Cranial cruciate ligament-deficient stifle'",
+            "table_ref": ""
+          },
+          {
+            "id": 174,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "MGQSCDF4",
+            "citation": "Garc\u00eda-Gonz\u00e1lez et al. (2026), Results paragraphe 4, Figure 3",
+            "table_ref": ""
+          },
+          {
+            "id": 176,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "M2MIH38Q",
+            "citation": "Miller et al. (2007), Results paragraphe 1, Table 2",
+            "table_ref": ""
+          },
+          {
+            "id": 178,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "NCT45KWU",
+            "citation": "Muir (2010), R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          },
+          {
+            "id": 182,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Veterinary Surgery 39(8):936-941, Methods/Intervention",
+            "table_ref": ""
+          },
+          {
+            "id": 187,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "X79QEIMX",
+            "citation": "Brioschi & Arthurs (2021), Gestion conservatrice",
+            "table_ref": ""
+          },
+          {
+            "id": 190,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "6Q9TRDKF",
+            "citation": "Kirby (1993), section Caudal Cruciate Ligament Rupture",
+            "table_ref": ""
+          },
+          {
+            "id": 235,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "AE2HC73R",
+            "citation": "Garc\u00eda-Gonz\u00e1lez et al. (2026), Results paragraphe 4",
+            "table_ref": ""
+          },
+          {
+            "id": 242,
+            "criteria_id": "translation_tibiale_craniale_crcl_rupture",
+            "zotero_key": "6E6FT6WC",
+            "citation": "Pollon ALC et al. (2026), Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "translation_tibiale_craniale_spontanee_ctt",
+        "bone_type": "grasset",
+        "name": "Translation tibiale cr\u00e2niale spontan\u00e9e (CTT)",
+        "name_en": "Spontaneous cranial tibial translation (CTT)",
+        "formula": "\u00c9valuation, sur une radiographie m\u00e9diolat\u00e9rale unique du grasset, non stress\u00e9e, en position debout (angle du grasset 125-145\u00b0, chevauchement des condyles f\u00e9moraux <75%), de la pr\u00e9sence d'une translation cr\u00e2niale spontan\u00e9e du tibia par rapport au f\u00e9mur, selon une m\u00e9thode radiographique pr\u00e9c\u00e9demment publi\u00e9e (ligne verticale de r\u00e9f\u00e9rence et structures anatomiques rep\u00e8res).",
+        "normal_unit": "pr\u00e9sence/absence (signe radiographique binaire)",
+        "measurement_method": "Radiographie m\u00e9diolat\u00e9rale unique, non stress\u00e9e, chien en position debout, angle du grasset entre 125\u00b0 et 145\u00b0, chevauchement des condyles f\u00e9moraux <75% ; trac\u00e9 d'une ligne verticale de r\u00e9f\u00e9rence par rapport \u00e0 des structures anatomiques fixes du f\u00e9mur et du tibia pour objectiver un d\u00e9placement cr\u00e2nial du tibia (m\u00e9thode dont la description \u00e9crite originale est jug\u00e9e impr\u00e9cise par les auteurs, n\u00e9cessitant une reconstruction \u00e0 partir d'une image mod\u00e8le).",
+        "clinical_use": "Test diagnostique radiographique de la rupture compl\u00e8te du LCC : sensibilit\u00e9 27,9%, sp\u00e9cificit\u00e9 95,4%, VPP 97,5%, VPN 16,9%, pr\u00e9cision globale 36,8%. Signe hautement sp\u00e9cifique mais peu sensible ; son absence n'exclut pas une rupture (compl\u00e8te ou partielle) du LCC. Non corr\u00e9l\u00e9 \u00e0 la pr\u00e9sence de d\u00e9chirure m\u00e9niscale concomitante.",
+        "status": "accepted",
+        "created_at": "2026-08-13T17:32:14.627349+00:00",
+        "reviewed_at": "2026-08-17T08:06:09.422219+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 377,
+            "criteria_id": "translation_tibiale_craniale_spontanee_ctt",
+            "zotero_key": "EGAZ65AE",
+            "citation": "Olson et al. (2023), Results & Conclusions",
             "table_ref": ""
           }
         ]
