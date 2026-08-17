@@ -157,6 +157,26 @@ predict → imaging → bonestore
 
 ---
 
+## ALERTE JURIDIQUE — Licence Ultralytics AGPL-3.0
+
+**Tous les modèles Ultralytics (YOLOv8, 11, 12, 26) sont en AGPL-3.0.**
+L'AGPL impose d'ouvrir le code de tout travail dérivé, y compris quand le modèle
+est simplement servi via une API réseau — exactement ce que fait bone-ml.
+
+**Risque** : faible tant que l'usage reste interne au réseau Onyx.
+**Risque si commercialisation** : élevé — obligation de publier le code source.
+
+**Alternatives permissives à benchmarker** :
+- [ ] **RF-DETR** (Apache 2.0) — Nano à Large, comparable à YOLO26
+- [ ] **D-FINE** (Apache 2.0) — très bon en détection
+- [ ] **YOLOX** (Apache 2.0) — architecture familière
+- [ ] **LibreYOLO** (MIT) — fork libre
+
+**Action** : benchmarker RF-DETR-L vs YOLO26m sur nos données de bones
+(mAP, VRAM, latence) quand le système est fonctionnellement validé.
+
+---
+
 ## Données Critiques
 
 - PostgreSQL schema `bone_annotations` — **CRITICAL** (irremplaçable)
@@ -174,5 +194,5 @@ predict → imaging → bonestore
 
 ---
 
-**Dernière mise à jour**: 2026-08-16
-**État**: Priority 1 complétée — imaging routes, real dataset export, 85 tests
+**Dernière mise à jour**: 2026-08-17
+**État**: v0.1.34 — Workflow annotation complet, active learning, CVAT opérationnel
