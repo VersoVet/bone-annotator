@@ -248,13 +248,18 @@ def get_dataset_pacs_config() -> dict[str, Any]:
 
 
 async def load_credentials_from_vault() -> None:
-    """Load PostgreSQL and PACS credentials from Vault."""
-    global POSTGRES_PASSWORD, DATASET_PACS_USER, DATASET_PACS_PASSWORD
+    """Load PostgreSQL, CVAT, and PACS credentials from Vault."""
+    global POSTGRES_PASSWORD, CVAT_PASSWORD, DATASET_PACS_USER, DATASET_PACS_PASSWORD
     if not POSTGRES_PASSWORD:
         pg_pass = await load_vault_secret("bone_postgres_password")
         if pg_pass:
             POSTGRES_PASSWORD = pg_pass
             logger.info("PostgreSQL password loaded from Vault")
+    if not CVAT_PASSWORD:
+        cvat_pass = await load_vault_secret("cvat_admin_password")
+        if cvat_pass:
+            CVAT_PASSWORD = cvat_pass
+            logger.info("CVAT password loaded from Vault")
     if not DATASET_PACS_USER:
         user = await load_vault_secret("orthanc_training_user")
         if user:

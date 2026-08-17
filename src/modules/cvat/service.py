@@ -160,14 +160,12 @@ class CVATService:
 _service: CVATService | None = None
 
 
-def get_service(
-    host: str = "localhost",
-    port: int = 8080,
-    username: str = "admin",
-    password: str = "password",
-) -> CVATService:
-    """Get or create the CVAT service instance."""
+def get_service() -> CVATService:
+    """Get or create the CVAT service instance (config from src.config)."""
     global _service
     if _service is None:
-        _service = CVATService(host, port, username, password)
+        from src.config import get_cvat_config
+
+        cfg = get_cvat_config()
+        _service = CVATService(cfg["host"], cfg["port"], cfg["username"], cfg["password"])
     return _service
