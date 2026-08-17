@@ -40,14 +40,17 @@ def list_acquisitions(
         if not category_dir.is_dir():
             continue
 
-        # Parse category (e.g., "humerus_left_proximal")
-        parts = category_dir.name.split("_")
-        if len(parts) < 3:
+        # Parse category: "ANONYMOUS^Humerus_Left_Proximal" or "humerus_left_proximal"
+        cat_name = category_dir.name
+        if "^" in cat_name:
+            cat_name = cat_name.split("^", 1)[1]  # Strip prefix before ^
+        parts = cat_name.lower().split("_")
+        if len(parts) < 2:
             continue
 
         bone_type = parts[0]
-        side = parts[1] if len(parts) > 1 else ""
-        region = parts[2] if len(parts) > 2 else ""
+        side = parts[1] if len(parts) > 1 else "unknown"
+        region = parts[2] if len(parts) > 2 else "entire"
 
         for acq_dir in sorted(category_dir.iterdir()):
             if not acq_dir.is_dir():
