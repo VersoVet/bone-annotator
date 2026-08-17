@@ -82,8 +82,11 @@ async def lifespan(app: FastAPI):
     if OnyxClient:
         try:
             app_state.onyx_client = OnyxClient("bone-annotator")
-            await app_state.onyx_client.start()  # Signal UP au Dashboard
-            await app_state.onyx_client.working()  # Signal WORKING en cours
+            if hasattr(app_state.onyx_client, "start_async"):
+                await app_state.onyx_client.start_async()
+            elif hasattr(app_state.onyx_client, "start"):
+                await app_state.onyx_client.start()
+            await app_state.onyx_client.working()
             app_state.redis_ready = True
             logger.info("✓ OnyxClient initialized")
         except Exception as e:
@@ -157,7 +160,10 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 bone-annotator shutting down...")
     if app_state.onyx_client:
         try:
-            await app_state.onyx_client.stop()  # Signal DOWN au Dashboard
+            if hasattr(app_state.onyx_client, "stop_async"):
+                await app_state.onyx_client.stop_async()
+            else:
+                await app_state.onyx_client.stop()
         except Exception as e:
             logger.warning(f"⚠ Failed to publish shutdown status: {e}")
     logger.info("✓ Shutdown complete")
