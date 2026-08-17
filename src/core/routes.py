@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import HTMLResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -233,21 +234,29 @@ async def dependencies_endpoint() -> dict:
 
 
 @router.get("/annotate/")
-async def annotate_page() -> str:
-    """Dashboard principal d'annotation.
-
-    Returns:
-        Contenu HTML du dashboard.
-    """
+async def annotate_page() -> HTMLResponse:
+    """Dashboard principal d'annotation."""
     try:
         from pathlib import Path
 
         index_path = Path(__file__).resolve().parent.parent.parent / "static" / "index.html"
-        with index_path.open() as f:
-            return f.read()
+        return HTMLResponse(content=index_path.read_text())
     except Exception as e:
         logger.error("Failed to load index.html: %s", e)
-        return "<html><body>Dashboard not available</body></html>"
+        return HTMLResponse(content="<html><body>Dashboard not available</body></html>")
+
+
+@router.get("/annotate/annotations")
+async def annotations_page() -> HTMLResponse:
+    """Page de gestion des taches d'annotation."""
+    try:
+        from pathlib import Path
+
+        path = Path(__file__).resolve().parent.parent.parent / "static" / "annotations.html"
+        return HTMLResponse(content=path.read_text())
+    except Exception as e:
+        logger.error("Failed to load annotations.html: %s", e)
+        return HTMLResponse(content="<html><body>Page not available</body></html>")
 
 
 @router.get("/api/training/status")

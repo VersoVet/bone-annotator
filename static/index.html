@@ -223,9 +223,9 @@
             <div class="card">
                 <h2>Navigation</h2>
                 <div class="nav-links">
-                    <a href="/annotate/">Annotateur</a>
-                    <a href="/training.html">Training</a>
-                    <a href="/annotations.html">Historique</a>
+                    <a href="/annotate/annotations">Gestion Annotations</a>
+                    <a href="/annotate/">Dashboard</a>
+                    <a href="/docs">API Docs</a>
                     <a href="/docs">API Docs</a>
                 </div>
             </div>
@@ -240,10 +240,8 @@
                 const health = await healthResp.json();
                 updateHealth(health);
 
-                // Fetch dependencies
-                const depsResp = await fetch('/api/dependencies');
-                const deps = await depsResp.json();
-                updateDependencies(deps);
+                // Use health endpoint for dependencies (always available)
+                updateDependencies(health);
             } catch (error) {
                 console.error('Error loading dashboard:', error);
                 showError('Erreur lors du chargement du dashboard');
@@ -269,17 +267,16 @@
             healthContent.innerHTML = html;
         }
 
-        function updateDependencies(deps) {
+        function updateDependencies(health) {
             const depsContent = document.getElementById('dependenciesContent');
             let html = '';
 
-            for (const [name, status] of Object.entries(deps.dependencies)) {
-                const isReady = status.ready;
+            for (const [name, ready] of Object.entries(health.dependencies || {})) {
                 html += `
                     <div class="dependency">
                         <span class="dependency-name">${formatName(name)}</span>
-                        <span class="dependency-status ${isReady ? 'status-ok' : 'status-fail'}"
-                              title="${isReady ? 'Prêt' : 'Non disponible'}"></span>
+                        <span class="dependency-status ${ready ? 'status-ok' : 'status-fail'}"
+                              title="${ready ? 'Pret' : 'Non disponible'}"></span>
                     </div>
                 `;
             }
