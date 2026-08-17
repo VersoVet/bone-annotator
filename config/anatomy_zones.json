@@ -14489,6 +14489,60 @@
             "page": "",
             "quote": "",
             "confidence": "medium"
+          },
+          {
+            "id": 1600,
+            "zone_id": "tarse_ensemble",
+            "zotero_key": "ZUG3C78I",
+            "citation": "Boudrieau et al. (1984), Discussion, r\u00e9f\u00e9rence \u00e0 la justification initiale de la coaptation",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1602,
+            "zone_id": "tarse_ensemble",
+            "zotero_key": "9T8HC4QQ",
+            "citation": "Johnson et al. (2000), Methods, Radiology and Computed Tomography",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1609,
+            "zone_id": "tarse_ensemble",
+            "zotero_key": "HIQ3764R",
+            "citation": "Almohamad Z. (2024), Discussion/Conclusions",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1615,
+            "zone_id": "tarse_ensemble",
+            "zotero_key": "GANZ4ABU",
+            "citation": "van der Merwe & Worth (2026), Case summary / Discussion",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1619,
+            "zone_id": "tarse_ensemble",
+            "zotero_key": "TK4F9QN7",
+            "citation": "Nixon RL et al. (2026), Results",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1630,
+            "zone_id": "tarse_ensemble",
+            "zotero_key": "FA9MKFQM",
+            "citation": "Arencibia et al. (2019), Abstract, Results",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
           }
         ],
         "children": []
@@ -14538,6 +14592,33 @@
             "zone_id": "calcaneus",
             "zotero_key": "ZHCDQH4Q",
             "citation": "Buttin et al. (2020), Abstract / Case report 1 (acute Achilles tendon avulsion)",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1611,
+            "zone_id": "calcaneus",
+            "zotero_key": "8WJUEQEV",
+            "citation": "C\u00e9sar Schimming et al. (2015), Results - organisation du tarse chez B. dichotomus",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1612,
+            "zone_id": "calcaneus",
+            "zotero_key": "GANZ4ABU",
+            "citation": "van der Merwe & Worth (2026), Case summary / Discussion",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1625,
+            "zone_id": "calcaneus",
+            "zotero_key": "FA9MKFQM",
+            "citation": "Arencibia et al. (2019), Results - Magnetic resonance imaging",
             "page": "",
             "quote": "",
             "confidence": "medium"
@@ -14609,6 +14690,15 @@
             "page": "",
             "quote": "",
             "confidence": "high"
+          },
+          {
+            "id": 1614,
+            "zone_id": "os_cuboide",
+            "zotero_key": "GANZ4ABU",
+            "citation": "van der Merwe & Worth (2026), Case summary",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
           }
         ],
         "children": []
@@ -14745,6 +14835,33 @@
             "page": "",
             "quote": "",
             "confidence": "high"
+          },
+          {
+            "id": 1599,
+            "zone_id": "os_naviculaire",
+            "zotero_key": "ZUG3C78I",
+            "citation": "Boudrieau et al. (1984), Abstract et R\u00e9sultats principaux",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1601,
+            "zone_id": "os_naviculaire",
+            "zotero_key": "9T8HC4QQ",
+            "citation": "Johnson et al. (2000), Abstract et Results, Radiology and Computed Tomography",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1626,
+            "zone_id": "os_naviculaire",
+            "zotero_key": "FA9MKFQM",
+            "citation": "Arencibia et al. (2019), Results - Magnetic resonance imaging, Fig. 9",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
           }
         ],
         "children": []
@@ -14819,6 +14936,42 @@
             "zone_id": "talus",
             "zotero_key": "HRGTPMJ4",
             "citation": "Unknown (2014), Web Appendix, section Tarse",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1604,
+            "zone_id": "talus",
+            "zotero_key": "C6DAT8FF",
+            "citation": "Gautier et al. (2002), Introduction/Population",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1608,
+            "zone_id": "talus",
+            "zotero_key": "HIQ3764R",
+            "citation": "Almohamad Z. (2024), Discussion",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1610,
+            "zone_id": "talus",
+            "zotero_key": "8WJUEQEV",
+            "citation": "C\u00e9sar Schimming et al. (2015), Results - organisation du tarse chez B. dichotomus",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1624,
+            "zone_id": "talus",
+            "zotero_key": "FA9MKFQM",
+            "citation": "Arencibia et al. (2019), Results - Computed tomography / Magnetic resonance imaging",
             "page": "",
             "quote": "",
             "confidence": "medium"
@@ -14958,6 +15111,15 @@
             "page": "",
             "quote": "",
             "confidence": "high"
+          },
+          {
+            "id": 1605,
+            "zone_id": "trochlea_tali",
+            "zotero_key": "C6DAT8FF",
+            "citation": "Gautier et al. (2002), Operative technique/Results",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
           }
         ],
         "children": []
@@ -15007,6 +15169,24 @@
             "zone_id": "tuber_calcanei",
             "zotero_key": "ZHCDQH4Q",
             "citation": "Buttin et al. (2020), Abstract / Case report 1 (acute Achilles tendon avulsion)",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1613,
+            "zone_id": "tuber_calcanei",
+            "zotero_key": "GANZ4ABU",
+            "citation": "van der Merwe & Worth (2026), Discussion",
+            "page": "",
+            "quote": "",
+            "confidence": "medium"
+          },
+          {
+            "id": 1622,
+            "zone_id": "tuber_calcanei",
+            "zotero_key": "ZZIHU3GV",
+            "citation": "Gadallah et al. (2024), Post-operative follow-up - minor complications, calcaneal tuberosity pin site",
             "page": "",
             "quote": "",
             "confidence": "medium"
