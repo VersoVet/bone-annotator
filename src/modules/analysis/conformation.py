@@ -84,15 +84,12 @@ class ShapeModel:
         self.explained_variance = (S[:n_comp] ** 2) / (len(specimens) - 1)
         self.explained_variance_ratio = self.explained_variance / total_var if total_var > 1e-12 else np.zeros(n_comp)
 
-        # Covariance inverse for Mahalanobis distance
+        # Covariance inverse for Mahalanobis distance (pinv for singular matrices)
         shape_codes = centered @ self.components.T  # (M, K)
         cov = np.cov(shape_codes.T)
         if cov.ndim == 0:
             cov = np.array([[cov]])
-        try:
-            self.cov_inv = np.linalg.inv(cov)
-        except np.linalg.LinAlgError:
-            self.cov_inv = np.eye(n_comp)
+        self.cov_inv = np.linalg.pinv(cov)
 
         logger.info(
             "ShapeModel(%s): fitted on %d specimens, %d components, %.1f%% variance explained",

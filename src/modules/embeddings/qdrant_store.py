@@ -5,6 +5,8 @@ for similarity search, conformation analysis, and population statistics.
 """
 
 import logging
+import threading
+import uuid
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -36,6 +38,7 @@ class BoneAtlasStore:
         self.collection = collection
         self.vector_size = vector_size
         self.client = None
+        self._lock = threading.Lock()
         logger.info(
             "BoneAtlasStore initialized for %s:%d/%s",
             host,
@@ -46,23 +49,40 @@ class BoneAtlasStore:
     def _get_client(self) -> Any:
         """Get or create Qdrant client (thread-safe lazy init)."""
         if self.client is None:
-            from qdrant_client import QdrantClient
+            with self._lock:
+                if self.client is None:
+                    from qdrant_client import QdrantClient
 
-            self.client = QdrantClient(host=self.host, port=self.port)
+                    self.client = QdrantClient(host=self.host, port=self.port)
         return self.client
 
+    @staticmethod
+    def _normalize_point_id(point_id: str | int) -> str | int:
+        """Normalize point ID for Qdrant (must be int or valid UUID string)."""
+        if isinstance(point_id, int):
+            return point_id
+        try:
+            uuid.UUID(point_id)
+            return point_id
+        except ValueError:
+            return str(uuid.uuid5(uuid.NAMESPACE_DNS, point_id))
+
     def ensure_collection(self) -> None:
-        """Create the collection if it doesn't exist (idempotent)."""
+        """Create the collection if it doesn't exist (fully idempotent)."""
         try:
             from qdrant_client.http import models as qmodels
+            from qdrant_client.http.exceptions import UnexpectedResponse
 
             client = self._get_client()
+
+            # Check if collection exists (catch only "not found", not network errors)
             try:
                 client.get_collection(self.collection)
                 logger.info("Collection '%s' already exists", self.collection)
                 return
-            except Exception:
-                pass  # Collection doesn't exist, create it
+            except UnexpectedResponse as e:
+                if e.status_code != 404:
+                    raise  # Re-raise network/auth errors
 
             client.create_collection(
                 collection_name=self.collection,
@@ -72,21 +92,27 @@ class BoneAtlasStore:
                 ),
             )
 
-            # Create payload indexes for common filters
-            for field in ["bone_type", "side", "region", "source.specimen_id"]:
-                self.client.create_payload_index(
-                    collection_name=self.collection,
-                    field_name=field,
-                    field_schema=qmodels.PayloadSchemaType.KEYWORD,
-                )
-
-            # Numeric indexes for range queries
-            for field in ["conformation.mahalanobis_distance", "confidence.bone"]:
-                self.client.create_payload_index(
-                    collection_name=self.collection,
-                    field_name=field,
-                    field_schema=qmodels.PayloadSchemaType.FLOAT,
-                )
+            # Create payload indexes (each wrapped individually for idempotence)
+            keyword_fields = ["bone_type", "side", "region", "source.specimen_id"]
+            float_fields = ["conformation.mahalanobis_distance", "confidence.bone"]
+            for field in keyword_fields:
+                try:
+                    client.create_payload_index(
+                        collection_name=self.collection,
+                        field_name=field,
+                        field_schema=qmodels.PayloadSchemaType.KEYWORD,
+                    )
+                except Exception as idx_err:
+                    logger.warning("Index '%s' creation skipped: %s", field, idx_err)
+            for field in float_fields:
+                try:
+                    client.create_payload_index(
+                        collection_name=self.collection,
+                        field_name=field,
+                        field_schema=qmodels.PayloadSchemaType.FLOAT,
+                    )
+                except Exception as idx_err:
+                    logger.warning("Index '%s' creation skipped: %s", field, idx_err)
 
             logger.info("Created collection '%s' with indexes", self.collection)
         except ImportError:
@@ -109,9 +135,7 @@ class BoneAtlasStore:
             from qdrant_client.http import models as qmodels
 
             client = self._get_client()
-            # Ensure point_id is a valid type for Qdrant (int or UUID)
-            if isinstance(point_id, str) and point_id.isdigit():
-                point_id = int(point_id)
+            point_id = self._normalize_point_id(point_id)
             client.upsert(
                 collection_name=self.collection,
                 points=[
@@ -142,7 +166,7 @@ class BoneAtlasStore:
             client = self._get_client()
             qdrant_points = [
                 qmodels.PointStruct(
-                    id=int(p["id"]) if isinstance(p["id"], str) and p["id"].isdigit() else p["id"],
+                    id=self._normalize_point_id(p["id"]),
                     vector=p["embedding"],
                     payload=p["payload"],
                 )
