@@ -117,7 +117,9 @@
             </div>
             <div class="form-group">
                 <label>Assignee CVAT</label>
-                <input type="text" id="assigneeInput" placeholder="nom utilisateur CVAT">
+                <select id="assigneeSelect">
+                    <option value="">Chargement...</option>
+                </select>
             </div>
             <div class="checkbox-group">
                 <input type="checkbox" id="preAnnotate">
@@ -170,6 +172,21 @@ function toggleForm() {
     document.getElementById('createForm').classList.toggle('show');
 }
 
+async function loadCvatUsers() {
+    const sel = document.getElementById('assigneeSelect');
+    try {
+        const r = await fetch(`${API}/api/cvat/users`);
+        const d = await r.json();
+        sel.innerHTML = '<option value="">Non assigne</option>';
+        (d.users || []).forEach(u => {
+            sel.innerHTML += `<option value="${u.username}">${u.username} (id ${u.id})</option>`;
+        });
+    } catch(e) {
+        sel.innerHTML = '<option value="">Erreur chargement</option>';
+        console.error('CVAT users:', e);
+    }
+}
+
 async function loadSources() {
     try {
         const r = await fetch(`${API}/api/sources`);
@@ -213,7 +230,7 @@ async function createTask() {
         acquisition_id: acq.value,
         bone_type: bone,
         pipeline_preset: document.getElementById('presetSelect').value,
-        assignee: document.getElementById('assigneeInput').value || null,
+        assignee: document.getElementById('assigneeSelect').value || null,
         pre_annotate: document.getElementById('preAnnotate').checked,
     };
     const status = document.getElementById('createStatus');
@@ -321,6 +338,7 @@ async function validateTask(id, decision) {
 
 // Init
 loadSources();
+loadCvatUsers();
 loadTasks();
 </script>
 </body>

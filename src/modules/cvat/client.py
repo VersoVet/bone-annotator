@@ -256,6 +256,20 @@ class CVATClient:
             logger.error("Error fetching jobs for task %d: %s", task_id, e)
             return []
 
+    async def get_users(self) -> list[dict[str, Any]]:
+        """Get all CVAT users."""
+        try:
+            if self.client is None:
+                return []
+            response = await self.client.get(f"{self.api_base}/users")
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("results", []) if isinstance(data, dict) else data
+            return []
+        except Exception as e:
+            logger.error("Error fetching users: %s", e)
+            return []
+
     async def close(self) -> None:
         """Close client session."""
         if self.client:

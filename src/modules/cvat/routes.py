@@ -276,6 +276,22 @@ async def sync_annotations(task_id: int, request: AnnotationSyncRequest) -> dict
         raise HTTPException(status_code=500, detail="Failed to sync annotations")
 
 
+@router.get("/users")
+async def list_cvat_users() -> dict[str, Any]:
+    """List all CVAT users for assignee selection."""
+    try:
+        service = get_service()
+        await service.connect()
+        users = await service.client.get_users()
+        return {
+            "status": "ok",
+            "users": [{"username": u.get("username", ""), "id": u.get("id")} for u in users],
+        }
+    except Exception as e:
+        logger.error("Error listing CVAT users: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to list CVAT users")
+
+
 @router.get("/status")
 async def cvat_status() -> dict[str, Any]:
     """Get CVAT service status.
