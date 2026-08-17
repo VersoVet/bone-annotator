@@ -15,6 +15,9 @@ numpy>=1.26.0
 pillow>=10.1.0
 blosc2>=2.5.0
 
+# Onyx SDK
+onyx-sdk
+
 # YAML config
 pyyaml>=6.0
 
