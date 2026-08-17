@@ -14850,7 +14850,1597 @@
         ]
       }
     ],
-    "morphometric_criteria": [],
+    "morphometric_criteria": [
+      {
+        "id": "angle_q_quadricipital",
+        "bone_type": "rotule",
+        "name": "Angle Q (angle quadricipital)",
+        "name_en": "Q angle (quadriceps angle)",
+        "formula": "Angle form\u00e9 entre la ligne d'action du muscle quadriceps f\u00e9moral (axe f\u00e9moral proximal) et l'axe du ligament patellaire (tub\u00e9rosit\u00e9 tibiale), la rotule constituant le sommet de l'angle.",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie ou photographie num\u00e9rique en vue craniocaudale/frontale du membre pelvien en extension, en tra\u00e7ant les lignes reliant le centre de la t\u00eate f\u00e9morale, le centre de la rotule et le centre de la tub\u00e9rosit\u00e9 tibiale.",
+        "landmarks_required": [
+          "point_apex_patellae",
+          "point_base_patellae"
+        ],
+        "clinical_use": "\u00c9valuation du bras de levier extenseur et du risque/s\u00e9v\u00e9rit\u00e9 de luxation patellaire m\u00e9diale (MPL) ; angle Q plus \u00e9lev\u00e9 chez les races de petite taille et corr\u00e9l\u00e9 aux grades de MPL plus s\u00e9v\u00e8res.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:55:15.914381+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327133+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 602,
+            "criteria_id": "angle_q_quadricipital",
+            "zotero_key": "QJRSDBJE",
+            "citation": "Aghapour et al. (2021), Discussion, paragraphes sur le Q angle",
+            "table_ref": ""
+          },
+          {
+            "id": 627,
+            "criteria_id": "angle_q_quadricipital",
+            "zotero_key": "QUEEPTZX",
+            "citation": "Di Dona F et al. (2018), Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 635,
+            "criteria_id": "angle_q_quadricipital",
+            "zotero_key": "KX9QS8EA",
+            "citation": "Yoo et al. (2020), Results - Pressure area/Mean pressure/Peak pressure measurement",
+            "table_ref": ""
+          },
+          {
+            "id": 669,
+            "criteria_id": "angle_q_quadricipital",
+            "zotero_key": "ETE4TQ58",
+            "citation": "Pinna & Romagnoli (2017), Results & Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_bascule_patellaire",
+        "bone_type": "rotule",
+        "name": "Angle d'inclinaison patellaire (bascule/tilt)",
+        "name_en": "Patellar tilt angle",
+        "formula": "Angle form\u00e9 entre la ligne bicondylaire cr\u00e2niale f\u00e9morale et la ligne repr\u00e9sentant le plus grand diam\u00e8tre transversal de la patella (passant par ses bords m\u00e9dial et lat\u00e9ral)",
+        "normal_mean": 5.0,
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie tangentielle (skyline) du genou fl\u00e9chi chez le chien sain de petite race ; intervalle de r\u00e9f\u00e9rence ACVP (m\u00e9thode robuste, IC 95%)",
+        "landmarks_required": [
+          "ligne_bicondylaire_craniale_femorale",
+          "angle_lateral_base_patellae",
+          "angle_medial_base_patellae"
+        ],
+        "clinical_use": "Param\u00e8tre consid\u00e9r\u00e9 comme le plus sp\u00e9cifique et sensible pour d\u00e9terminer la direction d'une luxation patellaire, non influenc\u00e9 par la rotation du membre contrairement \u00e0 l'angle de Laurin. Significativement plus \u00e9lev\u00e9 chez le m\u00e2le (5\u00b0) que chez la femelle (3\u00b0), P=0.0004",
+        "status": "accepted",
+        "created_at": "2026-08-14T20:14:45.755770+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327178+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 684,
+            "criteria_id": "angle_bascule_patellaire",
+            "zotero_key": "V4W4A6VG",
+            "citation": "Garnoeva (2023), Results, range 2\u00b0-8\u00b0 (median 5\u00b0); Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_inclinaison_trochleaire_laterale",
+        "bone_type": "rotule",
+        "name": "Angle d'inclinaison trochl\u00e9enne lat\u00e9rale",
+        "name_en": "Lateral trochlear inclination angle (LTI)",
+        "formula": "Angle form\u00e9 entre la cr\u00eate trochl\u00e9enne lat\u00e9rale et un plan de r\u00e9f\u00e9rence (axe transcondylien ou horizontale de l'image)",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie tangentielle (skyline) du genou en flexion, \u00e0 partir de la cr\u00eate trochl\u00e9enne lat\u00e9rale",
+        "landmarks_required": [
+          "crete_trochleenne_laterale"
+        ],
+        "clinical_use": "Diminue avec la s\u00e9v\u00e9rit\u00e9 de la dysplasie trochl\u00e9enne (nul en type D selon D\u00e9jour) ; utile au d\u00e9pistage de la luxation patellaire m\u00e9diale, particuli\u00e8rement chez la femelle",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.264088+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327220+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 610,
+            "criteria_id": "angle_inclinaison_trochleaire_laterale",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 655,
+            "criteria_id": "angle_inclinaison_trochleaire_laterale",
+            "zotero_key": "6SJ7884D",
+            "citation": "Garnoeva (2025), Results paragraphe 6, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 658,
+            "criteria_id": "angle_inclinaison_trochleaire_laterale",
+            "zotero_key": "CVWJ9M35",
+            "citation": "Garnoeva (2021), Results, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 690,
+            "criteria_id": "angle_inclinaison_trochleaire_laterale",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), qualitative findings",
+            "table_ref": ""
+          },
+          {
+            "id": 705,
+            "criteria_id": "angle_inclinaison_trochleaire_laterale",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), M\u00e9thodologie et R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_inclinaison_trochleaire_mediale",
+        "bone_type": "rotule",
+        "name": "Angle d'inclinaison trochl\u00e9enne m\u00e9diale",
+        "name_en": "Medial trochlear inclination angle (MTI)",
+        "formula": "Angle form\u00e9 entre la cr\u00eate trochl\u00e9enne m\u00e9diale et un plan de r\u00e9f\u00e9rence (axe transcondylien ou horizontale de l'image)",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie tangentielle (skyline) du genou en flexion, \u00e0 partir de la cr\u00eate trochl\u00e9enne m\u00e9diale",
+        "landmarks_required": [
+          "crete_trochleenne_mediale"
+        ],
+        "clinical_use": "Significativement plus faible chez la femelle ; nul en type D selon D\u00e9jour ; marqueur de risque de luxation patellaire m\u00e9diale",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.267996+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327285+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 611,
+            "criteria_id": "angle_inclinaison_trochleaire_mediale",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 656,
+            "criteria_id": "angle_inclinaison_trochleaire_mediale",
+            "zotero_key": "6SJ7884D",
+            "citation": "Garnoeva (2025), Results paragraphe 6, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 659,
+            "criteria_id": "angle_inclinaison_trochleaire_mediale",
+            "zotero_key": "CVWJ9M35",
+            "citation": "Garnoeva (2021), Results, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 691,
+            "criteria_id": "angle_inclinaison_trochleaire_mediale",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), qualitative findings",
+            "table_ref": ""
+          },
+          {
+            "id": 706,
+            "criteria_id": "angle_inclinaison_trochleaire_mediale",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), M\u00e9thodologie et R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_congruence_patellofemoral",
+        "bone_type": "rotule",
+        "name": "Angle de congruence patellof\u00e9moral",
+        "name_en": "Patellofemoral congruence angle",
+        "formula": "Angle form\u00e9 entre la bissectrice de l'angle du sulcus (trac\u00e9e depuis le point le plus profond du sillon trochl\u00e9en) et une ligne joignant ce m\u00eame point profond au sommet de la cr\u00eate m\u00e9diane de la face articulaire de la patella ; valeur n\u00e9gative lorsque le sommet de la cr\u00eate patellaire est situ\u00e9 m\u00e9dialement \u00e0 la bissectrice",
+        "normal_mean": -3.0,
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie tangentielle (skyline) du genou fl\u00e9chi, chez le chien sain de petite race ; intervalle de r\u00e9f\u00e9rence calcul\u00e9 selon les recommandations ACVP (m\u00e9thode robuste, IC 95%, distribution non gaussienne, n=40-120)",
+        "landmarks_required": [
+          "point_le_plus_profond_sillon_trochleen",
+          "crete_trochleenne_laterale",
+          "crete_trochleenne_mediale",
+          "crete_mediane_face_articulaire"
+        ],
+        "clinical_use": "\u00c9valuation de la translation de la patella dans le plan axial ; identification des sujets \u00e0 risque accru de luxation patellaire m\u00e9diale (MPL) quand l'angle diverge de l'intervalle de r\u00e9f\u00e9rence (-8.06\u00b0 \u00e0 -0.58\u00b0, m\u00e9diane -3\u00b0)",
+        "status": "accepted",
+        "created_at": "2026-08-14T20:14:45.735056+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327322+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 681,
+            "criteria_id": "angle_congruence_patellofemoral",
+            "zotero_key": "V4W4A6VG",
+            "citation": "Garnoeva (2023), Results, reference range -8.06\u00b0 to -0.58\u00b0 (median -3\u00b0)",
+            "table_ref": ""
+          },
+          {
+            "id": 687,
+            "criteria_id": "angle_congruence_patellofemoral",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), Results \u00a75, Table 2, Figure 5",
+            "table_ref": ""
+          },
+          {
+            "id": 715,
+            "criteria_id": "angle_congruence_patellofemoral",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), R\u00e9sultats, paragraphe 5, Table 2, Figure 5",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_flexion_genou_radiographique",
+        "bone_type": "rotule",
+        "name": "Angle de flexion du genou (radiographique)",
+        "name_en": "Stifle/knee joint flexion angle",
+        "formula": "Angle mesur\u00e9 entre l'axe diaphysaire f\u00e9moral et l'axe diaphysaire tibial sur radiographie de profil, selon deux techniques distinctes (technique M et technique C)",
+        "normal_unit": "degrees",
+        "measurement_method": "Comparaison de deux techniques (angle M vs angle C) sur un mod\u00e8le de membre post\u00e9rieur de renard : angles corr\u00e9l\u00e9s mais non interchangeables, biais de 9-13\u00b0, limites d'agr\u00e9ment \u00b15\u00b0. L'estimation visuelle de l'angulation (sans goniom\u00e8tre) est nettement moins pr\u00e9cise (IC 95% de \u00b110\u00b0, \u00b128\u00b0et \u00b120\u00b0selon la position) qu'avec un goniom\u00e8tre (\u00b16\u00b0 dans une \u00e9tude ant\u00e9rieure chez le renard).",
+        "clinical_use": "Facteur confondant majeur pour tous les indices de positionnement proximodistal patellaire, en particulier dC et PT (significativement affect\u00e9s par l'angle, P < 0.001) ; recommandation de radiographier \u00e0 un angle articulaire caudal maximal de 97\u00b0 (taux de clich\u00e9s inacceptables : 5% \u00e0 97\u00b0, 25% \u00e0 126\u00b0, 40% \u00e0 139\u00b0, en lien avec la perte de tension du ligament patellaire) ; la m\u00e9thode de mesure de l'angle doit \u00eatre d\u00e9finie avant toute comparaison de valeurs d'indices.",
+        "status": "accepted",
+        "created_at": "2026-08-14T20:04:34.500975+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327357+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 675,
+            "criteria_id": "angle_flexion_genou_radiographique",
+            "zotero_key": "23DIZ5T4",
+            "citation": "Miles et al. (2012), Methods/Results/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_facette_laterale_patella",
+        "bone_type": "rotule",
+        "name": "Angle de la facette lat\u00e9rale de la patella",
+        "name_en": "Lateral patellar facet angle (LFA)",
+        "formula": "Angle entre la facette articulaire lat\u00e9rale de la patella et la cr\u00eate m\u00e9diane",
+        "normal_unit": "degrees",
+        "measurement_method": "Radiographie tangentielle (skyline), mesure de l'inclinaison de la facette lat\u00e9rale",
+        "landmarks_required": [
+          "crete_mediane_face_articulaire"
+        ],
+        "clinical_use": "Significativement plus faible chez la femelle ; associ\u00e9 au risque accru de luxation patellaire m\u00e9diale chez la femelle de petite race",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.276121+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327403+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 613,
+            "criteria_id": "angle_facette_laterale_patella",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 694,
+            "criteria_id": "angle_facette_laterale_patella",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), qualitative findings",
+            "table_ref": ""
+          },
+          {
+            "id": 712,
+            "criteria_id": "angle_facette_laterale_patella",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), R\u00e9sultats qualitatifs et Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_facette_mediale_patella",
+        "bone_type": "rotule",
+        "name": "Angle de la facette m\u00e9diale de la patella",
+        "name_en": "Medial patellar facet angle (MFA)",
+        "formula": "Angle entre la facette articulaire m\u00e9diale de la patella et la cr\u00eate m\u00e9diane",
+        "normal_unit": "degrees",
+        "measurement_method": "Radiographie tangentielle (skyline), mesure de l'inclinaison de la facette m\u00e9diale",
+        "landmarks_required": [
+          "crete_mediane_face_articulaire"
+        ],
+        "clinical_use": "Significativement plus faible chez la femelle ; contribue \u00e0 l'explication anatomique de la pr\u00e9disposition f\u00e9minine \u00e0 la MPL",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.280302+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327438+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 614,
+            "criteria_id": "angle_facette_mediale_patella",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 695,
+            "criteria_id": "angle_facette_mediale_patella",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), main findings",
+            "table_ref": ""
+          },
+          {
+            "id": 713,
+            "criteria_id": "angle_facette_mediale_patella",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), M\u00e9thodologie",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_distal_tendon_patellaire_dpa",
+        "bone_type": "rotule",
+        "name": "Angle distal du tendon patellaire (DPA)",
+        "name_en": "Distal Patellar tendon Angle (DPA)",
+        "formula": "Non d\u00e9taill\u00e9e dans la fiche de lecture (protocole non d\u00e9crit dans les donn\u00e9es extraites) ; mesure angulaire radiographique portant sur l'alignement distal du tendon patellaire",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesure r\u00e9alis\u00e9e sur radiographies du tibia (vues caudocraniale et m\u00e9diolat\u00e9rale) avec le logiciel Cedara ProPlanner v3.3, par trois observateurs d'exp\u00e9rience diff\u00e9rente ; le d\u00e9tail pr\u00e9cis du trac\u00e9 (rep\u00e8res osseux utilis\u00e9s) n'est pas fourni dans la fiche de lecture disponible.",
+        "clinical_use": "\u00c9valuation radiographique de l'alignement du tendon patellaire dans le cadre du bilan d'une luxation patellaire ; l'\u00e9tude sugg\u00e8re une fiabilit\u00e9 moindre de cette mesure compar\u00e9e aux autres angles f\u00e9moro-tibiaux, ce qui doit \u00eatre pris en compte dans son usage clinique.",
+        "status": "accepted",
+        "created_at": "2026-08-14T19:07:41.782519+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327468+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 629,
+            "criteria_id": "angle_distal_tendon_patellaire_dpa",
+            "zotero_key": "BPXVHU4B",
+            "citation": "Aghapour et al. (2019), Results paragraphe 6 ; Main findings",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_sulcus",
+        "bone_type": "rotule",
+        "name": "Angle du sillon trochl\u00e9en (Sulcus Angle, SA)",
+        "name_en": "Sulcus Angle",
+        "formula": "Angle form\u00e9 par les versants m\u00e9dial et lat\u00e9ral du sillon trochl\u00e9en f\u00e9moral, mesur\u00e9 sur projection skyline",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesure angulaire sur projection skyline chez 69 grassets ; comparaison contr\u00f4le vs MPL grade II vs MPL grade III",
+        "clinical_use": "Significativement augment\u00e9 dans le groupe MPL grade III compar\u00e9 aux groupes contr\u00f4le et grade II (p<0.05), traduisant un aplatissement trochl\u00e9en progressif corr\u00e9l\u00e9 \u00e0 la s\u00e9v\u00e9rit\u00e9 de la luxation",
+        "status": "accepted",
+        "created_at": "2026-08-14T16:59:58.057304+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327510+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 587,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "F7FR5W6W",
+            "citation": "Akaraphutiporn et al. (2026), R\u00e9sultats (SA)",
+            "table_ref": ""
+          },
+          {
+            "id": 590,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "33WMSQXP",
+            "citation": "Miles et al. (2014), Results & Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 606,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 653,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "6SJ7884D",
+            "citation": "Garnoeva (2025), Results paragraphe 4, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 657,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "CVWJ9M35",
+            "citation": "Garnoeva (2021), Results, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 680,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "V4W4A6VG",
+            "citation": "Garnoeva (2023), Materials, Methods & Results",
+            "table_ref": ""
+          },
+          {
+            "id": 685,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), Results \u00a73 et Discussion \u00a73",
+            "table_ref": ""
+          },
+          {
+            "id": 704,
+            "criteria_id": "angle_sulcus",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), R\u00e9sultats et Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_patellofemoral_lateral_laurin",
+        "bone_type": "rotule",
+        "name": "Angle patellof\u00e9moral lat\u00e9ral (angle de Laurin)",
+        "name_en": "Lateral patellofemoral angle (Laurin angle)",
+        "formula": "Angle form\u00e9 entre la ligne bicondylaire cr\u00e2niale f\u00e9morale et une ligne trac\u00e9e le long de la facette lat\u00e9rale de la patella ; ouvert lat\u00e9ralement (positif) chez le sujet sain",
+        "normal_mean": 31.5,
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie tangentielle (skyline) du genou fl\u00e9chi chez le chien sain de petite race ; intervalle de r\u00e9f\u00e9rence ACVP (m\u00e9thode robuste, IC 95%)",
+        "landmarks_required": [
+          "ligne_bicondylaire_craniale_femorale",
+          "angle_facette_laterale_patella"
+        ],
+        "clinical_use": "\u00c9valuation de la rotation de la patella dans le plan axial ; un angle ferm\u00e9 ou n\u00e9gatif (non ouvert lat\u00e9ralement) est \u00e9vocateur de bascule/luxation patellaire. Param\u00e8tre significativement plus \u00e9lev\u00e9 chez le m\u00e2le (33.5\u00b0) que chez la femelle (30\u00b0), P=0.0248",
+        "status": "accepted",
+        "created_at": "2026-08-14T20:14:45.751971+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327556+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 683,
+            "criteria_id": "angle_patellofemoral_lateral_laurin",
+            "zotero_key": "V4W4A6VG",
+            "citation": "Garnoeva (2023), Results, reference range 21.61\u00b0-41.80\u00b0 (median 31.5\u00b0); Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_wiberg",
+        "bone_type": "rotule",
+        "name": "Angle r\u00e9tropatellaire de Wiberg",
+        "name_en": "Retropatellar angle of Wiberg (WA)",
+        "formula": "Angle form\u00e9 par les deux facettes articulaires (lat\u00e9rale et m\u00e9diale) de la face articulaire de la patella au niveau de la cr\u00eate m\u00e9diane",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie tangentielle (skyline) \u00e0 partir des deux facettes articulaires patellaires",
+        "landmarks_required": [
+          "crete_mediane_face_articulaire"
+        ],
+        "clinical_use": "Tend \u00e0 augmenter chez la femelle (non significatif) ; d\u00e9crit la congruence de la face articulaire patellaire avec le sillon trochl\u00e9en",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.271919+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327591+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 612,
+            "criteria_id": "angle_wiberg",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 689,
+            "criteria_id": "angle_wiberg",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), Discussion, qualitative findings",
+            "table_ref": ""
+          },
+          {
+            "id": 714,
+            "criteria_id": "angle_wiberg",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "angle_trochleaire_at",
+        "bone_type": "rotule",
+        "name": "Angle trochl\u00e9aire (AT angle)",
+        "name_en": "Trochlear (AT) angle",
+        "formula": "Formule exacte non d\u00e9taill\u00e9e dans le texte extrait. Mesur\u00e9 sur incidence m\u00e9diolat\u00e9rale du grasset (contrairement \u00e0 l'angle du sulcus classique g\u00e9n\u00e9ralement mesur\u00e9 en vue axiale/skyline), ce qui sugg\u00e8re un angle distinct de l'angle_sulcus existant plut\u00f4t qu'un synonyme direct.",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesur\u00e9 sur radiographie m\u00e9diolat\u00e9rale du grasset avec chevauchement exact des condyles f\u00e9moraux. ICC intra-observateur = 0.91.",
+        "clinical_use": "Significativement plus grand dans le groupe MPL vs contr\u00f4le ; tendance \u00e0 l'augmentation en grade 2 (p=0.053) et grade 3 (p=0.087), sans diff\u00e9rence en grade 1.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:41:30.744421+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327622+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 598,
+            "criteria_id": "angle_trochleaire_at",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Results, Table 8",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "hauteur_patellaire",
+        "bone_type": "rotule",
+        "name": "Hauteur patellaire (PH)",
+        "name_en": "Patellar Height",
+        "formula": "Distance proximodistale entre la base et l'apex de la rotule, mesur\u00e9e sur projection m\u00e9diolat\u00e9rale",
+        "normal_unit": "mm",
+        "measurement_method": "Mesure sur projection m\u00e9diolat\u00e9rale standardis\u00e9e chez 69 grassets de petite race ; composante du ratio PH/TD et PH/FC",
+        "landmarks_required": [
+          "point_apex_patellae"
+        ],
+        "clinical_use": "Ne diff\u00e8re pas significativement entre groupes isol\u00e9ment, mais son ratio avec la profondeur trochl\u00e9enne (PH/TD) est l'indice le plus discriminant de l'\u00e9tude pour la MPL grade III",
+        "status": "accepted",
+        "created_at": "2026-08-14T16:59:58.046078+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327654+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 584,
+            "criteria_id": "hauteur_patellaire",
+            "zotero_key": "F7FR5W6W",
+            "citation": "Akaraphutiporn et al. (2026), R\u00e9sultats et Conclusion (PH, ratio PH/TD)",
+            "table_ref": ""
+          },
+          {
+            "id": 608,
+            "criteria_id": "hauteur_patellaire",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 636,
+            "criteria_id": "hauteur_patellaire",
+            "zotero_key": "KX9QS8EA",
+            "citation": "Yoo et al. (2020), Methods - Population/Exclusion criteria",
+            "table_ref": ""
+          },
+          {
+            "id": 646,
+            "criteria_id": "hauteur_patellaire",
+            "zotero_key": "3DI8TRR8",
+            "citation": "K\u0148azovick\u00fd et al. (2012), Title & Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 649,
+            "criteria_id": "hauteur_patellaire",
+            "zotero_key": "EMP6N9WV",
+            "citation": "Ocal et al. (2020), Objective",
+            "table_ref": ""
+          },
+          {
+            "id": 677,
+            "criteria_id": "hauteur_patellaire",
+            "zotero_key": "N84GUQ47",
+            "citation": "\u0141ojszczyk-Szczepaniak et al. (2017), Abstract/Results",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "index_angulaire_a_position_proximodistale_patella",
+        "bone_type": "rotule",
+        "name": "Index angulaire A de position proximodistale de la patella",
+        "name_en": "Angular index A for patellar proximodistal positioning",
+        "formula": "Angle form\u00e9 entre les droites reliant l'aspect caudal des condyles f\u00e9moraux, l'aspect caudal des condyles tibiaux et l'apex de la patella (point_apex_patellae), mesur\u00e9 sur une radiographie lat\u00e9rale du grasset.",
+        "normal_mean": 52.0,
+        "normal_sd": 2.6,
+        "normal_unit": "degrees",
+        "breed_specific": {
+          "Chien de tra\u00eeneau du Groenland (criblage, n=10)": {
+            "mean": 52,
+            "sd": 2.6,
+            "n": 10
+          }
+        },
+        "measurement_method": "Mesure des coordonn\u00e9es des trois rep\u00e8res par logiciel d'analyse d'image sur radiographie lat\u00e9rale du grasset ; index calcul\u00e9 et test\u00e9 \u00e0 plusieurs angles articulaires f\u00e9morotibiaux caudaux (30\u00b0 \u00e0 148\u00b0 chez le renard ; ~97\u00b0 et 126\u00b0 puis ~140\u00b0 chez le chien) pour \u00e9valuer l'insensibilit\u00e9 \u00e0 l'angle articulaire ; r\u00e9p\u00e9tabilit\u00e9 intra-observateur (wsSD <1.3\u00b0, CV <2.2%) et reproductibilit\u00e9 inter-observateur (ICC >0.89) \u00e9valu\u00e9es sur radiographies canines.",
+        "landmarks_required": [
+          "point_apex_patellae",
+          "aspect_caudal_condyles_femoraux",
+          "aspect_caudal_condyles_tibiaux"
+        ],
+        "clinical_use": "Alternative \u00e0 l'index d'Insall-Salvati pour \u00e9valuer la position proximodistale de la patella (patella alta/baja) dans le contexte de la luxation patellaire, utilisable en p\u00e9riode postop\u00e9ratoire m\u00eame apr\u00e8s transposition chirurgicale de la tub\u00e9rosit\u00e9 tibiale, et peu sensible \u00e0 l'angle de flexion du grasset au moment de la radiographie.",
+        "status": "accepted",
+        "created_at": "2026-08-14T19:11:20.260417+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327696+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 634,
+            "criteria_id": "index_angulaire_a_position_proximodistale_patella",
+            "zotero_key": "TJ3UJK8T",
+            "citation": "Allberg & Miles (2020), Abstract; Results, Canine screening and Canine testing",
+            "table_ref": ""
+          },
+          {
+            "id": 667,
+            "criteria_id": "index_angulaire_a_position_proximodistale_patella",
+            "zotero_key": "ANQ9U4FX",
+            "citation": "Mostafa et al. (2008), Conclusions",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "indice_blackburne_peel",
+        "bone_type": "rotule",
+        "name": "Indice de Blackburne-Peel (BPI)",
+        "name_en": "Blackburne-Peel Index",
+        "formula": "BPI = distance perpendiculaire entre le p\u00f4le distal de la surface articulaire patellaire et la ligne du plateau tibial (ligne_plateau_tibial) / longueur de la surface articulaire de la patella",
+        "normal_mean": 1.15,
+        "normal_unit": "ratio",
+        "measurement_method": "Mesure sur radiographie m\u00e9diolat\u00e9rale du grasset en flexion standardis\u00e9e. M\u00e9diane = 1.15 (sains) vs 1.10 (MPL), Hodges-Lehmann (95% CI) = 1.11 (1.08-1.15).",
+        "landmarks_required": [
+          "pole_distal_surface_articulaire_patella",
+          "ligne_plateau_tibial"
+        ],
+        "clinical_use": "\u00c9valuation de la position proximodistale de la patella ; sensible \u00e0 la pente tibiale (tibial slope), ce qui limite son interpr\u00e9tation en cas de MPL chronique avec d\u00e9viation m\u00e9diale de la tub\u00e9rosit\u00e9 tibiale. Dans cette \u00e9tude, aucune diff\u00e9rence significative sains vs MPL, AUC proche de 0.5, sensibilit\u00e9/sp\u00e9cificit\u00e9 des seuils faibles.",
+        "status": "accepted",
+        "created_at": "2026-08-14T19:24:49.732242+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327746+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 643,
+            "criteria_id": "indice_blackburne_peel",
+            "zotero_key": "SIIMJIM7",
+            "citation": "Garnoeva (2023), Results, Discussion, Table 2",
+            "table_ref": ""
+          },
+          {
+            "id": 672,
+            "criteria_id": "indice_blackburne_peel",
+            "zotero_key": "23DIZ5T4",
+            "citation": "Miles et al. (2012), Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "indice_caton_deschamps",
+        "bone_type": "rotule",
+        "name": "Indice de Caton-Deschamps (CDI)",
+        "name_en": "Caton-Deschamps Index",
+        "formula": "CDI = distance entre le p\u00f4le distal de la surface articulaire patellaire (pole_distal_surface_articulaire_patella) et l'angle sup\u00e9ro-ant\u00e9rieur du plateau tibial (angle_supero_anterieur_plateau_tibial) / longueur de la surface articulaire de la patella",
+        "normal_mean": 1.38,
+        "normal_unit": "ratio",
+        "measurement_method": "Mesure sur radiographie m\u00e9diolat\u00e9rale du grasset en flexion standardis\u00e9e, chez 138 stifles (4 races de petite taille : Mini-Pinscher, Pomeranian, Chihuahua, Yorkshire terrier). M\u00e9diane = 1.38 (sains) vs 1.33 (MPL), Hodges-Lehmann (95% CI) = 1.35 (1.31-1.38).",
+        "landmarks_required": [
+          "pole_distal_surface_articulaire_patella",
+          "angle_supero_anterieur_plateau_tibial"
+        ],
+        "clinical_use": "\u00c9valuation de la position proximodistale de la patella (patella alta/baja) ; dans cette \u00e9tude, ne montre pas de diff\u00e9rence significative entre grassets sains et MPL et pr\u00e9sente une AUC proche de 0.5 (valeur diagnostique nulle, pas meilleure que le hasard) chez les 4 races de petite taille \u00e9tudi\u00e9es.",
+        "status": "accepted",
+        "created_at": "2026-08-14T19:24:49.728451+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327781+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 642,
+            "criteria_id": "indice_caton_deschamps",
+            "zotero_key": "SIIMJIM7",
+            "citation": "Garnoeva (2023), Results, Table 2",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "indice_insall_salvati",
+        "bone_type": "rotule",
+        "name": "Indice de Insall-Salvati (canin)",
+        "name_en": "Insall-Salvati Index",
+        "formula": "IS = LLca / PL, o\u00f9 LLca = longueur du bord caudal du ligament patellaire (de l'apex de la patella \u00e0 son insertion sur la tub\u00e9rosit\u00e9 tibiale) et PL = longueur patellaire (base \u00e0 apex).",
+        "normal_mean": 1.6,
+        "normal_sd": 0.28,
+        "normal_unit": "ratio",
+        "measurement_method": "Radiographie m\u00e9diolat\u00e9rale stricte du grasset (superposition des condyles f\u00e9moraux v\u00e9rifi\u00e9e) ; mesure de PL (point_base_patellae \u00e0 point_apex_patellae) puis de LLca (point_apex_patellae \u00e0 point_insertion_ligament_patellaire_tuberosite_tibiale, bord caudal du ligament) ; angle du grasset standardis\u00e9 lors de la prise de vue.",
+        "landmarks_required": [
+          "point_base_patellae",
+          "point_apex_patellae",
+          "point_insertion_ligament_patellaire_tuberosite_tibiale"
+        ],
+        "clinical_use": "\u00c9valuation de la position patellaire (patella alta/baja) chez le chien, notamment dans le bilan de luxation patellaire ; valeurs influenc\u00e9es par le sexe et la pr\u00e9sence d'enth\u00e9sophytes \u00e0 l'apex de la patella.",
+        "status": "accepted",
+        "created_at": "2026-08-14T19:32:21.534967+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327813+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 650,
+            "criteria_id": "indice_insall_salvati",
+            "zotero_key": "EMP6N9WV",
+            "citation": "Ocal et al. (2020), Results, Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 664,
+            "criteria_id": "indice_insall_salvati",
+            "zotero_key": "ANQ9U4FX",
+            "citation": "Mostafa et al. (2008), key_references Ref. 26",
+            "table_ref": ""
+          },
+          {
+            "id": 670,
+            "criteria_id": "indice_insall_salvati",
+            "zotero_key": "23DIZ5T4",
+            "citation": "Miles et al. (2012), Results/Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 678,
+            "criteria_id": "indice_insall_salvati",
+            "zotero_key": "N84GUQ47",
+            "citation": "\u0141ojszczyk-Szczepaniak et al. (2017), Results/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "indice_insall_salvati_modifie",
+        "bone_type": "rotule",
+        "name": "Indice de Insall-Salvati modifi\u00e9 (canin)",
+        "name_en": "Modified Insall-Salvati Index (LLcr:PL)",
+        "formula": "LLcr:PL = LLcr / PL, o\u00f9 LLcr = longueur du bord cranial du ligament patellaire (de l'apex de la patella \u00e0 son insertion sur la tub\u00e9rosit\u00e9 tibiale) et PL = longueur patellaire.",
+        "normal_unit": "ratio",
+        "measurement_method": "Identique \u00e0 l'indice de Insall-Salvati standard, mais la longueur du ligament patellaire est mesur\u00e9e le long de son bord cranial (LLcr) plut\u00f4t que caudal (LLca), pour tenir compte de l'obliquit\u00e9 du ligament patellaire canin.",
+        "landmarks_required": [
+          "point_base_patellae",
+          "point_apex_patellae",
+          "point_insertion_ligament_patellaire_tuberosite_tibiale"
+        ],
+        "clinical_use": "Alternative \u00e0 l'indice de Insall-Salvati standard, propos\u00e9e pour am\u00e9liorer la reproductibilit\u00e9 de la mesure de hauteur patellaire chez le chien ; valeurs \u00e9galement influenc\u00e9es par le sexe et les enth\u00e9sophytes de l'apex patellaire.",
+        "status": "accepted",
+        "created_at": "2026-08-14T19:32:21.539100+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327877+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 651,
+            "criteria_id": "indice_insall_salvati_modifie",
+            "zotero_key": "EMP6N9WV",
+            "citation": "Ocal et al. (2020), Study design, Results",
+            "table_ref": ""
+          },
+          {
+            "id": 665,
+            "criteria_id": "indice_insall_salvati_modifie",
+            "zotero_key": "ANQ9U4FX",
+            "citation": "Mostafa et al. (2008), Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 671,
+            "criteria_id": "indice_insall_salvati_modifie",
+            "zotero_key": "23DIZ5T4",
+            "citation": "Miles et al. (2012), Results/Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 679,
+            "criteria_id": "indice_insall_salvati_modifie",
+            "zotero_key": "N84GUQ47",
+            "citation": "\u0141ojszczyk-Szczepaniak et al. (2017), Results/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "indice_de_carvalho",
+        "bone_type": "rotule",
+        "name": "Indice de de Carvalho (dC)",
+        "name_en": "de Carvalho index",
+        "formula": "Indice de positionnement proximodistal patellaire, variante de l'Insall-Salvati (formule exacte non d\u00e9taill\u00e9e dans cette fiche, d\u00e9crite dans Miles et al. 2012 par r\u00e9f\u00e9rence \u00e0 Carvalho et al.)",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie de profil du genou en flexion ; significativement affect\u00e9 par l'angle du genou (P < 0.001), n\u00e9cessitant soit une standardisation de l'angle radiographique soit un intervalle de pr\u00e9diction pour l'interpr\u00e9tation \u00e0 diff\u00e9rents angles. Affect\u00e9 par la laxit\u00e9 du ligament patellaire (P < 0.05).",
+        "clinical_use": "Selon les auteurs, meilleure option globale pour la comparaison pr\u00e9- et post-op\u00e9ratoire malgr\u00e9 ses limites, en raison d'une moindre susceptibilit\u00e9 \u00e0 l'erreur que PT et d'une meilleure pr\u00e9cision que BP ; fiabilit\u00e9 inter-observateur mod\u00e9r\u00e9e (la plus faible des 5 indices), refl\u00e9tant un d\u00e9saccord plus important sur les rep\u00e8res radiographiques utilis\u00e9s.",
+        "status": "accepted",
+        "created_at": "2026-08-14T20:04:34.493183+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327915+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 673,
+            "criteria_id": "indice_de_carvalho",
+            "zotero_key": "23DIZ5T4",
+            "citation": "Miles et al. (2012), Results/Discussion/Conclusion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "indice_patellotrochleaire",
+        "bone_type": "rotule",
+        "name": "Indice patellotrochl\u00e9aire (PT)",
+        "name_en": "Patellotrochlear (PT) index",
+        "formula": "Indice de positionnement proximodistal patellaire rapportant une mesure li\u00e9e au sillon trochl\u00e9aire f\u00e9moral (formule exacte non d\u00e9taill\u00e9e dans cette fiche)",
+        "normal_unit": "ratio",
+        "measurement_method": "Significativement affect\u00e9 par l'angle du genou (P < 0.001) ; susceptibilit\u00e9 \u00e0 l'erreur d'estimation de l'angle la plus \u00e9lev\u00e9e des cinq indices \u00e9tudi\u00e9s, notamment sensible au biais de 9-13\u00b0 observ\u00e9 entre les deux techniques de mesure de l'angle du genou (technique M vs technique C).",
+        "clinical_use": "Utilisable pour comparaison pr\u00e9/post-op\u00e9ratoire mais avec une pr\u00e9cision inf\u00e9rieure \u00e0 celle de dC en raison de sa forte d\u00e9pendance \u00e0 l'angle articulaire ; n\u00e9cessite un contr\u00f4le rigoureux de l'angle du genou lors de l'acquisition radiographique.",
+        "status": "accepted",
+        "created_at": "2026-08-14T20:04:34.497116+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327947+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 674,
+            "criteria_id": "indice_patellotrochleaire",
+            "zotero_key": "23DIZ5T4",
+            "citation": "Miles et al. (2012), Results/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "largeur_patellaire",
+        "bone_type": "rotule",
+        "name": "Largeur patellaire (PW)",
+        "name_en": "Patellar Width",
+        "formula": "Distance m\u00e9diolat\u00e9rale maximale de la rotule, mesur\u00e9e sur projection radiographique standardis\u00e9e (vraisemblablement skyline et/ou ventrodorsale, protocole exact non d\u00e9taill\u00e9 dans les donn\u00e9es disponibles)",
+        "normal_unit": "mm",
+        "measurement_method": "Mesure sur projections radiographiques standardis\u00e9es (VD, ML, skyline) chez 69 grassets de petite race ; utilis\u00e9e seule et en ratio avec la largeur trochl\u00e9enne (PW/TW) et la largeur f\u00e9morale (PW/FW)",
+        "landmarks_required": [
+          "angle_lateral_base_patellae",
+          "angle_medial_base_patellae"
+        ],
+        "clinical_use": "Absence de diff\u00e9rence significative entre groupes contr\u00f4le, MPL grade II et MPL grade III (p \u2265 0.05) : la largeur patellaire absolue seule n'est pas associ\u00e9e \u00e0 la s\u00e9v\u00e9rit\u00e9 de la MPL",
+        "status": "accepted",
+        "created_at": "2026-08-14T16:59:58.042135+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327978+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 583,
+            "criteria_id": "largeur_patellaire",
+            "zotero_key": "F7FR5W6W",
+            "citation": "Akaraphutiporn et al. (2026), R\u00e9sultats, Table (PW)",
+            "table_ref": ""
+          },
+          {
+            "id": 609,
+            "criteria_id": "largeur_patellaire",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 696,
+            "criteria_id": "largeur_patellaire",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), qualitative findings",
+            "table_ref": ""
+          },
+          {
+            "id": 708,
+            "criteria_id": "largeur_patellaire",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "longueur_facette_laterale_patella",
+        "bone_type": "rotule",
+        "name": "Longueur de la facette lat\u00e9rale de la patella",
+        "name_en": "Lateral facet length (LF)",
+        "formula": "Distance mesur\u00e9e le long de la facette articulaire lat\u00e9rale de la patella",
+        "normal_unit": "mm",
+        "measurement_method": "Radiographie tangentielle (skyline), mesure lin\u00e9aire de la facette lat\u00e9rale",
+        "clinical_use": "Significativement plus faible chez la femelle ; entre dans le calcul du ratio MF/LF",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.284880+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328009+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 615,
+            "criteria_id": "longueur_facette_laterale_patella",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 692,
+            "criteria_id": "longueur_facette_laterale_patella",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), qualitative findings",
+            "table_ref": ""
+          },
+          {
+            "id": 710,
+            "criteria_id": "longueur_facette_laterale_patella",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "longueur_facette_mediale_patella",
+        "bone_type": "rotule",
+        "name": "Longueur de la facette m\u00e9diale de la patella",
+        "name_en": "Medial facet length (MF)",
+        "formula": "Distance mesur\u00e9e le long de la facette articulaire m\u00e9diale de la patella",
+        "normal_unit": "mm",
+        "measurement_method": "Radiographie tangentielle (skyline), mesure lin\u00e9aire de la facette m\u00e9diale",
+        "clinical_use": "Significativement plus faible chez la femelle ; entre dans le calcul du ratio MF/LF",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.289164+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328039+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 616,
+            "criteria_id": "longueur_facette_mediale_patella",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 693,
+            "criteria_id": "longueur_facette_mediale_patella",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), main findings",
+            "table_ref": ""
+          },
+          {
+            "id": 711,
+            "criteria_id": "longueur_facette_mediale_patella",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), M\u00e9thodologie",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "longueur_patellaire",
+        "bone_type": "rotule",
+        "name": "Longueur patellaire (PL)",
+        "name_en": "Patellar Length",
+        "formula": "Dimension craniocaudale (\u00e9paisseur) de la rotule sur projection m\u00e9diolat\u00e9rale, distincte de la hauteur proximodistale (PH)",
+        "normal_unit": "mm",
+        "measurement_method": "Mesure sur projection m\u00e9diolat\u00e9rale standardis\u00e9e ; utilis\u00e9e en ratio avec la longueur trochl\u00e9enne (PL/TL)",
+        "clinical_use": "Ne diff\u00e8re pas significativement isol\u00e9ment, mais le ratio PL/TL montre une tendance \u00e0 l'augmentation (non significative) dans les grassets atteints de MPL, sugg\u00e9rant un int\u00e9r\u00eat \u00e0 explorer sur des \u00e9chantillons plus larges",
+        "status": "accepted",
+        "created_at": "2026-08-14T16:59:58.049828+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328070+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 585,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "F7FR5W6W",
+            "citation": "Akaraphutiporn et al. (2026), R\u00e9sultats (PL, ratio PL/TL)",
+            "table_ref": ""
+          },
+          {
+            "id": 594,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Methods, Tables 3-8",
+            "table_ref": ""
+          },
+          {
+            "id": 603,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "KSNXKB5E",
+            "citation": "Ricciardi and Lenoci (2018), Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 639,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "SIIMJIM7",
+            "citation": "Garnoeva (2023), Methods",
+            "table_ref": ""
+          },
+          {
+            "id": 644,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "3DI8TRR8",
+            "citation": "K\u0148azovick\u00fd et al. (2012), Methods & Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 647,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "EMP6N9WV",
+            "citation": "Ocal et al. (2020), Study design",
+            "table_ref": ""
+          },
+          {
+            "id": 676,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "N84GUQ47",
+            "citation": "\u0141ojszczyk-Szczepaniak et al. (2017), Table 3",
+            "table_ref": ""
+          },
+          {
+            "id": 697,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), secondary outcomes",
+            "table_ref": ""
+          },
+          {
+            "id": 709,
+            "criteria_id": "longueur_patellaire",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), M\u00e9thodologie",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "longueur_totale_trochleaire_ctt",
+        "bone_type": "rotule",
+        "name": "Longueur totale de la trochl\u00e9e (CTT)",
+        "name_en": "Total trochlear length (CTT)",
+        "formula": "Distance entre point_debut_proximal_trochlee et point_fin_distale_trochlee, mesur\u00e9e sur incidence m\u00e9diolat\u00e9rale",
+        "normal_unit": "mm",
+        "measurement_method": "Mesure sur incidence m\u00e9diolat\u00e9rale genou fl\u00e9chi \u00e0 90\u00b0 avec condyles f\u00e9moraux superpos\u00e9s ; utilis\u00e9e comme r\u00e9f\u00e9rence pour localiser les points x1 (20%) et x2 (50%) du protocole de mesure de la profondeur trochl\u00e9enne. Valeurs observ\u00e9es par les 3 \u00e9valuateurs radiographiques : 25,7\u00b15,4 mm, 29,2\u00b16,5 mm, 29,6\u00b17,0 mm ; valeur ex vivo post-squelettisation par le 4e \u00e9valuateur : 30,2\u00b16,9 mm, statistiquement diff\u00e9rente des mesures radiographiques malgr\u00e9 une faible diff\u00e9rence num\u00e9rique.",
+        "landmarks_required": [
+          "point_debut_proximal_trochlee",
+          "point_fin_distale_trochlee"
+        ],
+        "clinical_use": "Sert de base au calcul reproductible des points de mesure standardis\u00e9s de la profondeur trochl\u00e9enne (x1, x2, x3), utile en planification pr\u00e9op\u00e9ratoire de trochl\u00e9oplastie/sulcoplastie.",
+        "status": "accepted",
+        "created_at": "2026-08-14T21:00:20.720868+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328100+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 702,
+            "criteria_id": "longueur_totale_trochleaire_ctt",
+            "zotero_key": "RGGVWA2W",
+            "citation": "Kretzer Carneiro et al. (2020), Methodology & Resultados, Tabela 1",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "position_distale_patella_dpp",
+        "bone_type": "rotule",
+        "name": "Position distale de la patella (DPP)",
+        "name_en": "Distal patellar position (DPP)",
+        "formula": "Distance entre le rep\u00e8re distal de la trochl\u00e9e f\u00e9morale et le p\u00f4le distal de la patella (point_apex_patellae), normalis\u00e9e par la longueur patellaire (PL). Formule exacte non d\u00e9taill\u00e9e dans le texte extrait.",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie m\u00e9diolat\u00e9rale du grasset en extension standardis\u00e9e. ICC intra-observateur = 0.96.",
+        "landmarks_required": [
+          "point_apex_patellae"
+        ],
+        "clinical_use": "Tendance \u00e0 un DPP plus grand dans le groupe MPL par rapport au contr\u00f4le (p=0.073) et chez les grasset avec MPL de grade 3 (p=0.079), sugg\u00e9rant un d\u00e9placement distal de la rotule associ\u00e9 \u00e0 la luxation.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:41:30.736099+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328157+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 596,
+            "criteria_id": "position_distale_patella_dpp",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Results, Tables 3-6",
+            "table_ref": ""
+          },
+          {
+            "id": 633,
+            "criteria_id": "position_distale_patella_dpp",
+            "zotero_key": "TJ3UJK8T",
+            "citation": "Allberg & Miles (2020), Abstract; Objective",
+            "table_ref": ""
+          },
+          {
+            "id": 641,
+            "criteria_id": "position_distale_patella_dpp",
+            "zotero_key": "SIIMJIM7",
+            "citation": "Garnoeva (2023), Discussion, citant Murakami et al. (2021)",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "position_proximale_patella_ppp",
+        "bone_type": "rotule",
+        "name": "Position proximale de la patella (PPP)",
+        "name_en": "Proximal patellar position (PPP)",
+        "formula": "Distance entre le rep\u00e8re proximal de la trochl\u00e9e f\u00e9morale et le p\u00f4le proximal de la patella (point_base_patellae), normalis\u00e9e par la longueur patellaire (PL). Formule exacte non d\u00e9taill\u00e9e dans le texte extrait (m\u00e9thode d\u00e9riv\u00e9e de l'index d'Insall-Salvati appliqu\u00e9e au grasset canin).",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie m\u00e9diolat\u00e9rale du grasset en extension, avec chevauchement exact des condyles f\u00e9moraux lat\u00e9ral et m\u00e9dial. ICC intra-observateur = 0.97 (fiabilit\u00e9 quasi-parfaite).",
+        "landmarks_required": [
+          "point_base_patellae"
+        ],
+        "clinical_use": "Crit\u00e8re primaire \u00e9tudi\u00e9 pour caract\u00e9riser la position proximodistale de la patella par rapport \u00e0 la trochl\u00e9e ; non significativement diff\u00e9rent entre groupe MPL et contr\u00f4le dans le mod\u00e8le final.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:41:30.732148+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328192+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 595,
+            "criteria_id": "position_proximale_patella_ppp",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Methods, Results, Tables 3-5",
+            "table_ref": ""
+          },
+          {
+            "id": 605,
+            "criteria_id": "position_proximale_patella_ppp",
+            "zotero_key": "KSNXKB5E",
+            "citation": "Ricciardi and Lenoci (2018), Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 632,
+            "criteria_id": "position_proximale_patella_ppp",
+            "zotero_key": "TJ3UJK8T",
+            "citation": "Allberg & Miles (2020), Abstract; Objective",
+            "table_ref": ""
+          },
+          {
+            "id": 640,
+            "criteria_id": "position_proximale_patella_ppp",
+            "zotero_key": "SIIMJIM7",
+            "citation": "Garnoeva (2023), Discussion, citant Murakami et al. (2021)",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "profondeur_trochleaire",
+        "bone_type": "rotule",
+        "name": "Profondeur trochl\u00e9enne (TD)",
+        "name_en": "Trochlear Depth",
+        "formula": "Profondeur du sillon trochl\u00e9en f\u00e9moral (facies patellaris), mesur\u00e9e sur projection skyline",
+        "normal_unit": "mm",
+        "measurement_method": "Mesure sur projection skyline chez 69 grassets ; comparaison contr\u00f4le vs MPL grade II vs MPL grade III",
+        "clinical_use": "Significativement r\u00e9duite dans le groupe MPL grade III par rapport au grade II (p<0.05), refl\u00e9tant un aplatissement trochl\u00e9en progressif ; d\u00e9nominateur du ratio PH/TD",
+        "status": "accepted",
+        "created_at": "2026-08-14T16:59:58.053558+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328224+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 586,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "F7FR5W6W",
+            "citation": "Akaraphutiporn et al. (2026), R\u00e9sultats (TD)",
+            "table_ref": ""
+          },
+          {
+            "id": 591,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "33WMSQXP",
+            "citation": "Miles et al. (2014), Results, Table 1 & Figure 4",
+            "table_ref": ""
+          },
+          {
+            "id": 607,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          },
+          {
+            "id": 620,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "V9SBJICN",
+            "citation": "Mostafa et al. (2008), Introduction, r\u00e9f. 27-28",
+            "table_ref": ""
+          },
+          {
+            "id": 626,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "QUEEPTZX",
+            "citation": "Di Dona F et al. (2018), Surgical treatments for patellar luxation - Deepening of the trochlear groove",
+            "table_ref": ""
+          },
+          {
+            "id": 637,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "KX9QS8EA",
+            "citation": "Yoo et al. (2020), Methods - Population/Exclusion criteria",
+            "table_ref": ""
+          },
+          {
+            "id": 654,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "6SJ7884D",
+            "citation": "Garnoeva (2025), Results paragraphe 5",
+            "table_ref": ""
+          },
+          {
+            "id": 660,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "CVWJ9M35",
+            "citation": "Garnoeva (2021), Results, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 686,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "JHT9DER4",
+            "citation": "Garnoeva (2023), Results \u00a73",
+            "table_ref": ""
+          },
+          {
+            "id": 699,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "RGGVWA2W",
+            "citation": "Kretzer Carneiro et al. (2020), Abstract & Resultados, Tabela 1",
+            "table_ref": ""
+          },
+          {
+            "id": 707,
+            "criteria_id": "profondeur_trochleaire",
+            "zotero_key": "N6XEI7JD",
+            "citation": "Garnoeva (2023), R\u00e9sultats, paragraphe 3",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_facette_mediale_laterale",
+        "bone_type": "rotule",
+        "name": "Ratio facette m\u00e9diale / facette lat\u00e9rale",
+        "name_en": "MF/LF ratio",
+        "formula": "longueur_facette_mediale_patella / longueur_facette_laterale_patella",
+        "normal_unit": "ratio",
+        "measurement_method": "Calcul\u00e9 \u00e0 partir des deux longueurs de facettes mesur\u00e9es sur radiographie tangentielle",
+        "clinical_use": "Significativement plus faible chez la femelle ; propos\u00e9 comme facteur explicatif anatomique de la pr\u00e9disposition f\u00e9minine \u00e0 la MPL, par analogie avec les ratios trochl\u00e9aires d\u00e9j\u00e0 en base",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:27:48.293358+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328254+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 617,
+            "criteria_id": "ratio_facette_mediale_laterale",
+            "zotero_key": "8QCTVT53",
+            "citation": "Garnoeva (2022), Abstract",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_hauteur_patellaire_profondeur_trochleaire",
+        "bone_type": "rotule",
+        "name": "Ratio hauteur patellaire / profondeur trochl\u00e9enne (PH/TD)",
+        "name_en": "Patellar Height to Trochlear Depth ratio",
+        "formula": "PH (hauteur patellaire) / TD (profondeur trochl\u00e9enne)",
+        "normal_unit": "ratio",
+        "measurement_method": "Calcul du rapport entre la hauteur patellaire (projection m\u00e9diolat\u00e9rale) et la profondeur trochl\u00e9enne (projection skyline) chez 69 grassets de petite race, analys\u00e9 par ANOVA \u00e0 un facteur avec test post hoc de Tukey (seuil p<0.05)",
+        "landmarks_required": [
+          "point_apex_patellae"
+        ],
+        "clinical_use": "Significativement plus \u00e9lev\u00e9 dans le groupe MPL grade III (p<0.05) ; indice propos\u00e9 par les auteurs comme le plus cliniquement pertinent pour objectiver le mismatch proportionnel patellof\u00e9moral et guider l'\u00e9tendue de la trochl\u00e9oplastie de recession lors de la planification chirurgicale",
+        "status": "accepted",
+        "created_at": "2026-08-14T16:59:58.060996+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328295+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 588,
+            "criteria_id": "ratio_hauteur_patellaire_profondeur_trochleaire",
+            "zotero_key": "F7FR5W6W",
+            "citation": "Akaraphutiporn et al. (2026), Abstract/R\u00e9sultats/Conclusion (ratio PH/TD)",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_ligament_patellaire_longueur_patellaire",
+        "bone_type": "rotule",
+        "name": "Ratio longueur du ligament patellaire / longueur patellaire (PLL/PL)",
+        "name_en": "Patellar ligament length to patellar length ratio (PLL/PL)",
+        "formula": "Longueur du ligament patellaire (PLL, mesur\u00e9e entre point_apex_patellae et la tub\u00e9rosit\u00e9 tibiale) divis\u00e9e par la longueur patellaire (PL). Ratio bas\u00e9 sur l'index d'Insall-Salvati adapt\u00e9 au chien.",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie m\u00e9diolat\u00e9rale du grasset en extension. ICC intra-observateur = 0.90.",
+        "landmarks_required": [
+          "point_apex_patellae"
+        ],
+        "clinical_use": "Pas de diff\u00e9rence significative entre le groupe MPL et le groupe contr\u00f4le ; ce ratio n'appara\u00eet pas comme discriminant pour la MPL dans cette population.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:41:30.740146+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328328+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 597,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Results, Table 7",
+            "table_ref": ""
+          },
+          {
+            "id": 604,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "KSNXKB5E",
+            "citation": "Ricciardi and Lenoci (2018), Discussion, citant Insall and Salvati (1971) et Das et al. (2014)",
+            "table_ref": ""
+          },
+          {
+            "id": 619,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "V9SBJICN",
+            "citation": "Mostafa et al. (2008), Introduction, Discussion, Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 625,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "CKRNA3AE",
+            "citation": "de Moya & Kim (2020), Results et Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 631,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "TJ3UJK8T",
+            "citation": "Allberg & Miles (2020), Abstract; Introduction",
+            "table_ref": ""
+          },
+          {
+            "id": 638,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "SIIMJIM7",
+            "citation": "Garnoeva (2023), Results, Table 2, Fig. 2",
+            "table_ref": ""
+          },
+          {
+            "id": 645,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "3DI8TRR8",
+            "citation": "K\u0148azovick\u00fd et al. (2012), Results, Table 1 & Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 648,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "EMP6N9WV",
+            "citation": "Ocal et al. (2020), Results",
+            "table_ref": ""
+          },
+          {
+            "id": 666,
+            "criteria_id": "ratio_ligament_patellaire_longueur_patellaire",
+            "zotero_key": "ANQ9U4FX",
+            "citation": "Mostafa et al. (2008), Introduction, citant Ref. 6",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_longueur_trochleaire_longueur_patellaire",
+        "bone_type": "rotule",
+        "name": "Ratio longueur trochl\u00e9aire / longueur patellaire (TL/PL)",
+        "name_en": "Trochlear length to patellar length ratio (TL/PL)",
+        "formula": "Longueur trochl\u00e9aire (TL, mesure f\u00e9morale) divis\u00e9e par la longueur patellaire (PL). Formule exacte de TL non d\u00e9taill\u00e9e dans le texte extrait.",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie m\u00e9diolat\u00e9rale du grasset. ICC intra-observateur = 0.83.",
+        "clinical_use": "Significativement plus petit dans le groupe MPL global, ainsi qu'en grade 2 (p=0.026) et grade 3 (p<0.001) vs contr\u00f4le ; pas de diff\u00e9rence en grade 1.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:41:30.752336+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328360+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 600,
+            "criteria_id": "ratio_longueur_trochleaire_longueur_patellaire",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Results, Table 7-8",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_longueur_trochleaire_condyle_femoral",
+        "bone_type": "rotule",
+        "name": "Ratio longueur trochl\u00e9aire / taille du condyle f\u00e9moral (TL/FC)",
+        "name_en": "Trochlear length to femoral condyle size ratio (TL/FC)",
+        "formula": "Longueur trochl\u00e9aire (TL) divis\u00e9e par la taille du condyle f\u00e9moral (FC). Formule exacte non d\u00e9taill\u00e9e dans le texte extrait.",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie m\u00e9diolat\u00e9rale du grasset. ICC intra-observateur = 0.88.",
+        "clinical_use": "Pas de diff\u00e9rence significative entre groupe MPL et groupe contr\u00f4le.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:41:30.756205+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328391+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 601,
+            "criteria_id": "ratio_longueur_trochleaire_condyle_femoral",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Results, Table 7",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_profondeur_trochleaire_epaisseur_patellaire",
+        "bone_type": "rotule",
+        "name": "Ratio profondeur trochl\u00e9aire / \u00e9paisseur patellaire",
+        "name_en": "Trochlear depth-to-patellar thickness ratio",
+        "formula": "profondeur_trochleaire / epaisseur_patellaire_radiographique \u00d7 100",
+        "normal_unit": "ratio (%)",
+        "measurement_method": "Calcul du ratio entre la profondeur trochl\u00e9aire (anatomique, radiographique ou \u00e9chographique) et l'\u00e9paisseur patellaire radiographique cr\u00e2nio-caudale mesur\u00e9e sur la m\u00eame articulation",
+        "landmarks_required": [
+          "crete_trochleenne_laterale",
+          "crete_trochleenne_mediale",
+          "point_apex_patellae"
+        ],
+        "clinical_use": "Propos\u00e9 par les auteurs comme indicateur plus robuste et cliniquement plus pertinent que l'angle trochl\u00e9aire seul pour objectiver la profondeur relative de la trochl\u00e9e et le risque de luxation patellaire",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:28:18.279200+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328422+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 593,
+            "criteria_id": "ratio_profondeur_trochleaire_epaisseur_patellaire",
+            "zotero_key": "33WMSQXP",
+            "citation": "Miles et al. (2014), Results, paragraphe 3; Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 662,
+            "criteria_id": "ratio_profondeur_trochleaire_epaisseur_patellaire",
+            "zotero_key": "CVWJ9M35",
+            "citation": "Garnoeva (2021), Results, Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 701,
+            "criteria_id": "ratio_profondeur_trochleaire_epaisseur_patellaire",
+            "zotero_key": "RGGVWA2W",
+            "citation": "Kretzer Carneiro et al. (2020), Abstract & Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_condyle_femoral_longueur_patellaire",
+        "bone_type": "rotule",
+        "name": "Ratio taille du condyle f\u00e9moral / longueur patellaire (FC/PL)",
+        "name_en": "Femoral condyle size to patellar length ratio (FC/PL)",
+        "formula": "Taille du condyle f\u00e9moral (FC, mesure f\u00e9morale) divis\u00e9e par la longueur patellaire (PL). Formule exacte de FC non d\u00e9taill\u00e9e dans le texte extrait.",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie m\u00e9diolat\u00e9rale du grasset. ICC intra-observateur = 0.83.",
+        "clinical_use": "Significativement plus petit dans le groupe MPL global, ainsi qu'en grade 2 (p=0.007) et grade 3 (p<0.001) vs contr\u00f4le ; pas de diff\u00e9rence en grade 1.",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:41:30.748354+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328454+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 599,
+            "criteria_id": "ratio_condyle_femoral_longueur_patellaire",
+            "zotero_key": "28CK2KS6",
+            "citation": "Murakami et al. (2021), Results, Table 7-8",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "epaisseur_patellaire_radiographique",
+        "bone_type": "rotule",
+        "name": "\u00c9paisseur patellaire cr\u00e2nio-caudale",
+        "name_en": "Radiographic patellar craniocaudal thickness",
+        "formula": "Distance cr\u00e2nio-caudale maximale de la patella mesur\u00e9e sur une radiographie lat\u00e9rom\u00e9diale du grasset en flexion caudale standardis\u00e9e (~96\u00b0)",
+        "normal_unit": "mm",
+        "measurement_method": "Radiographie lat\u00e9rom\u00e9diale du grasset, angle de flexion caudale standardis\u00e9 \u00e0 96\u00b0 ; mesure de la distance cr\u00e2nio-caudale maximale de la patella apr\u00e8s correction d'agrandissement",
+        "landmarks_required": [
+          "point_apex_patellae"
+        ],
+        "clinical_use": "Sert de d\u00e9nominateur pour le ratio profondeur trochl\u00e9aire / \u00e9paisseur patellaire, jug\u00e9 plus informatif cliniquement que l'angle trochl\u00e9aire seul pour \u00e9valuer la congruence f\u00e9moro-patellaire",
+        "status": "accepted",
+        "created_at": "2026-08-14T17:28:18.275029+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328485+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 592,
+            "criteria_id": "epaisseur_patellaire_radiographique",
+            "zotero_key": "33WMSQXP",
+            "citation": "Miles et al. (2014), Results, paragraphe 2",
+            "table_ref": ""
+          },
+          {
+            "id": 661,
+            "criteria_id": "epaisseur_patellaire_radiographique",
+            "zotero_key": "CVWJ9M35",
+            "citation": "Garnoeva (2021), Results",
+            "table_ref": ""
+          },
+          {
+            "id": 700,
+            "criteria_id": "epaisseur_patellaire_radiographique",
+            "zotero_key": "RGGVWA2W",
+            "citation": "Kretzer Carneiro et al. (2020), Abstract & Resultados",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "epaisseur_tendon_patellaire_radiographique",
+        "bone_type": "rotule",
+        "name": "\u00c9paisseur radiographique du tendon patellaire (PTT)",
+        "name_en": "Patellar Tendon Thickness (PTT)",
+        "formula": "Mesure de l'\u00e9paisseur maximale du tendon patellaire, perpendiculairement \u00e0 son grand axe, sur une radiographie de profil (lat\u00e9ro-m\u00e9diale) du grasset",
+        "normal_mean": 3.77,
+        "normal_sd": 1.08,
+        "normal_unit": "mm",
+        "measurement_method": "Mesure r\u00e9alis\u00e9e sur radiographie de profil du grasset en pr\u00e9op\u00e9ratoire puis au contr\u00f4le postop\u00e9ratoire (8-12 semaines) apr\u00e8s TPLO, par un radiologue v\u00e9t\u00e9rinaire certifi\u00e9 unique, en aveugle de la m\u00e9thode d'inspection articulaire utilis\u00e9e pendant la chirurgie",
+        "landmarks_required": [
+          "point_apex_patellae",
+          "tuberosite_tibiale"
+        ],
+        "clinical_use": "Diagnostic et suivi de la desmite/tendinopathie du tendon patellaire apr\u00e8s chirurgie du grasset (notamment TPLO) ; comparaison de l'impact des diff\u00e9rentes techniques d'inspection articulaire (arthroscopie vs arthrotomies) sur les tissus mous p\u00e9ri-patellaires",
+        "status": "accepted",
+        "created_at": "2026-08-14T18:53:16.657004+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.328516+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 623,
+            "criteria_id": "epaisseur_tendon_patellaire_radiographique",
+            "zotero_key": "A7VZQCKG",
+            "citation": "J Owen et al. (2018), Vet Surg 47(7):916-922, R\u00e9sultats, Table 3",
+            "table_ref": ""
+          }
+        ]
+      }
+    ],
     "variability_notes": []
   },
   "calcaneum": {
@@ -21366,6 +22956,15 @@
                             "page": "",
                             "quote": "",
                             "confidence": "medium"
+                          },
+                          {
+                            "id": 1636,
+                            "zone_id": "cicatrice_reparation_meniscale",
+                            "zotero_key": "WXD43RMG",
+                            "citation": "Luca Rovesti & B\u00f6hme (2024), Limitations",
+                            "page": "",
+                            "quote": "",
+                            "confidence": "medium"
                           }
                         ],
                         "children": []
@@ -27168,6 +28767,15 @@
                 "page": "",
                 "quote": "",
                 "confidence": "medium"
+              },
+              {
+                "id": 1635,
+                "zone_id": "membrane_synoviale_grasset",
+                "zotero_key": "WXD43RMG",
+                "citation": "Luca Rovesti & B\u00f6hme (2024), Qualitative findings",
+                "page": "",
+                "quote": "",
+                "confidence": "medium"
               }
             ],
             "children": [
@@ -29216,6 +30824,12 @@
             "landmark_id": "jonction_meniscosynoviale",
             "zotero_key": "K76CU8RX",
             "citation": "Edward Cabaud et al. (1981), Results"
+          },
+          {
+            "id": 422,
+            "landmark_id": "jonction_meniscosynoviale",
+            "zotero_key": "WXD43RMG",
+            "citation": "Luca Rovesti & B\u00f6hme (2024), Discussion"
           }
         ]
       },
@@ -33714,6 +35328,1570 @@
             "criteria_id": "profondeur_concavite_tibiale_mediale",
             "zotero_key": "3ZMJJ3WS",
             "citation": "Todorovi\u0107 et al. (2022), Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "proportion_zone_vascularisee_menisque",
+        "bone_type": "grasset",
+        "name": "Proportion vascularis\u00e9e du m\u00e9nisque (zone p\u00e9riph\u00e9rique)",
+        "name_en": "Vascularized proportion of the meniscus (peripheral zone)",
+        "formula": "Largeur de la zone p\u00e9riph\u00e9rique vascularis\u00e9e / largeur totale du m\u00e9nisque",
+        "normal_mean": 25.0,
+        "normal_unit": "%",
+        "measurement_method": "\u00c9valuation histologique ou par injection vasculaire de la p\u00e9n\u00e9tration du plexus p\u00e9rim\u00e9niscal depuis la jonction m\u00e9niscosynoviale ; non mesurable sur radiographie standard, sert de r\u00e9f\u00e9rentiel pour l'interpr\u00e9tation IRM/arthroscopique des l\u00e9sions m\u00e9niscales.",
+        "clinical_use": "Estimation du pronostic de cicatrisation d'une d\u00e9chirure m\u00e9niscale et orientation vers r\u00e9paration (zone vascularis\u00e9e) versus m\u00e9niscectomie partielle (zone avasculaire), notamment dans le contexte des l\u00e9sions m\u00e9niscales secondaires \u00e0 la rupture du LCC chez le chien.",
+        "status": "accepted",
+        "created_at": "2026-08-13T17:52:08.470940+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.982654+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 391,
+            "criteria_id": "proportion_zone_vascularisee_menisque",
+            "zotero_key": "KWPVU4CJ",
+            "citation": "Krupkova et al. (2018), section Human/Canine Meniscus Anatomy and Physiology",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_longueur_insertion_lcm_restante_post_tplo",
+        "bone_type": "grasset",
+        "name": "Rapport de longueur d'insertion tibiale distale du LCM restant sur le fragment proximal apr\u00e8s TPLO (Lr'3/Lr3)",
+        "name_en": "Ratio of remaining MCL distal tibial insertion length on the proximal fragment after TPLO",
+        "formula": "Lr'3 (longueur d'insertion tibiale distale du LCM restant sur le fragment proximal apr\u00e8s ost\u00e9otomie) / Lr3 (longueur totale de l'insertion tibiale distale avant ost\u00e9otomie) \u00d7 100",
+        "normal_unit": "%",
+        "measurement_method": "Mesure logicielle de la longueur d'insertion restante sur le fragment proximal apr\u00e8s simulation de l'ost\u00e9otomie TPLO, sur les m\u00eames clich\u00e9s radiographiques marqu\u00e9s utilis\u00e9s pour Sr'3/Sr3.",
+        "landmarks_required": [
+          "site_insertion_tibiale_distale_ligament_collateral_medial",
+          "reperes_positionnement_lame_scie_tplo_lcm"
+        ],
+        "clinical_use": "Compl\u00e8te le ratio de surface pour appr\u00e9cier, en une dimension lin\u00e9aire, le pourcentage de longueur d'insertion du LCM restant implant\u00e9e apr\u00e8s TPLO.",
+        "status": "accepted",
+        "created_at": "2026-08-13T22:21:17.180977+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.982940+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 479,
+            "criteria_id": "ratio_longueur_insertion_lcm_restante_post_tplo",
+            "zotero_key": "IS3MC49E",
+            "citation": "Vie (2018), R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_surface_insertion_lcm_restante_post_tplo",
+        "bone_type": "grasset",
+        "name": "Rapport de surface d'insertion tibiale distale du LCM restant sur le fragment proximal apr\u00e8s TPLO (Sr'3/Sr3)",
+        "name_en": "Ratio of remaining MCL distal tibial insertion surface on the proximal fragment after TPLO",
+        "formula": "Sr'3 (surface d'insertion tibiale distale du LCM restant implant\u00e9e sur le fragment proximal apr\u00e8s ost\u00e9otomie, mesur\u00e9e par ImageJ) / Sr3 (surface d'insertion tibiale distale totale avant ost\u00e9otomie) \u00d7 100",
+        "normal_unit": "%",
+        "measurement_method": "Mesure logicielle (ImageJ) de la surface d'insertion tibiale distale restant sur le fragment proximal apr\u00e8s simulation de l'ost\u00e9otomie TPLO sur les clich\u00e9s radiographiques de planification marqu\u00e9s au sulfate de baryum.",
+        "landmarks_required": [
+          "site_insertion_tibiale_distale_ligament_collateral_medial",
+          "reperes_positionnement_lame_scie_tplo_lcm"
+        ],
+        "clinical_use": "\u00c9value le pourcentage de l'insertion tibiale distale du LCM d\u00e9plac\u00e9e caudalement (donc potentiellement d\u00e9solidaris\u00e9e du fragment proximal) par la TPLO, apportant un indicateur de risque d'atteinte iatrog\u00e8ne du LCM.",
+        "status": "accepted",
+        "created_at": "2026-08-13T22:21:17.177424+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983014+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 478,
+            "criteria_id": "ratio_surface_insertion_lcm_restante_post_tplo",
+            "zotero_key": "IS3MC49E",
+            "citation": "Vie (2018), R\u00e9sultats qualitatifs",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_a_pl_position_patellaire",
+        "bone_type": "grasset",
+        "name": "Ratio A / longueur de la patella (distance p\u00f4le proximal patella - condyle f\u00e9moral)",
+        "name_en": "A:PL ratio (proximal patella to femoral condyle distance / patellar length)",
+        "formula": "A (distance entre p\u00f4le proximal de la patella et le condyle f\u00e9moral) / PL (longueur de la patella)",
+        "normal_unit": "ratio",
+        "measurement_method": "Radiographie m\u00e9dio-lat\u00e9rale standardis\u00e9e du grasset ; mesure de la distance A entre le p\u00f4le proximal de la patella et le point distal du condyle f\u00e9moral, rapport\u00e9e \u00e0 la longueur de la patella.",
+        "landmarks_required": [
+          "pole_proximal_patella",
+          "point_distal_condyle_femoral_a",
+          "pole_distal_patella"
+        ],
+        "clinical_use": "Valeur >2.03 \u00e9vocatrice de patella alta (associ\u00e9e \u00e0 la MPL, P<.0001) ; valeur <1.92 \u00e9vocatrice de patella baja (associ\u00e9e \u00e0 la LPL, P=.003). Recommand\u00e9e en association avec PLL:PL pour la d\u00e9cision de correction chirurgicale.",
+        "status": "accepted",
+        "created_at": "2026-08-14T12:37:16.906342+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983064+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 557,
+            "criteria_id": "ratio_a_pl_position_patellaire",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_a_pl",
+        "bone_type": "grasset",
+        "name": "Ratio distance patella-condyle f\u00e9moral / longueur patella (A:PL)",
+        "name_en": "Patella-to-femoral-condyle distance to patella length ratio (A:PL)",
+        "formula": "A:PL = distance A (du p\u00f4le proximal de la patella au condyle f\u00e9moral) / longueur de la patella (PL)",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie de profil du grasset ; seuils diagnostiques : A:PL > 2,03 \u00e9vocateur de patella alta, A:PL < 1,92 \u00e9vocateur de patella baja.",
+        "landmarks_required": [
+          "pole_proximal_patella",
+          "point_distal_condyle_femoral_a",
+          "pole_distal_patella"
+        ],
+        "clinical_use": "Diff\u00e9rencie la patella alta (associ\u00e9e \u00e0 la MPL) de la patella baja (associ\u00e9e \u00e0 la LPL) ; recommand\u00e9 en association avec PLL:PL dans le bilan pr\u00e9op\u00e9ratoire de luxation patellaire.",
+        "status": "accepted",
+        "created_at": "2026-08-12T14:19:39.282349+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983118+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 197,
+            "criteria_id": "ratio_a_pl",
+            "zotero_key": "QJWQWE77",
+            "citation": "Mostafa et al. (2008), Results, Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 292,
+            "criteria_id": "ratio_a_pl",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 505,
+            "criteria_id": "ratio_a_pl",
+            "zotero_key": "QJWQWE77",
+            "citation": "Mostafa et al. (2008), Abstract/Results/Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 520,
+            "criteria_id": "ratio_a_pl",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results, P<.0001 / P=.003",
+            "table_ref": ""
+          },
+          {
+            "id": 621,
+            "criteria_id": "ratio_a_pl",
+            "zotero_key": "V9SBJICN",
+            "citation": "Mostafa et al. (2008), Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 763,
+            "criteria_id": "ratio_a_pl",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_rayon_courbure_lateral_medial_plateau_tibial",
+        "bone_type": "grasset",
+        "name": "Ratio du rayon de courbure lat\u00e9ral sur m\u00e9dial du plateau tibial",
+        "name_en": "Lateral-to-medial radius of curvature ratio of the tibial plateau",
+        "formula": "Rayon de courbure du condyle tibial lat\u00e9ral / Rayon de courbure du condyle tibial m\u00e9dial",
+        "normal_mean": 0.5,
+        "normal_unit": "ratio",
+        "measurement_method": "Calcul\u00e9 \u00e0 partir des rayons de courbure obtenus par scanner laser 3D ex vivo",
+        "clinical_use": "Le condyle lat\u00e9ral pr\u00e9sente une courbure environ deux fois plus marqu\u00e9e que le condyle m\u00e9dial (rayon = 50% du rayon m\u00e9dial), ce qui constitue une caract\u00e9ristique anatomique normale de l'asym\u00e9trie du plateau tibial canin, pertinente pour la planification chirurgicale et l'interpr\u00e9tation des contraintes articulaires",
+        "status": "accepted",
+        "created_at": "2026-08-13T19:50:26.748502+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983161+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 406,
+            "criteria_id": "ratio_rayon_courbure_lateral_medial_plateau_tibial",
+            "zotero_key": "SEN6H829",
+            "citation": "Pozzi et al. (2025), Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_rayon_courbure_lateral_medial_tibial",
+        "bone_type": "grasset",
+        "name": "Ratio du rayon de courbure lat\u00e9ral/m\u00e9dial du plateau tibial",
+        "name_en": "Lateral-to-medial tibial plateau radius of curvature ratio",
+        "formula": "Rayon de courbure du condyle tibial lat\u00e9ral / Rayon de courbure du condyle tibial m\u00e9dial",
+        "normal_mean": 0.5,
+        "normal_unit": "ratio",
+        "measurement_method": "Calcul du rapport entre les rayons de courbure des deux condyles tibiaux obtenus par scanner laser 3D",
+        "clinical_use": "Indicateur synth\u00e9tique de l'asym\u00e9trie de conformit\u00e9 entre compartiments tibiaux m\u00e9dial et lat\u00e9ral, utile pour discuter la vuln\u00e9rabilit\u00e9 biom\u00e9canique diff\u00e9rentielle du compartiment lat\u00e9ral (plus convexe, moins protecteur) en cas de l\u00e9sion ou d'ablation m\u00e9niscale",
+        "status": "accepted",
+        "created_at": "2026-08-13T20:10:23.846047+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983197+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 414,
+            "criteria_id": "ratio_rayon_courbure_lateral_medial_tibial",
+            "zotero_key": "KPQ4KQCQ",
+            "citation": "Pozzi et al. (2025), Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_pll_pl_insall_modifie",
+        "bone_type": "grasset",
+        "name": "Ratio longueur du ligament patellaire / longueur de la patella (index d'Insall modifi\u00e9 canin)",
+        "name_en": "Patellar ligament length to patellar length ratio (modified Insall index)",
+        "formula": "PLL (distance entre p\u00f4le distal de la patella et indentation de la tub\u00e9rosit\u00e9 tibiale) / PL (distance entre p\u00f4le proximal et p\u00f4le distal de la patella), mesur\u00e9e sur radiographie de profil du grasset",
+        "normal_unit": "ratio",
+        "measurement_method": "Radiographie m\u00e9dio-lat\u00e9rale du grasset en position standardis\u00e9e ; mesure de la distance du p\u00f4le distal de la patella \u00e0 l'indentation de la tub\u00e9rosit\u00e9 tibiale (PLL) et de la longueur totale de la patella (PL).",
+        "landmarks_required": [
+          "pole_distal_patella",
+          "indentation_tuberosite_tibiale",
+          "pole_proximal_patella"
+        ],
+        "clinical_use": "Valeur >2.06 \u00e9vocatrice de patella alta ; associ\u00e9e \u00e0 la luxation patellaire m\u00e9diale (MPL) chez le chien de race moyenne \u00e0 g\u00e9ante. Recommand\u00e9 en compl\u00e9ment du ratio A:PL avant correction chirurgicale.",
+        "status": "accepted",
+        "created_at": "2026-08-14T12:37:16.902567+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983240+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 556,
+            "criteria_id": "ratio_pll_pl_insall_modifie",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_pll_pl",
+        "bone_type": "grasset",
+        "name": "Ratio longueur ligament patellaire / longueur patella (PLL:PL)",
+        "name_en": "Patellar ligament length to patella length ratio (PLL:PL)",
+        "formula": "PLL:PL = longueur du ligament patellaire (du p\u00f4le distal de la patella \u00e0 son insertion tibiale) / longueur de la patella (du p\u00f4le proximal au p\u00f4le distal)",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie de profil du grasset chez le chien de taille moyenne \u00e0 g\u00e9ante ; valeur seuil > 2,06 \u00e9vocatrice de patella alta.",
+        "landmarks_required": [
+          "pole_proximal_patella",
+          "pole_distal_patella",
+          "insertion_tibiale_ligament_patellaire"
+        ],
+        "clinical_use": "Diagnostic de patella alta chez les chiens pr\u00e9sentant une luxation patellaire m\u00e9diale (MPL) ; recommand\u00e9 en bilan pr\u00e9op\u00e9ratoire de luxation patellaire pour orienter la d\u00e9cision de transposition distale de la tub\u00e9rosit\u00e9 tibiale.",
+        "status": "accepted",
+        "created_at": "2026-08-12T14:19:39.278494+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983274+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 196,
+            "criteria_id": "ratio_pll_pl",
+            "zotero_key": "QJWQWE77",
+            "citation": "Mostafa et al. (2008), Results, Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 291,
+            "criteria_id": "ratio_pll_pl",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 519,
+            "criteria_id": "ratio_pll_pl",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results, P<.0001",
+            "table_ref": ""
+          },
+          {
+            "id": 735,
+            "criteria_id": "ratio_pll_pl",
+            "zotero_key": "A5AMHHGZ",
+            "citation": "Kim et al. (2024), Results, paragraphe 1 (valeurs 1.42, 1.41, 1.54)",
+            "table_ref": ""
+          },
+          {
+            "id": 762,
+            "criteria_id": "ratio_pll_pl",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "ratio_ptl_dtw",
+        "bone_type": "grasset",
+        "name": "Ratio longueur tibia proximal / largeur tibia distal (PTL:DTW)",
+        "name_en": "Proximal tibial length to distal tibial width ratio (PTL:DTW)",
+        "formula": "PTL:DTW = longueur du tibia proximal (PTL) / largeur du tibia distal (DTW)",
+        "normal_unit": "ratio",
+        "measurement_method": "Mesur\u00e9 sur radiographie du tibia ; seuil > 1,65 consid\u00e9r\u00e9 \u00e0 haut risque de d\u00e9velopper une patella baja.",
+        "landmarks_required": [
+          "pole_proximal_tibia_ptl",
+          "largeur_distale_tibia_dtw"
+        ],
+        "clinical_use": "Identifie les chiens \u00e0 haut risque de patella baja et de luxation patellaire lat\u00e9rale (LPL) ; justifie une \u00e9valuation approfondie du tibia proximal chez les chiens atteints de LPL.",
+        "status": "accepted",
+        "created_at": "2026-08-12T14:19:39.291349+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983316+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 198,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "QJWQWE77",
+            "citation": "Mostafa et al. (2008), Results, P=.009, Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 293,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 506,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "QJWQWE77",
+            "citation": "Mostafa et al. (2008), Abstract/Results/Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 521,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results, P=.009",
+            "table_ref": ""
+          },
+          {
+            "id": 558,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 622,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "V9SBJICN",
+            "citation": "Mostafa et al. (2008), Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 668,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "ANQ9U4FX",
+            "citation": "Mostafa et al. (2008), Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 764,
+            "criteria_id": "ratio_ptl_dtw",
+            "zotero_key": "8QI34T86",
+            "citation": "Mostafa et al. (2008), Results/Conclusions",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rayon_osteotomie_tplo",
+        "bone_type": "grasset",
+        "name": "Rayon d'ost\u00e9otomie TPLO (D1)",
+        "name_en": "TPLO osteotomy radius (D1)",
+        "formula": "D\u00e9termin\u00e9 \u00e0 partir du TPA mesur\u00e9 et de la taille du plateau tibial ; correspond au diam\u00e8tre de la lame de scie circulaire (saw blade) standard utilis\u00e9e pour l'ost\u00e9otomie du plateau tibial (tailles commerciales usuelles : 12, 15, 18, 21, 24 mm)",
+        "normal_unit": "mm",
+        "breed_specific": {
+          "Spitz (petite race)": {
+            "mean": 15,
+            "sd": null,
+            "n": 1
+          }
+        },
+        "measurement_method": "S\u00e9lectionn\u00e9 \u00e0 partir de l'imagerie tomographique 3D pr\u00e9op\u00e9ratoire du grasset, en fonction de la taille du plateau tibial et du TPA mesur\u00e9 ; d\u00e9finit la g\u00e9om\u00e9trie de l'ost\u00e9otomie circulaire (D1) dans la planification num\u00e9rique TPLO.",
+        "landmarks_required": [
+          "largeur_plateau_tibial_tpw",
+          "repere_diaphyse_tibiale_proximale_tpa"
+        ],
+        "clinical_use": "Planification pr\u00e9op\u00e9ratoire de la TPLO : s\u00e9lection de la taille de lame de scie et base de calcul du d\u00e9placement de rotation (D3) n\u00e9cessaire pour la correction du TPA vis\u00e9e",
+        "status": "accepted",
+        "created_at": "2026-08-13T20:57:30.062079+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983349+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 431,
+            "criteria_id": "rayon_osteotomie_tplo",
+            "zotero_key": "CMIHCR6M",
+            "citation": "Pollon ALC et al. (2026), Results",
+            "table_ref": ""
+          },
+          {
+            "id": 512,
+            "criteria_id": "rayon_osteotomie_tplo",
+            "zotero_key": "6E6FT6WC",
+            "citation": "Pollon ALC et al. (2026), Results",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rayon_courbure_condyle_tibial_lateral",
+        "bone_type": "grasset",
+        "name": "Rayon de courbure du condyle tibial lat\u00e9ral",
+        "name_en": "Radius of curvature of the lateral tibial condyle",
+        "formula": "Cartographie num\u00e9rique de la surface articulaire tibiale lat\u00e9rale par scanner laser 3D, ajustement g\u00e9om\u00e9trique de la courbure du condyle pour en d\u00e9duire le rayon de courbure moyen",
+        "normal_mean": 12.8,
+        "normal_sd": 10.9,
+        "normal_unit": "mm",
+        "measurement_method": "Scanner laser tridimensionnel ex vivo sur plateau tibial cadav\u00e9rique (non radiographique)",
+        "clinical_use": "Rayon significativement plus petit (courbure plus marqu\u00e9e) que le condyle m\u00e9dial, ce qui explique la plus grande sensibilit\u00e9 du compartiment lat\u00e9ral aux changements de pression de contact apr\u00e8s m\u00e9niscectomie ; pertinent pour la compr\u00e9hension biom\u00e9canique des l\u00e9sions m\u00e9niscales lat\u00e9rales associ\u00e9es \u00e0 la rupture du ligament crois\u00e9 cr\u00e2nial",
+        "status": "accepted",
+        "created_at": "2026-08-13T19:50:26.744531+00:00",
+        "reviewed_at": "2026-08-17T08:03:06.698601+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 405,
+            "criteria_id": "rayon_courbure_condyle_tibial_lateral",
+            "zotero_key": "SEN6H829",
+            "citation": "Pozzi et al. (2025), Results paragraphe 4 et Figure 2",
+            "table_ref": ""
+          },
+          {
+            "id": 412,
+            "criteria_id": "rayon_courbure_condyle_tibial_lateral",
+            "zotero_key": "KPQ4KQCQ",
+            "citation": "Pozzi et al. (2025), R\u00e9sultats, Figure 2",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rayon_courbure_condyle_tibial_medial",
+        "bone_type": "grasset",
+        "name": "Rayon de courbure du condyle tibial m\u00e9dial",
+        "name_en": "Radius of curvature of the medial tibial condyle",
+        "formula": "Cartographie num\u00e9rique de la surface articulaire tibiale m\u00e9diale par scanner laser 3D, ajustement g\u00e9om\u00e9trique de la courbure du condyle pour en d\u00e9duire le rayon de courbure moyen",
+        "normal_mean": 25.9,
+        "normal_sd": 17.8,
+        "normal_unit": "mm",
+        "measurement_method": "Scanner laser tridimensionnel ex vivo sur plateau tibial cadav\u00e9rique (non radiographique) ; m\u00e9thode de r\u00e9f\u00e9rence pour caract\u00e9riser la g\u00e9om\u00e9trie du plateau tibial, pertinente pour interpr\u00e9ter l'asym\u00e9trie m\u00e9dio-lat\u00e9rale visible indirectement sur les mesures radiographiques du plateau tibial (ex. angle_plateau_tibial)",
+        "clinical_use": "Explique la moindre susceptibilit\u00e9 biom\u00e9canique du compartiment m\u00e9dial apr\u00e8s m\u00e9niscectomie ; utile pour comprendre l'asym\u00e9trie fonctionnelle du plateau tibial dans le cadre des ost\u00e9otomies correctrices (TPLO/CBLO/TTA) et des l\u00e9sions m\u00e9niscales",
+        "status": "accepted",
+        "created_at": "2026-08-13T19:50:26.740295+00:00",
+        "reviewed_at": "2026-08-17T08:03:06.698807+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 404,
+            "criteria_id": "rayon_courbure_condyle_tibial_medial",
+            "zotero_key": "SEN6H829",
+            "citation": "Pozzi et al. (2025), Results paragraphe 4 et Figure 2",
+            "table_ref": ""
+          },
+          {
+            "id": 413,
+            "criteria_id": "rayon_courbure_condyle_tibial_medial",
+            "zotero_key": "KPQ4KQCQ",
+            "citation": "Pozzi et al. (2025), R\u00e9sultats, Figure 2",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rayon_courbure_plateau_tibial_lateral",
+        "bone_type": "grasset",
+        "name": "Rayon de courbure du plateau tibial lat\u00e9ral",
+        "name_en": "Lateral tibial plateau radius of curvature",
+        "formula": "Rayon du cercle \u00e9pousant au mieux la courbure sagittale du plateau tibial lat\u00e9ral",
+        "normal_unit": "mm",
+        "measurement_method": "Ajustement g\u00e9om\u00e9trique (cercle) sur le contour sagittal du plateau tibial lat\u00e9ral.",
+        "clinical_use": "Aucune diff\u00e9rence significative rapport\u00e9e chez le chien entre grassets avec rupture du LCC et grassets sains controlat\u00e9raux ; utile comme \u00e9l\u00e9ment de diagnostic diff\u00e9rentiel n\u00e9gatif par rapport au compartiment m\u00e9dial.",
+        "status": "accepted",
+        "created_at": "2026-08-13T16:21:10.937304+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983414+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 336,
+            "criteria_id": "rayon_courbure_plateau_tibial_lateral",
+            "zotero_key": "3ZMJJ3WS",
+            "citation": "Todorovi\u0107 et al. (2022), Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rayon_courbure_plateau_tibial_medial",
+        "bone_type": "grasset",
+        "name": "Rayon de courbure du plateau tibial m\u00e9dial",
+        "name_en": "Medial tibial plateau radius of curvature",
+        "formula": "Rayon du cercle \u00e9pousant au mieux la courbure sagittale du plateau tibial m\u00e9dial",
+        "normal_unit": "mm",
+        "measurement_method": "Ajustement g\u00e9om\u00e9trique (cercle) sur le contour sagittal du plateau tibial m\u00e9dial, en imagerie 2D ou 3D.",
+        "clinical_use": "Un rayon de courbure plus grand (plateau moins convexe) est associ\u00e9 chez le chien \u00e0 une pr\u00e9disposition \u00e0 l'insuffisance du ligament crois\u00e9 cr\u00e2nial.",
+        "status": "accepted",
+        "created_at": "2026-08-13T16:21:10.933798+00:00",
+        "reviewed_at": "2026-08-17T07:57:59.983462+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 335,
+            "criteria_id": "rayon_courbure_plateau_tibial_medial",
+            "zotero_key": "3ZMJJ3WS",
+            "citation": "Todorovi\u0107 et al. (2022), Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_axiale_tibiale_locomotion",
+        "bone_type": "grasset",
+        "name": "Rotation axiale (interne/externe) du tibia durant la marche",
+        "name_en": "Tibial axial (internal/external) rotation during gait",
+        "formula": "Angle de rotation axiale du tibia par rapport au f\u00e9mur autour de l'axe longitudinal, mesur\u00e9 image par image via recalage 3D-vers-2D durant le cycle de marche",
+        "normal_unit": "degrees",
+        "measurement_method": "Recalage d'image 3D-vers-2D (pr\u00e9cision valid\u00e9e \u00e0 1,58\u00b0) appliqu\u00e9 \u00e0 des mod\u00e8les num\u00e9riques 3D du f\u00e9mur et du tibia superpos\u00e9s \u00e0 des images fluoroscopiques lat\u00e9rales acquises durant 3 cycles de marche complets, avec comparaison sp\u00e9cifique entre phase d'appui (mid-stance) et phase d'oscillation (mid-swing)",
+        "landmarks_required": [
+          "condyle_femoral",
+          "condyle_tibial"
+        ],
+        "clinical_use": "Quantification de l'instabilit\u00e9 rotationnelle axiale associ\u00e9e \u00e0 l'insuffisance du LCCr, pr\u00e9sente uniquement en phase d'appui ; argument pour orienter les techniques de stabilisation chirurgicale vers une correction combin\u00e9e de l'instabilit\u00e9 translationnelle ET rotationnelle afin de limiter la progression de l'ost\u00e9oarthrose et le risque de l\u00e9sion m\u00e9niscale secondaire",
+        "status": "accepted",
+        "created_at": "2026-08-14T13:05:21.963666+00:00",
+        "reviewed_at": "2026-08-17T08:03:06.698892+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 567,
+            "criteria_id": "rotation_axiale_tibiale_locomotion",
+            "zotero_key": "6IB9CNCZ",
+            "citation": "Tinga et al. (2018), Results",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_axiale_tibiale_interne_dynamique",
+        "bone_type": "grasset",
+        "name": "Rotation axiale interne du tibia durant la phase d'appui (marche)",
+        "name_en": "Internal axial tibial rotation during stance phase (gait)",
+        "formula": "Diff\u00e9rence angulaire de rotation axiale interne/externe du tibia par rapport au f\u00e9mur, calcul\u00e9e par recalage d'images 3D-vers-2D \u00e0 un instant donn\u00e9 du cycle de marche",
+        "normal_unit": "degrees",
+        "measurement_method": "Fluoroscopie lat\u00e9rale avec recalage 3D-vers-2D de mod\u00e8les osseux tomodensitom\u00e9triques (pr\u00e9cision rapport\u00e9e de 1,58\u00b0) ; comparaison entre stifle d\u00e9ficiente en LCCr et stifle contr\u00f4le controlat\u00e9rale \u00e0 la phase mid-stance du cycle de marche",
+        "clinical_use": "Mise en \u00e9vidence d'une rotation tibiale interne accrue en phase d'appui chez les chiens avec insuffisance du LCCr (P<0.0022), co\u00efncidant temporellement avec la subluxation tibiale cr\u00e2niale maximale ; absente en phase d'oscillation (ind\u00e9pendante du LCCr)",
+        "status": "accepted",
+        "created_at": "2026-08-14T09:46:54.856103+00:00",
+        "reviewed_at": "2026-08-17T08:03:06.698944+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 536,
+            "criteria_id": "rotation_axiale_tibiale_interne_dynamique",
+            "zotero_key": "6IB9CNCZ",
+            "citation": "Tinga et al. (2018), R\u00e9sultats/Abstract",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_interne_tibiale_section_lcc",
+        "bone_type": "grasset",
+        "name": "Rotation interne du tibia apr\u00e8s section du CaCL",
+        "name_en": "Tibial internal rotation after CaCL transection",
+        "formula": "Angle de rotation interne du tibia par rapport au f\u00e9mur observ\u00e9 apr\u00e8s section exp\u00e9rimentale isol\u00e9e du CaCL",
+        "normal_unit": "degrees",
+        "measurement_method": "Mesure exp\u00e9rimentale cin\u00e9matique post-transection du CaCL d\u00e9crite qualitativement comme l\u00e9g\u00e8re ('slight internal rotation'), sans valeurs chiffr\u00e9es rapport\u00e9es dans cet article",
+        "landmarks_required": [
+          "condyle_femoral",
+          "condyle_tibial"
+        ],
+        "clinical_use": "Comprendre la biom\u00e9canique fonctionnelle du CaCL et expliquer l'absence de boiterie franche apr\u00e8s l\u00e9sion isol\u00e9e, utile pour l'interpr\u00e9tation d'une laxit\u00e9 rotationnelle discr\u00e8te en imagerie dynamique",
+        "status": "accepted",
+        "created_at": "2026-08-14T06:47:28.488708+00:00",
+        "reviewed_at": "2026-08-17T08:03:06.698990+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 482,
+            "criteria_id": "rotation_interne_tibiale_section_lcc",
+            "zotero_key": "NCT45KWU",
+            "citation": "Muir (2010), Introduction, p.109",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_interne_tibiale_screw_home",
+        "bone_type": "grasset",
+        "name": "Rotation interne tibiale physiologique en flexion (m\u00e9canisme screw-home)",
+        "name_en": "Physiological internal tibial rotation during flexion (screw-home mechanism)",
+        "formula": "Diff\u00e9rence de rotation axiale du tibia par rapport au f\u00e9mur entre position \u00e9tendue et position fl\u00e9chie",
+        "normal_mean": 10.5,
+        "normal_unit": "degrees",
+        "measurement_method": "Mesure cin\u00e9matique in vivo pendant la position assise et le trot ; amplitude rapport\u00e9e de 6\u00b0 \u00e0 15\u00b0 (Vasseur & Arnoczky 1981).",
+        "landmarks_required": [
+          "point_contact_femorotibial_rollback"
+        ],
+        "clinical_use": "D\u00e9crit la rotation interne tibiale physiologique normale, r\u00e9f\u00e9rence pour distinguer une rotation interne pathologique/excessive apr\u00e8s rupture du LCCr.",
+        "status": "accepted",
+        "created_at": "2026-08-14T07:17:46.256192+00:00",
+        "reviewed_at": "2026-08-17T08:03:32.318876+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 494,
+            "criteria_id": "rotation_interne_tibiale_screw_home",
+            "zotero_key": "R45UPTE3",
+            "citation": "Pozzi & Kim (2017), Normal stifle \u2014 citant Vasseur & Arnoczky 1981",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_fragment_tibial_proximal_tplo",
+        "bone_type": "grasset",
+        "name": "Rotation lin\u00e9aire du fragment tibial proximal (TPLO)",
+        "name_en": "Proximal tibial fragment rotation distance",
+        "formula": "Distance de rotation = 2 \u00d7 \u03c0 \u00d7 rayon d'ost\u00e9otomie \u00d7 (angle de correction / 360\u00b0)",
+        "normal_unit": "mm",
+        "breed_specific": {
+          "Spitz": {
+            "mean": 3.14,
+            "sd": null,
+            "n": 1
+          }
+        },
+        "measurement_method": "Calcul\u00e9e \u00e0 partir du rayon d'ost\u00e9otomie (d\u00e9termin\u00e9 par la taille de lame de scie) et de l'angle de correction souhait\u00e9, puis appliqu\u00e9e par d\u00e9placement/rotation num\u00e9rique du fragment tibial proximal sur le mod\u00e8le imprim\u00e9 en 3D.",
+        "landmarks_required": [
+          "repere_diaphyse_tibiale_proximale_tpa"
+        ],
+        "clinical_use": "D\u00e9termine l'amplitude du d\u00e9placement de rotation \u00e0 appliquer \u00e0 l'\u00e9piphyse tibiale proximale lors de la TPLO pour atteindre le TPA cible postop\u00e9ratoire.",
+        "status": "accepted",
+        "created_at": "2026-08-13T12:39:20.249323+00:00",
+        "reviewed_at": "2026-08-17T08:03:53.230123+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 244,
+            "criteria_id": "rotation_fragment_tibial_proximal_tplo",
+            "zotero_key": "6E6FT6WC",
+            "citation": "Pollon ALC et al. (2026), Results",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_tibiale_externe_grasset",
+        "bone_type": "grasset",
+        "name": "Rotation tibiale externe du grasset",
+        "name_en": "External tibial rotation of the stifle",
+        "formula": "Angle de rotation externe du tibia par rapport au f\u00e9mur, mesur\u00e9 en extension et \u00e0 90\u00b0 de flexion, avant et apr\u00e8s section ligamentaire s\u00e9lective",
+        "normal_mean": 5.0,
+        "normal_unit": "degrees",
+        "measurement_method": "Mesure radiographique de la rotation externe tibiale sur grasset intact : 5\u00b0 en extension, 8\u00b0 \u00e0 90\u00b0 de flexion. Apr\u00e8s section des ligaments collat\u00e9raux (crois\u00e9s intacts), la rotation externe atteint environ 180\u00b0 dans toutes les positions, indiquant que les collat\u00e9raux (et non les crois\u00e9s) sont le frein primaire \u00e0 la rotation externe.",
+        "clinical_use": "Test de stress rotatoire pour diff\u00e9rencier une atteinte des ligaments collat\u00e9raux (rotation externe massivement augment\u00e9e) d'une atteinte isol\u00e9e des ligaments crois\u00e9s (peu ou pas d'effet sur la rotation externe)",
+        "status": "accepted",
+        "created_at": "2026-08-12T14:25:20.455890+00:00",
+        "reviewed_at": "2026-08-17T08:03:53.230371+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 203,
+            "criteria_id": "rotation_tibiale_externe_grasset",
+            "zotero_key": "9VFWHFEK",
+            "citation": "Arnoczky & Marshall (1977), Methods - Rotational Stability",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_tibiale_interne",
+        "bone_type": "grasset",
+        "name": "Rotation tibiale interne (physiologique et post-rupture du LCCr)",
+        "name_en": "Internal tibial rotation (physiological and post-CrCL rupture)",
+        "formula": "Angle de rotation axiale du tibia par rapport au f\u00e9mur autour de l'axe longitudinal, mesur\u00e9 par cin\u00e9matique 3D",
+        "normal_unit": "degrees",
+        "measurement_method": "Cin\u00e9matique fluoroscopique/marqueurs in vivo : rotation interne physiologique de 6\u00b0 \u00e0 15\u00b0 pendant la flexion du grasset (position assise, trot) (Vasseur & Arnoczky 1981) ; rotation interne suppl\u00e9mentaire de 14\u00b0 observ\u00e9e ex vivo apr\u00e8s transection du LCCr en conditions simulant la mise en charge (Warzee et al. 2001 ; Kim et al. 2009), non confirm\u00e9e in vivo \u00e0 l'allure normale (Tashman et al. 2004).",
+        "clinical_use": "\u00c9valuation de l'instabilit\u00e9 rotationnelle du grasset d\u00e9ficient en LCCr, utile en compl\u00e9ment de l'\u00e9valuation de la translation cranio-caudale pour le choix de la technique chirurgicale (neutralisation vs contrainte de la rotation interne-externe).",
+        "status": "accepted",
+        "created_at": "2026-08-12T11:54:59.255030+00:00",
+        "reviewed_at": "2026-08-17T08:03:53.230437+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 172,
+            "criteria_id": "rotation_tibiale_interne",
+            "zotero_key": "R45UPTE3",
+            "citation": "Pozzi & Kim (2017), section 'Cranial cruciate ligament-deficient stifle'",
+            "table_ref": ""
+          },
+          {
+            "id": 177,
+            "criteria_id": "rotation_tibiale_interne",
+            "zotero_key": "NCT45KWU",
+            "citation": "Muir (2010), R\u00e9sultats qualitatifs / Introduction",
+            "table_ref": ""
+          },
+          {
+            "id": 200,
+            "criteria_id": "rotation_tibiale_interne",
+            "zotero_key": "9VFWHFEK",
+            "citation": "Arnoczky & Marshall (1977), Methods - Rotational Stability",
+            "table_ref": ""
+          },
+          {
+            "id": 238,
+            "criteria_id": "rotation_tibiale_interne",
+            "zotero_key": "47PU9BWR",
+            "citation": "Muir (2017), Introduction, citant Harari et al. 1987",
+            "table_ref": ""
+          },
+          {
+            "id": 254,
+            "criteria_id": "rotation_tibiale_interne",
+            "zotero_key": "RW3NPDFN",
+            "citation": "Ribeiro Gaspar and Chaves de Assis Neto (2021), Abstract/R\u00e9sultats",
+            "table_ref": ""
+          },
+          {
+            "id": 276,
+            "criteria_id": "rotation_tibiale_interne",
+            "zotero_key": "ICQHN3TD",
+            "citation": "Yu et al. (2023), Results/Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 314,
+            "criteria_id": "rotation_tibiale_interne",
+            "zotero_key": "CMS6AD5P",
+            "citation": "Carrera ALC et al. (2025), Discussion (qualitative findings)",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "rotation_tibiale_interne_locomotion",
+        "bone_type": "grasset",
+        "name": "Rotation tibiale interne en phase d'appui",
+        "name_en": "Internal tibial rotation during stance phase",
+        "formula": "Rotation axiale (interne/externe) du tibia par rapport au f\u00e9mur, calcul\u00e9e par recalage d'image 3D-vers-2D, compar\u00e9e entre phase d'appui et phase d'oscillation du cycle de marche",
+        "normal_unit": "degrees",
+        "measurement_method": "Fluoroscopie monoplan pendant marche sur tapis roulant ; comparaison de la rotation axiale tibiale entre grassets CrCL-d\u00e9ficients et grassets contr\u00f4les controlat\u00e9raux (6 mois post-stabilisation chirurgicale), s\u00e9par\u00e9ment en phase d'appui et en phase d'oscillation",
+        "clinical_use": "Caract\u00e9risation de la composante rotatoire de l'instabilit\u00e9 du grasset CrCL-d\u00e9ficient, distincte de la translation cranio-caudale ; utile pour comprendre les contraintes exerc\u00e9es sur les structures p\u00e9riarticulaires (ligaments collat\u00e9raux, m\u00e9nisques) et guider l'\u00e9valuation des techniques de stabilisation",
+        "status": "accepted",
+        "created_at": "2026-08-17T07:30:38.439596+00:00",
+        "reviewed_at": "2026-08-17T08:03:53.230488+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 770,
+            "criteria_id": "rotation_tibiale_interne_locomotion",
+            "zotero_key": "6IB9CNCZ",
+            "citation": "Tinga et al. (2018), R\u00e9sultats/Abstract",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "resistance_traction_ligament_croise_cranial",
+        "bone_type": "grasset",
+        "name": "R\u00e9sistance \u00e0 la traction (charge \u00e0 la rupture) du ligament crois\u00e9 cr\u00e2nial natif",
+        "name_en": "Native cranial cruciate ligament ultimate tensile strength",
+        "formula": "Charge maximale support\u00e9e avant rupture mesur\u00e9e en traction uniaxiale (machine d'essai m\u00e9canique)",
+        "normal_mean": 518.4,
+        "normal_sd": 97.5,
+        "normal_unit": "N",
+        "measurement_method": "Essai biom\u00e9canique de traction jusqu'\u00e0 rupture sur LCCr excis\u00e9 de sp\u00e9cimens cadav\u00e9riques de chiens crois\u00e9s adultes",
+        "clinical_use": "R\u00e9f\u00e9rence biom\u00e9canique pour \u00e9valuer la capacit\u00e9 de charge des mat\u00e9riaux et syst\u00e8mes de reconstruction du LCCr (greffons synth\u00e9tiques) par comparaison au ligament natif",
+        "status": "accepted",
+        "created_at": "2026-08-13T15:57:03.893121+00:00",
+        "reviewed_at": "2026-08-17T08:03:53.230534+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 323,
+            "criteria_id": "resistance_traction_ligament_croise_cranial",
+            "zotero_key": "M57G8MMZ",
+            "citation": "Nahla et al. (2025), Discussion, Table/Results",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "grade_lesion_ligament_croise_caudal_vas",
+        "bone_type": "grasset",
+        "name": "Score VAS de l\u00e9sion du ligament crois\u00e9 caudal",
+        "name_en": "CaCL damage visual analog scale score",
+        "formula": "\u00c9valuation subjective perop\u00e9ratoire (arthroscopie ou arthrotomie) sur \u00e9chelle visuelle analogique continue de 0 (ligament intact) \u00e0 100 (rupture compl\u00e8te), avec sondage pour distinguer effilochage superficiel (fraying) et d\u00e9fect transfixiant (full thickness)",
+        "normal_unit": "VAS points (0-100)",
+        "measurement_method": "Sondage arthroscopique du LCCa par un observateur unique ; score moyen 28\u00b121/100 chez les chiens CCLR (n=24) contre 0 chez tous les t\u00e9moins sains (n=8) ; effilochage superficiel chez 21/24 chiens, d\u00e9fect transfixiant chez 6/24 (25%).",
+        "clinical_use": "D\u00e9pistage perop\u00e9ratoire de l\u00e9sion du LCCa avant stabilisation chirurgicale ; \u00e9l\u00e9ment d\u00e9terminant car une rupture du LCCa constitue une contre-indication \u00e0 la TPLO (qui augmente la charge sur ce ligament).",
+        "status": "accepted",
+        "created_at": "2026-08-12T10:01:56.586000+00:00",
+        "reviewed_at": "2026-08-17T08:04:14.834214+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 162,
+            "criteria_id": "grade_lesion_ligament_croise_caudal_vas",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Results, Stifle Joint Pathology",
+            "table_ref": ""
+          },
+          {
+            "id": 165,
+            "criteria_id": "grade_lesion_ligament_croise_caudal_vas",
+            "zotero_key": "NCT45KWU",
+            "citation": "Muir (2010), Mid-substance tears / Conclusion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "grade_lesion_ligament_croise_cranial_vas",
+        "bone_type": "grasset",
+        "name": "Score VAS de l\u00e9sion du ligament crois\u00e9 cr\u00e2nial",
+        "name_en": "CCL damage visual analog scale score",
+        "formula": "\u00c9valuation subjective perop\u00e9ratoire (arthroscopie ou arthrotomie) sur \u00e9chelle visuelle analogique continue de 0 (ligament intact) \u00e0 100 (rupture compl\u00e8te)",
+        "normal_unit": "VAS points (0-100)",
+        "measurement_method": "Sondage arthroscopique ou palpation directe par arthrotomie du ligament, cotation par un observateur unique sur \u00e9chelle visuelle analogique de 0 \u00e0 100 ; distinction rupture compl\u00e8te (17/24) vs fibres r\u00e9siduelles (7/24) dans la population CCLR.",
+        "clinical_use": "Quantification perop\u00e9ratoire de la s\u00e9v\u00e9rit\u00e9 de la rupture du LCCr, utile pour corr\u00e9ler avec la s\u00e9v\u00e9rit\u00e9 de la synovite et des l\u00e9sions du LCCa ; valeur nulle chez tout chien sain (0/8 t\u00e9moins).",
+        "status": "accepted",
+        "created_at": "2026-08-12T10:01:56.573096+00:00",
+        "reviewed_at": "2026-08-17T08:04:14.834420+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 161,
+            "criteria_id": "grade_lesion_ligament_croise_cranial_vas",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Results, Stifle Joint Pathology",
+            "table_ref": ""
+          },
+          {
+            "id": 166,
+            "criteria_id": "grade_lesion_ligament_croise_cranial_vas",
+            "zotero_key": "NCT45KWU",
+            "citation": "Muir (2010), Conclusion",
+            "table_ref": ""
+          },
+          {
+            "id": 360,
+            "criteria_id": "grade_lesion_ligament_croise_cranial_vas",
+            "zotero_key": "M2X9R2WM",
+            "citation": "Unknown (2017), R\u00e9sultats principaux",
+            "table_ref": ""
+          },
+          {
+            "id": 376,
+            "criteria_id": "grade_lesion_ligament_croise_cranial_vas",
+            "zotero_key": "EGAZ65AE",
+            "citation": "Olson et al. (2023), Conclusions",
+            "table_ref": ""
+          },
+          {
+            "id": 382,
+            "criteria_id": "grade_lesion_ligament_croise_cranial_vas",
+            "zotero_key": "KZE8MAAG",
+            "citation": "Van der Vekens et al. (2019), R\u00e9sultats/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "grade_synovite_grasset_vas",
+        "bone_type": "grasset",
+        "name": "Score VAS de synovite du grasset",
+        "name_en": "Stifle synovitis visual analog scale score",
+        "formula": "\u00c9valuation subjective perop\u00e9ratoire de l'inflammation synoviale sur \u00e9chelle visuelle analogique de 0 (absence de synovite) \u00e0 100 (synovite s\u00e9v\u00e8re)",
+        "normal_unit": "VAS points (0-100)",
+        "measurement_method": "Cotation perop\u00e9ratoire par un observateur unique ; score moyen 58\u00b121/100 chez les chiens CCLR contre 0 chez tous les t\u00e9moins sains ; significativement corr\u00e9l\u00e9e \u00e0 la s\u00e9v\u00e9rit\u00e9 des l\u00e9sions du LCCa (Sr=0.42, P<.05) et \u00e0 l'arthrose radiographique (Sr=0.41, P<.05 pour \u00e9chelle num\u00e9rique ; Sr=0.30, P=.15 pour VAS).",
+        "clinical_use": "Marqueur inflammatoire intra-articulaire corr\u00e9l\u00e9 \u00e0 la d\u00e9gradation des ligaments crois\u00e9s, appuyant l'hypoth\u00e8se d'un r\u00f4le de la synovite dans la d\u00e9g\u00e9n\u00e9rescence ligamentaire secondaire.",
+        "status": "accepted",
+        "created_at": "2026-08-12T10:01:56.590156+00:00",
+        "reviewed_at": "2026-08-17T08:04:14.834474+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 163,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Results, Relationship Between Stifle Synovitis and Cruciate Damage",
+            "table_ref": ""
+          },
+          {
+            "id": 191,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "6Q9TRDKF",
+            "citation": "Kirby (1993), section Arthropathies",
+            "table_ref": ""
+          },
+          {
+            "id": 230,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "N4VNQDCF",
+            "citation": "Karatrantos et al. (2025), Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 280,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "RTDTXB2Q",
+            "citation": "Stupina et al. (2021), R\u00e9sultats, Tableau des scores de synovite, p. 249-253",
+            "table_ref": ""
+          },
+          {
+            "id": 343,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "M2MUT4RM",
+            "citation": "Muir (2017), Radiography, citant Chuang et al. 2014 et Fuller et al. 2014",
+            "table_ref": ""
+          },
+          {
+            "id": 357,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "AFJ5MJEQ",
+            "citation": "Bleedorn (2017), section 'Synovial assessment'",
+            "table_ref": ""
+          },
+          {
+            "id": 366,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "FVW375KA",
+            "citation": "section extraction, Results, Table (effusion articulaire)",
+            "table_ref": ""
+          },
+          {
+            "id": 389,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "KWPVU4CJ",
+            "citation": "Krupkova et al. (2018), section eCM Changes / Inflammation",
+            "table_ref": ""
+          },
+          {
+            "id": 408,
+            "criteria_id": "grade_synovite_grasset_vas",
+            "zotero_key": "ZGZ24NA6",
+            "citation": "Karatrantos et al. (2025), Discussion, citant Gnudi & Bertoni [70]",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "score_vas_synovite_grasset",
+        "bone_type": "grasset",
+        "name": "Score VAS de s\u00e9v\u00e9rit\u00e9 de la synovite du grasset",
+        "name_en": "Visual analog scale (VAS) score for stifle synovitis",
+        "formula": "Score continu de 0 (synoviale normale) \u00e0 100 (synovite s\u00e9v\u00e8re), attribu\u00e9 lors de l'inspection arthroscopique ou par arthrotomie de la membrane synoviale du grasset",
+        "normal_unit": "score VAS 0-100",
+        "measurement_method": "Inspection perop\u00e9ratoire (arthroscopie/arthrotomie) de la membrane synoviale, notation sur \u00e9chelle visuelle analogique 0-100",
+        "clinical_use": "Chez les chiens CCLR, score moyen 58\u00b121, significativement sup\u00e9rieur aux chiens contr\u00f4les (0) ; corr\u00e9l\u00e9 positivement \u00e0 la s\u00e9v\u00e9rit\u00e9 des l\u00e9sions du LCCd (Sr=0.42, P<.05) et \u00e0 l'arthrose radiographique (\u00e9chelle num\u00e9rique Sr=0.41, P<.05)",
+        "status": "accepted",
+        "created_at": "2026-08-17T07:23:35.777355+00:00",
+        "reviewed_at": "2026-08-17T08:04:14.834522+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 766,
+            "criteria_id": "score_vas_synovite_grasset",
+            "zotero_key": "NQ6I37WR",
+            "citation": "Sumner et al. (2010), Vet Surg 39(8):936-941, Results/Relationship Between Stifle Synovitis and Cruciate Damage",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "score_vas_severite_lesion_ligament_croise",
+        "bone_type": "grasset",
+        "name": "Score VAS de s\u00e9v\u00e9rit\u00e9 des l\u00e9sions du ligament crois\u00e9 (cr\u00e2nial et caudal)",
+        "name_en": "Visual analog scale (VAS) score for cruciate ligament damage severity",
+        "formula": "Score continu de 0 (ligament intact) \u00e0 100 (rupture compl\u00e8te/perte totale de substance), attribu\u00e9 par l'op\u00e9rateur lors du sondage arthroscopique ou par arthrotomie du ligament crois\u00e9 examin\u00e9",
+        "normal_unit": "score VAS 0-100",
+        "measurement_method": "\u00c9valuation visuelle et par sondage (probing) perop\u00e9ratoire du ligament (arthroscopie ou arthrotomie), not\u00e9e sur une \u00e9chelle visuelle analogique continue de 0 \u00e0 100 distincte de la classification cat\u00e9gorielle (fraying vs d\u00e9faut de pleine \u00e9paisseur)",
+        "clinical_use": "Quantification continue de la s\u00e9v\u00e9rit\u00e9 l\u00e9sionnelle du LCCr et du LCCd pour analyses corr\u00e9lationnelles (ex. avec la s\u00e9v\u00e9rit\u00e9 de la synovite) ; chez les chiens CCLR: LCCr=85\u00b117, LCCd=28\u00b121 ; chiens contr\u00f4les sains: 0 pour les deux",
+        "status": "accepted",
+        "created_at": "2026-08-17T07:23:35.774051+00:00",
+        "reviewed_at": "2026-08-17T08:04:14.834574+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 765,
+            "criteria_id": "score_vas_severite_lesion_ligament_croise",
+            "zotero_key": "NQ6I37WR",
+            "citation": "Sumner et al. (2010), Vet Surg 39(8):936-941, Results/Stifle Joint Pathology",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "vas_arthrite_radiographique_grasset",
+        "bone_type": "grasset",
+        "name": "Score VAS global d'arthrite radiographique du grasset (0-100)",
+        "name_en": "Global visual analog scale (VAS) score for radiographic stifle arthritis (0-100)",
+        "formula": "Score analogique visuel continu de 0 (absence) \u00e0 100 (arthrite maximale) \u00e9valuant globalement la s\u00e9v\u00e9rit\u00e9 radiographique de l'arthrose du grasset",
+        "normal_mean": 37.0,
+        "normal_sd": 19.0,
+        "normal_unit": "score VAS (0-100)",
+        "measurement_method": "\u00c9valuation visuelle analogique par observateur unique sur radiographies pr\u00e9op\u00e9ratoires du grasset atteint chez chiens CCLR (n=24)",
+        "clinical_use": "Compl\u00e8te l'\u00e9chelle num\u00e9rique (NRS) pour la cotation de s\u00e9v\u00e9rit\u00e9 de l'arthrose radiographique, corr\u00e9l\u00e9e de fa\u00e7on non significative \u00e0 la synovite (tendance, P=.15)",
+        "status": "accepted",
+        "created_at": "2026-08-14T13:01:13.830889+00:00",
+        "reviewed_at": "2026-08-17T08:04:14.834611+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 564,
+            "criteria_id": "vas_arthrite_radiographique_grasset",
+            "zotero_key": "NQ6I37WR",
+            "citation": "Sumner et al. (2010), Results, Radiography",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "score_arthrite_radiographique_grasset_vas",
+        "bone_type": "grasset",
+        "name": "Score VAS global de s\u00e9v\u00e9rit\u00e9 de l'arthrite radiographique du grasset",
+        "name_en": "Global radiographic stifle arthritis VAS score",
+        "formula": "Notation subjective par l'observateur sur une \u00e9chelle visuelle analogique continue de 0 (absence d'arthrite) \u00e0 100 (arthrite s\u00e9v\u00e8re), \u00e0 partir des clich\u00e9s radiographiques pr\u00e9op\u00e9ratoires du grasset",
+        "normal_unit": "score VAS (0-100)",
+        "measurement_method": "Lecture radiographique standard (incidences m\u00e9dio-lat\u00e9rale et cranio-caudale du grasset) par un observateur unique, marquage sur ligne VAS de 100 mm ; valeur rapport\u00e9e pour la cohorte CCLR : 37 \u00b1 19",
+        "clinical_use": "Quantification continue et potentiellement plus sensible de la s\u00e9v\u00e9rit\u00e9 de l'arthrose radiographique du grasset, compl\u00e9mentaire \u00e0 l'\u00e9chelle num\u00e9rique discr\u00e8te existante (grade_osteophytose_grasset) ; utilis\u00e9e ici pour tester la corr\u00e9lation avec la s\u00e9v\u00e9rit\u00e9 de la synovite (rho=0.30, P=.15, non significatif), contrairement \u00e0 l'\u00e9chelle num\u00e9rique qui montrait une corr\u00e9lation significative",
+        "status": "accepted",
+        "created_at": "2026-08-12T11:32:52.179091+00:00",
+        "reviewed_at": "2026-08-17T08:04:14.834654+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 167,
+            "criteria_id": "score_arthrite_radiographique_grasset_vas",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Results - Radiography et Relationship Between Stifle Synovitis and Cruciate Damage",
+            "table_ref": ""
+          },
+          {
+            "id": 168,
+            "criteria_id": "score_arthrite_radiographique_grasset_vas",
+            "zotero_key": "X79QEIMX",
+            "citation": "Brioschi & Arthurs (2021), Conservative management, citant Vasseur (1984)",
+            "table_ref": ""
+          },
+          {
+            "id": 193,
+            "criteria_id": "score_arthrite_radiographique_grasset_vas",
+            "zotero_key": "6Q9TRDKF",
+            "citation": "Kirby (1993), section Progression of Degenerative Joint Disease",
+            "table_ref": ""
+          },
+          {
+            "id": 288,
+            "criteria_id": "score_arthrite_radiographique_grasset_vas",
+            "zotero_key": "JAF5I3R2",
+            "citation": "Hoenecke et al. (2025), Results, paragraphe 3",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "volume_ligament_croise_cranial_irm",
+        "bone_type": "grasset",
+        "name": "Volume du ligament crois\u00e9 cr\u00e2nial estim\u00e9 par IRM",
+        "name_en": "MRI-estimated cranial cruciate ligament volume",
+        "formula": "Segmentation volum\u00e9trique du LCC sur s\u00e9quences IRM isotropiques 3D (ex. 3D Fast Spin Echo Cube, 3.0 Tesla)",
+        "normal_unit": "mm3 (non chiffr\u00e9 dans le texte)",
+        "measurement_method": "IRM \u00e0 haute r\u00e9solution 3.0 Tesla avec acquisition isotropique, permettant reconstruction et mesure volum\u00e9trique du ligament dans les grassets \u00e0 LCC intact ou l\u00e9s\u00e9.",
+        "landmarks_required": [
+          "site_origine_femorale_ligament_croise_cranial",
+          "site_insertion_tibiale_ligament_croise_cranial"
+        ],
+        "clinical_use": "Pr\u00e9dictif des propri\u00e9t\u00e9s structurelles (biom\u00e9caniques) du ligament chez les chiens \u00e0 LCC normal (Racette et al. 2016) ; potentiel futur outil pour inf\u00e9rer indirectement le risque de progression d'une rupture partielle vers une rupture compl\u00e8te.",
+        "status": "accepted",
+        "created_at": "2026-08-13T16:32:58.161430+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733045+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 346,
+            "criteria_id": "volume_ligament_croise_cranial_irm",
+            "zotero_key": "M2MUT4RM",
+            "citation": "Muir (2017), Magnetic resonance imaging, citant Racette et al. 2016",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "volume_ligament_croise_cranial",
+        "bone_type": "grasset",
+        "name": "Volume du ligament crois\u00e9 cr\u00e2nial natif",
+        "name_en": "Native cranial cruciate ligament volume",
+        "formula": "Non d\u00e9taill\u00e9e dans l'extrait ; volume calcul\u00e9 \u00e0 partir des dimensions (longueur, largeur, \u00e9paisseur) du LCCr excis\u00e9",
+        "normal_unit": "mm3",
+        "measurement_method": "Mesure sur sp\u00e9cimens cadav\u00e9riques de LCCr natif excis\u00e9, m\u00e9thode de calcul du volume non pr\u00e9cis\u00e9e dans les donn\u00e9es extraites",
+        "landmarks_required": [
+          "site_origine_femorale_ligament_croise_cranial",
+          "site_insertion_tibiale_ligament_croise_cranial"
+        ],
+        "clinical_use": "Le volume du LCCr est corr\u00e9l\u00e9 positivement \u00e0 l'\u00e2ge (r=0,90 ; p<0,0001) et au poids corporel (r=0,72 ; p=0,004), utile pour dimensionner un greffon de substitution adapt\u00e9 \u00e0 l'animal.",
+        "status": "accepted",
+        "created_at": "2026-08-13T13:28:26.089380+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733245+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 270,
+            "criteria_id": "volume_ligament_croise_cranial",
+            "zotero_key": "QNRC3JJF",
+            "citation": "Nahla et al. (2025), Discussion",
+            "table_ref": ""
+          },
+          {
+            "id": 322,
+            "criteria_id": "volume_ligament_croise_cranial",
+            "zotero_key": "M57G8MMZ",
+            "citation": "Nahla et al. (2025), Results/Discussion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_cicatrisation_meniscale_bon_fair_pauvre",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle de cicatrisation m\u00e9niscale post-r\u00e9paration (bon/fair/pauvre)",
+        "name_en": "Meniscal repair healing scale (good/fair/poor)",
+        "formula": "Classification qualitative macroscopique en 3 classes \u00e0 l'inspection \u00e0 4 mois post-op\u00e9ratoire : 'bon' = restauration compl\u00e8te du rebord m\u00e9niscal interne sans nouvelle d\u00e9chirure ; 'fair' = cicatrisation partielle mais suffisante pour prot\u00e9ger le cartilage articulaire sous-jacent ; 'pauvre' = \u00e9chec de cicatrisation avec \u00e9rosion du cartilage articulaire tibial sous-jacent au d\u00e9faut.",
+        "normal_unit": "grade qualitatif (3 classes)",
+        "measurement_method": "Inspection macroscopique de l'articulation \u00e0 l'arthrotomie de contr\u00f4le \u00e0 4 mois post-r\u00e9paration par suture, \u00e9valuation visuelle du rebord m\u00e9niscal interne (continuit\u00e9, pr\u00e9sence de d\u00e9chirure r\u00e9siduelle) et de l'\u00e9tat du cartilage articulaire tibial en regard du site de l\u00e9sion ; corr\u00e9lation histologique (H&E, PAS, Safranine-O, trichrome de Masson, bleu alcian) sur les m\u00e9nisques excis\u00e9s.",
+        "landmarks_required": [
+          "bord_interne_menisque"
+        ],
+        "clinical_use": "Aide \u00e0 la d\u00e9cision entre suture m\u00e9niscale (r\u00e9paration pr\u00e9servant le tissu) et m\u00e9niscectomie, en objectivant le potentiel de cicatrisation des l\u00e9sions m\u00e9niscales p\u00e9riph\u00e9riques vascularis\u00e9es et leur capacit\u00e9 \u00e0 prot\u00e9ger le cartilage articulaire sous-jacent.",
+        "status": "accepted",
+        "created_at": "2026-08-13T19:39:53.123982+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733308+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 402,
+            "criteria_id": "echelle_cicatrisation_meniscale_bon_fair_pauvre",
+            "zotero_key": "K76CU8RX",
+            "citation": "Edward Cabaud et al. (1981), Results, Figures 3-5 et Table 1",
+            "table_ref": ""
+          },
+          {
+            "id": 403,
+            "criteria_id": "echelle_cicatrisation_meniscale_bon_fair_pauvre",
+            "zotero_key": "7HBGZSAH",
+            "citation": "Krupkova et al. (2018), section 'Human Meniscus - Anatomy and Physiology'",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_gradation_cicatrisation_osseuse_tta",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle de gradation de la cicatrisation osseuse post-TTA",
+        "name_en": "Bone healing grading scale after TTA",
+        "formula": "Score ordinal de cicatrisation osseuse au site d'ost\u00e9otomie/avancement de la tub\u00e9rosit\u00e9 tibiale, \u00e9valu\u00e9 radiographiquement \u00e0 1 mois postop\u00e9ratoire",
+        "normal_mean": 1.28,
+        "normal_sd": 0.68,
+        "normal_unit": "score/grade (1 mois postop\u00e9ratoire)",
+        "measurement_method": "\u00c9valuation radiographique standardis\u00e9e \u00e0 1 mois postop\u00e9ratoire de l'int\u00e9gration osseuse au site d'ost\u00e9otomie TTA",
+        "landmarks_required": [
+          "site_avancement_tuberosite_tibiale_tta",
+          "apex_tuberosite_tibiale"
+        ],
+        "clinical_use": "Objectiver la cicatrisation osseuse pr\u00e9coce apr\u00e8s TTA poreux sans collerette ; cicatrisation jug\u00e9e globalement modeste \u00e0 1 mois, sans diff\u00e9rence significative selon sexe, poids ou \u00e2ge (p = 0.51, 0.11, 0.44), avec tendance non significative \u00e0 une meilleure cicatrisation chez les chiens \u226525 kg",
+        "status": "accepted",
+        "created_at": "2026-08-14T08:35:39.250884+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733365+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 510,
+            "criteria_id": "echelle_gradation_cicatrisation_osseuse_tta",
+            "zotero_key": "MGQSCDF4",
+            "citation": "Garc\u00eda-Gonz\u00e1lez et al. (2026), Results, paragraphe 3",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_gradation_osteophytes_grasset",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle de gradation des ost\u00e9ophytes (progression arthrosique)",
+        "name_en": "Osteophyte formation grading scale",
+        "formula": "Score radiographique semi-quantitatif \u00e9valu\u00e9 sur incidence m\u00e9dio-lat\u00e9rale du grasset, compar\u00e9 entre pr\u00e9op\u00e9ratoire et suivi postop\u00e9ratoire (1 semaine, 1 mois)",
+        "normal_mean": 1.38,
+        "normal_sd": 0.79,
+        "normal_unit": "score (pr\u00e9op\u00e9ratoire)",
+        "measurement_method": "\u00c9valuation radiographique semi-quantitative de la formation d'ost\u00e9ophytes p\u00e9ri-articulaires au niveau du grasset, r\u00e9alis\u00e9e en pr\u00e9op\u00e9ratoire puis \u00e0 1 mois postop\u00e9ratoire pour objectiver la progression ou stabilit\u00e9 de l'arthrose apr\u00e8s TTA poreuse.",
+        "landmarks_required": [
+          "condyle_femoral",
+          "condyle_tibial",
+          "fabelle_laterale",
+          "fabelle_mediale"
+        ],
+        "clinical_use": "Suivi radiographique de la progression de l'arthrose du grasset apr\u00e8s chirurgie de stabilisation (TTA) ; absence de progression significative \u00e0 1 mois postop\u00e9ratoire (score postop 1,28 \u00b1 0,68, non significativement diff\u00e9rent du pr\u00e9op\u00e9ratoire).",
+        "status": "accepted",
+        "created_at": "2026-08-14T08:57:21.627145+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733419+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 517,
+            "criteria_id": "echelle_gradation_osteophytes_grasset",
+            "zotero_key": "AE2HC73R",
+            "citation": "Garc\u00eda-Gonz\u00e1lez et al. (2026), Results paragraphe 3",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_effusion_articulaire_nrs",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle num\u00e9rique d'effusion articulaire du grasset (radiographique)",
+        "name_en": "Numerical rating scale (NRS) for stifle joint effusion",
+        "formula": "Score de 0 \u00e0 2 bas\u00e9 sur le d\u00e9placement/l'\u00e9largissement des coussinets adipeux infra- et suprapatellaires sur la radiographie de profil du grasset.",
+        "normal_mean": 1.5,
+        "normal_unit": "score NRS (0-2), m\u00e9diane rapport\u00e9e",
+        "measurement_method": "Lecture radiographique pr\u00e9op\u00e9ratoire de profil par un observateur unique ; score m\u00e9dian 1,5 (intervalle 1-2) chez les chiens avec rupture du LCCr ; 17/24 chiens pr\u00e9sentaient \u00e9galement une effusion et une arthrose visibles sur le grasset controlat\u00e9ral.",
+        "landmarks_required": [
+          "coussinet_adipeux_infrapatellaire"
+        ],
+        "clinical_use": "Signe radiographique indirect classique de pathologie intra-articulaire du grasset (rupture crois\u00e9e, synovite), y compris de fa\u00e7on bilat\u00e9rale infra-clinique.",
+        "status": "accepted",
+        "created_at": "2026-08-14T09:50:42.681671+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733466+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 543,
+            "criteria_id": "echelle_effusion_articulaire_nrs",
+            "zotero_key": "NQ6I37WR",
+            "citation": "Sumner et al. (2010), Results, Radiography",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_numerique_arthrite_grasset_nrs",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle num\u00e9rique de s\u00e9v\u00e9rit\u00e9 de l'arthrite radiographique du grasset (NRS 0-11)",
+        "name_en": "Stifle arthritis numerical rating scale (0-11)",
+        "formula": "Score composite cot\u00e9 de 0 (absence de changement arthrosique) \u00e0 11 (arthrite s\u00e9v\u00e8re) sur radiographies pr\u00e9op\u00e9ratoires du grasset atteint",
+        "normal_unit": "score (0-11)",
+        "measurement_method": "Cotation radiographique par un observateur unique sur clich\u00e9s pr\u00e9op\u00e9ratoires du grasset atteint chez les chiens CCLR ; m\u00e9diane 4 (intervalle 3-10) rapport\u00e9e sur n=24 chiens",
+        "clinical_use": "Quantification standardis\u00e9e de la s\u00e9v\u00e9rit\u00e9 de l'arthrose radiographique du grasset chez le chien avec rupture du LCCr, utile pour l'annotation de s\u00e9v\u00e9rit\u00e9 sur bases d'imagerie",
+        "status": "accepted",
+        "created_at": "2026-08-14T13:01:13.827297+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733511+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 563,
+            "criteria_id": "echelle_numerique_arthrite_grasset_nrs",
+            "zotero_key": "NQ6I37WR",
+            "citation": "Sumner et al. (2010), Results, Radiography",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_arthrose_radiographique_nrs",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle num\u00e9rique de s\u00e9v\u00e9rit\u00e9 de l'arthrose du grasset (radiographique)",
+        "name_en": "Numerical rating scale (NRS) for radiographic stifle arthritis",
+        "formula": "Score de 0 \u00e0 11 attribu\u00e9 par un observateur unique sur radiographies pr\u00e9op\u00e9ratoires (vues standard du grasset), refl\u00e9tant l'\u00e9tendue des ost\u00e9ophytes et remaniements d\u00e9g\u00e9n\u00e9ratifs.",
+        "normal_mean": 4.0,
+        "normal_unit": "score NRS (0-11), m\u00e9diane rapport\u00e9e",
+        "measurement_method": "Lecture radiographique pr\u00e9op\u00e9ratoire par un observateur unique (JPS) ; score m\u00e9dian de 4 (intervalle 3-10) rapport\u00e9 chez les chiens avec rupture du LCCr ; compl\u00e9t\u00e9 par un score VAS global (0-100) moyen de 37 \u00b1 19.",
+        "clinical_use": "Quantification radiographique standardis\u00e9e de la s\u00e9v\u00e9rit\u00e9 de l'arthrose du grasset, corr\u00e9l\u00e9e \u00e0 la s\u00e9v\u00e9rit\u00e9 de la synovite intra-articulaire (S_R=0.41, P<.05), utile comme indicateur indirect non invasif de l'atteinte crois\u00e9e.",
+        "status": "accepted",
+        "created_at": "2026-08-14T09:50:42.678394+00:00",
+        "reviewed_at": "2026-08-17T08:01:47.733554+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 542,
+            "criteria_id": "echelle_arthrose_radiographique_nrs",
+            "zotero_key": "NQ6I37WR",
+            "citation": "Sumner et al. (2010), Results, Radiography",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_nrs_arthrite_radiographique_grasset_0_11",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle num\u00e9rique de s\u00e9v\u00e9rit\u00e9 de l'arthrose radiographique du grasset (NRS 0-11)",
+        "name_en": "Numerical rating scale for radiographic stifle arthritis severity (0-11)",
+        "formula": "Score composite bas\u00e9 sur la pr\u00e9sence/s\u00e9v\u00e9rit\u00e9 d'ost\u00e9ophytes p\u00e9ri-articulaires, de scl\u00e9rose sous-chondrale et de remodelage osseux visibles sur radiographies orthogonales du grasset, additionn\u00e9s sur une \u00e9chelle de 0 (normal) \u00e0 11 (arthrose s\u00e9v\u00e8re)",
+        "normal_unit": "points (\u00e9chelle 0-11)",
+        "measurement_method": "Lecture radiographique standardis\u00e9e par un observateur unique, projections m\u00e9dio-lat\u00e9rale et cranio-caudale du grasset pr\u00e9op\u00e9ratoire",
+        "clinical_use": "Quantification de la s\u00e9v\u00e9rit\u00e9 de l'arthrose radiographique associ\u00e9e \u00e0 la CCLR ; corr\u00e9l\u00e9e \u00e0 la s\u00e9v\u00e9rit\u00e9 de la synovite perop\u00e9ratoire (S_R=0.41, P<.05)",
+        "status": "accepted",
+        "created_at": "2026-08-14T06:52:15.691085+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.326571+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 485,
+            "criteria_id": "echelle_nrs_arthrite_radiographique_grasset_0_11",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Results - Radiography",
+            "table_ref": ""
+          },
+          {
+            "id": 500,
+            "criteria_id": "echelle_nrs_arthrite_radiographique_grasset_0_11",
+            "zotero_key": "N4VNQDCF",
+            "citation": "Karatrantos et al. (2025), Discussion, citant [70]",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_visibilite_arthrographique_grasset",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle qualitative de visibilit\u00e9 arthrographique des ligaments et m\u00e9nisques",
+        "name_en": "Qualitative CT arthrography visibility scale for stifle ligaments and menisci",
+        "formula": "Score qualitatif en 3 niveaux (au minimum) : 1 = structure non visible ; 2 = structure faiblement visualis\u00e9e mais d\u00e9tectable (localisation et d\u00e9faut de remplissage identifiables, marges/forme non d\u00e9finies) ; 3 = structure bien visualis\u00e9e avec localisation, forme, d\u00e9faut de remplissage et marges clairement d\u00e9lin\u00e9\u00e9s",
+        "normal_unit": "score qualitatif (1-3)",
+        "measurement_method": "\u00c9valuation qualitative en aveugle par au moins deux observateurs sur images d'arthro-CT apr\u00e8s injection intra-articulaire de produit de contraste iod\u00e9, avec calcul de l'accord intra- et inter-observateur (kappa de Cohen)",
+        "clinical_use": "Standardisation de l'interpr\u00e9tation de la visibilit\u00e9 des structures ligamentaires (CrCL, CdCL, ligament m\u00e9niscof\u00e9moral, ligament m\u00e9niscotibial cr\u00e2nial) et m\u00e9niscales (MM, LM, ligament intermeniscal) en arthro-CT, utile pour valider un protocole d'imagerie avant analyse l\u00e9sionnelle",
+        "status": "accepted",
+        "created_at": "2026-08-13T17:05:49.772825+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.326777+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 362,
+            "criteria_id": "echelle_visibilite_arthrographique_grasset",
+            "zotero_key": "ZAWAZGQ9",
+            "citation": "Yoon et al. (2024), Introduction/R\u00e9sultats",
+            "table_ref": ""
+          },
+          {
+            "id": 379,
+            "criteria_id": "echelle_visibilite_arthrographique_grasset",
+            "zotero_key": "CZP97B3E",
+            "citation": "Yoon et al. (2024), Introduction/R\u00e9sultats, \u00e9chelle qualitative",
+            "table_ref": ""
+          },
+          {
+            "id": 383,
+            "criteria_id": "echelle_visibilite_arthrographique_grasset",
+            "zotero_key": "KZE8MAAG",
+            "citation": "Van der Vekens et al. (2019), R\u00e9sultats",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_epanchement_radiographique_grasset_0_2",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle radiographique d'\u00e9panchement articulaire du grasset (0-2)",
+        "name_en": "Radiographic stifle joint effusion score (0-2)",
+        "formula": "Score de 0 (absence d'\u00e9panchement) \u00e0 2 (\u00e9panchement marqu\u00e9) bas\u00e9 sur le d\u00e9placement des coussinets adipeux infrapatellaire et caudal sur la radiographie m\u00e9dio-lat\u00e9rale du grasset",
+        "normal_unit": "points (\u00e9chelle 0-2)",
+        "measurement_method": "Lecture de la projection m\u00e9dio-lat\u00e9rale du grasset pr\u00e9op\u00e9ratoire, \u00e9valuation du d\u00e9placement des lignes graisseuses p\u00e9ri-articulaires",
+        "landmarks_required": [
+          "coussinet_adipeux_infrapatellaire"
+        ],
+        "clinical_use": "Quantification radiographique de l'\u00e9panchement articulaire associ\u00e9 \u00e0 la CCLR ; m\u00e9diane 1.5 (intervalle 1-2) chez 24 chiens CCLR",
+        "status": "accepted",
+        "created_at": "2026-08-14T06:52:15.700062+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.326858+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 487,
+            "criteria_id": "echelle_epanchement_radiographique_grasset_0_2",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Results - Radiography",
+            "table_ref": ""
+          },
+          {
+            "id": 501,
+            "criteria_id": "echelle_epanchement_radiographique_grasset_0_2",
+            "zotero_key": "AZ4JNFGW",
+            "citation": "Hoenecke et al. (2025), Results, paragraphe 3",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_severite_synovite_vas",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle visuelle analogique de s\u00e9v\u00e9rit\u00e9 de la synovite du grasset",
+        "name_en": "Visual analog scale (VAS) for stifle synovitis severity",
+        "formula": "Score attribu\u00e9 de 0 \u00e0 100 par un observateur unique lors de l'exploration arthroscopique/arthrotomique, \u00e9valuant subjectivement la s\u00e9v\u00e9rit\u00e9 de l'inflammation synoviale intra-articulaire.",
+        "normal_unit": "VAS points (0-100)",
+        "measurement_method": "\u00c9valuation per-op\u00e9ratoire (arthroscopie ou arthrotomie) par un observateur unique (JPS), notation globale sur \u00e9chelle visuelle analogique 0-100 de la synovite du grasset index.",
+        "clinical_use": "Corr\u00e9lation positive avec la s\u00e9v\u00e9rit\u00e9 des l\u00e9sions du ligament crois\u00e9 caudal et avec la s\u00e9v\u00e9rit\u00e9 radiographique de l'arthrose ; support de l'hypoth\u00e8se selon laquelle la synovite contribue \u00e0 la d\u00e9g\u00e9n\u00e9rescence des deux ligaments crois\u00e9s.",
+        "status": "accepted",
+        "created_at": "2026-08-14T09:50:42.674938+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.326928+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 541,
+            "criteria_id": "echelle_severite_synovite_vas",
+            "zotero_key": "NQ6I37WR",
+            "citation": "Sumner et al. (2010), Methods / Results",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "echelle_vas_arthrite_radiographique_grasset",
+        "bone_type": "grasset",
+        "name": "\u00c9chelle visuelle analogique de s\u00e9v\u00e9rit\u00e9 globale de l'arthrose radiographique du grasset",
+        "name_en": "Visual analog scale for global radiographic stifle arthritis severity",
+        "formula": "Score continu de 0 \u00e0 100 attribu\u00e9 par l'observateur \u00e0 partir de l'impression globale de s\u00e9v\u00e9rit\u00e9 arthrosique sur les radiographies",
+        "normal_mean": 37.0,
+        "normal_sd": 19.0,
+        "normal_unit": "points (\u00e9chelle 0-100)",
+        "measurement_method": "\u00c9valuation visuelle analogique compl\u00e9mentaire \u00e0 l'\u00e9chelle num\u00e9rique, sur les m\u00eames radiographies pr\u00e9op\u00e9ratoires du grasset",
+        "clinical_use": "Mesure alternative continue de la s\u00e9v\u00e9rit\u00e9 arthrosique radiographique, compar\u00e9e \u00e0 l'\u00e9chelle NRS 0-11 dans la m\u00eame population",
+        "status": "accepted",
+        "created_at": "2026-08-14T06:52:15.695646+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.326978+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 486,
+            "criteria_id": "echelle_vas_arthrite_radiographique_grasset",
+            "zotero_key": "BUHFWKCX",
+            "citation": "Sumner et al. (2010), Results - Radiography",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "epaisseur_membrane_synoviale_grasset",
+        "bone_type": "grasset",
+        "name": "\u00c9paisseur de la membrane synoviale",
+        "name_en": "Synovial membrane thickness",
+        "formula": "Mesure directe de l'\u00e9paisseur de la couche synoviale (macroscopique ou histologique) ; potentiellement estimable par \u00e9chographie ou IRM avec contraste",
+        "normal_mean": 2.75,
+        "normal_unit": "mm",
+        "measurement_method": "D\u00e9crite macroscopiquement (0.5-5 mm) chez le chien sain (Iwanaga et al. 2000) ; l'article souligne que l'\u00e9chographie et l'IRM avec contraste, utilis\u00e9es chez l'humain pour \u00e9valuer la pathologie synoviale, manquent encore de validation clinique chez le chien.",
+        "clinical_use": "\u00c9valuation de l'hypertrophie synoviale comme marqueur pr\u00e9coce de synovite associ\u00e9e \u00e0 la rupture du ligament crois\u00e9 cr\u00e2nial ; utile pour interpr\u00e9ter un \u00e9paississement synovial visible en imagerie en coupe (\u00e9chographie/IRM).",
+        "status": "accepted",
+        "created_at": "2026-08-13T16:48:21.865933+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327016+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 359,
+            "criteria_id": "epaisseur_membrane_synoviale_grasset",
+            "zotero_key": "AFJ5MJEQ",
+            "citation": "Bleedorn (2017), section 'Normal synovium', citant Iwanaga et al. 2000",
+            "table_ref": ""
+          },
+          {
+            "id": 470,
+            "criteria_id": "epaisseur_membrane_synoviale_grasset",
+            "zotero_key": "CRRQ35D9",
+            "citation": "Karatrantos et al. (2025), Conclusion",
+            "table_ref": ""
+          }
+        ]
+      },
+      {
+        "id": "epaisseur_ligament_croise_cranial",
+        "bone_type": "grasset",
+        "name": "\u00c9paisseur du ligament crois\u00e9 cr\u00e2nial natif",
+        "name_en": "Native cranial cruciate ligament thickness",
+        "formula": "Mesure directe sur sp\u00e9cimen excis\u00e9",
+        "normal_unit": "mm",
+        "measurement_method": "Mesure sur sp\u00e9cimens cadav\u00e9riques ; valeur chiffr\u00e9e non rapport\u00e9e dans les donn\u00e9es extraites",
+        "landmarks_required": [
+          "site_origine_femorale_ligament_croise_cranial",
+          "site_insertion_tibiale_ligament_croise_cranial"
+        ],
+        "clinical_use": "Caract\u00e9risation dimensionnelle du LCCr natif servant de r\u00e9f\u00e9rence \u00e0 la conception d'un greffon de substitution.",
+        "status": "accepted",
+        "created_at": "2026-08-13T13:28:26.097764+00:00",
+        "reviewed_at": "2026-08-17T08:00:21.327085+00:00",
+        "region": "all",
+        "topics": "[]",
+        "sources": [
+          {
+            "id": 272,
+            "criteria_id": "epaisseur_ligament_croise_cranial",
+            "zotero_key": "QNRC3JJF",
+            "citation": "Nahla et al. (2025), Methods",
+            "table_ref": ""
+          },
+          {
+            "id": 469,
+            "criteria_id": "epaisseur_ligament_croise_cranial",
+            "zotero_key": "CRRQ35D9",
+            "citation": "Karatrantos et al. (2025), Discussion",
             "table_ref": ""
           }
         ]
