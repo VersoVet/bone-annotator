@@ -196,6 +196,7 @@ _module_routers = [
     ("imaging", "src.modules.imaging.routes"),
     ("analysis", "src.modules.analysis.routes"),
     ("cvat", "src.modules.cvat.routes"),
+    ("sam", "src.modules.annotation.sam_proxy"),
     ("labels", "src.modules.labels.routes"),
 ]
 

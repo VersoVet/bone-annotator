@@ -19,12 +19,7 @@ dataset_pacs:
 dataset_storage_fallback:
   root: /mnt/soma-shared/annotation-datasets
 
-# Segment Anything Model pour CVAT (outil d'annotation AI)
-# Changer model_type et relancer scripts/deploy_sam.sh pour switch
+# SAM (Segment Anything) — via ml-compute Ray cluster
+# ml-compute gère l'allocation GPU automatiquement
 sam:
-  model_type: vit_b                # vit_b (rapide), vit_l (moyen), vit_h (précis)
-  checkpoint: sam_vit_b_01ec64.pth
-  checkpoint_url: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
-  cvat_host: 10.0.0.59             # Machine où CVAT + Nuclio tourne
-  cvat_path: /opt/onyx/cvat        # Répertoire CVAT sur la machine cible
-  gpu_backend: http://10.0.0.26:9470  # SAM GPU sur OnyxCortex (RTX 4070 SUPER)
+  backend: http://10.0.0.44:9469/api/serve/sam
