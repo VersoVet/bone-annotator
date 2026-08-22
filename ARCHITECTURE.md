@@ -338,7 +338,7 @@ Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-08-16
+**Dernière mise à jour**: 2026-08-22
 **Phase**: Priority 1 modules implementation
 **Version**: v0.1.20
 **Status**: Imaging routes + real dataset export + comprehensive tests

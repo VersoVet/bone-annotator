@@ -1314,7 +1314,7 @@ Collections: bone_atlas, bone_annotations
 
 ---
 
-**Dernière mise à jour**: 2026-08-16
+**Dernière mise à jour**: 2026-08-22
 **Phase**: 2 (Priority 1 modules implementation)
 **Version**: v0.1.20
 **Endpoints**: 57+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7)
