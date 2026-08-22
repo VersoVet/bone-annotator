@@ -1,0 +1,13 @@
+# LabelMe: A Database and Web-Based Tool for Image Annotation
+
+**Auteurs** : Bryan Russell, Antonio Torralba, Kevin Murphy, William T. Freeman
+**Année** : 2007
+**DOI** : 10.1007/s11263-007-0090-8
+
+## Résumé
+
+Background. Sharing knowledge such as resources, research results, and scholarly documents, is of key importance to improving collaboration between researchers worldwide. Research results from the field of artificial intelligence (AI) are vital to share because of the extensive applicability of AI to several other fields of research. This has led to a significant increase in the number of AI publications over the past decade. The metadata of AI publications, including bibliometrics and altmetrics indicators, can be accessed by searching familiar bibliographical databases such as Web of Science (WoS), which enables the impact of research to be evaluated and identify rising researchers and trending topics in the field of AI. Problem description. In general, bibliographical databases have two limitations in terms of the type and form of metadata we aim to improve. First, most bibliographical databases, such as WoS, are more concerned with bibliometric indicators and do not offer a wide range of altmetric indicators to complement traditional bibliometric indicators. Second, the traditional format in which data is downloaded from bibliographical databases limits users to keyword-based searches without considering the semantics of the data. Proposed solution. To overcome these limitations, we developed a repository, named AI-SPedia. The repository contains semantic knowledge of scientific publications concerned with AI and considers both the bibliometric and altmetric indicators. Moreover, it uses semantic web technology to produce and store data to enable semantic-based searches. Furthermore, we devised related competency questions to be answered by posing smart queries against the AI-SPedia datasets. Results. The results revealed that AI-SPedia can evaluate the impact of AI research by exploiting knowledge that is not explicitly mentioned but extracted using the power of semantics. Moreover, a simple analysis was performed based on the answered questions to help make research policy decisions in the AI domain. The end product, AI-SPedia, is considered the first attempt to evaluate the impacts of AI scientific publications using both bibliometric and altmetric indicators and the power of semantic web technology.
+
+## Conclusions
+
+PDF non cohérent: Le titre attendu concerne l'annotation d'images ('LabelMe'), tandis que l'abstract du PDF décrit un article sur les publications en IA, la bibliométrie et un outil nommé AI-SPedia, ce qui indique un article différent.

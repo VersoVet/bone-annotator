@@ -1,0 +1,32 @@
+# BRIMA: low-overhead BRowser-only IMage Annotation tool (Preprint)
+
+**Auteurs** : Tuomo Lahtinen, Hannu Turtiainen, Andrei Costin
+**Année** : 2021
+**DOI** : 10.1109/icip42928.2021.9506683
+
+## Résumé
+
+Image annotation and large annotated datasets are crucial parts within the Computer Vision and Artificial Intelligence fields.At the same time, it is well-known and acknowledged by the research community that the image annotation process is challenging, time-consuming and hard to scale. Therefore, the researchers and practitioners are always seeking ways to perform the annotations easier, faster, and at higher quality. Even though several widely used tools exist and the tools' landscape evolved considerably, most of the tools still require intricate technical setups and high levels of technical savviness from its operators and crowdsource contributors.   In order to address such challenges, we develop and present BRIMA -- a flexible and open-source browser extension that allows BRowser-only IMage Annotation at considerably lower overheads. Once added to the browser, it instantly allows the user to annotate images easily and efficiently directly from the browser without any installation
+
+## Méthodologie
+
+{'study_design': "Présentation et validation d'un outil (extension de navigateur) par déploiement lors d'un effort réel de crowdsourcing pour la création d'un dataset annoté", 'intervention': "Utilisation de l'extension de navigateur BRIMA par les annotateurs pour annoter des caméras CCTV directement depuis le viewport du navigateur, envoi des données au format compatible MS COCO vers un serveur (backend PHP ou Python)", 'control': None, 'primary_outcomes': ["Nombre d'images annotées et validées (quality-checked)", "Nombre d'instances annotées de caméras CCTV"], 'secondary_outcomes': ['Taux de disqualification (DQ) des images', 'Expertise en annotation auto-déclarée des annotateurs', "Facilité de mise en place et d'utilisation auto-déclarée", 'Expérience globale auto-déclarée', 'Compatibilité OS et navigateur'], 'statistical_methods': [], 'duration': "Fenêtre expérimentale de 72 heures, effort de crowdsourcing global ayant eu lieu en septembre 2020 sur l'équivalent d'au moins un mois et demi de travail par personne", 'setting': "Crowdsourcing en ligne, via navigateur, pour la collecte d'un dataset d'images de caméras CCTV (imagerie street view et autres sources web)"}
+
+## Résultats
+
+{'quantitative': [{'outcome': 'Images annotées et validées (quality-checked)', 'value': '4167', 'unit': 'images', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': "Results (Toolset's validation)", 'source_quote': 'during the 72 hours experiment window the annotators were able to submit 4167 quality-checked images for a total of 5380 annotated instances of CCTV cameras (3325 directed and 2055 round)'}, {'outcome': 'Instances annotées de caméras CCTV', 'value': '5380', 'unit': 'instances', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': "Results (Toolset's validation)", 'source_quote': 'for a total of 5380 annotated instances of CCTV cameras (3325 directed and 2055 round)'}, {'outcome': "Caméras CCTV de type 'directed'", 'value': '3325', 'unit': 'instances', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': "Results (Toolset's validation)", 'source_quote': '3325 directed and 2055 round'}, {'outcome': "Caméras CCTV de type 'round'", 'value': '2055', 'unit': 'instances', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': "Results (Toolset's validation)", 'source_quote': '3325 directed and 2055 round'}, {'outcome': 'Comparaison avec taille médiane des datasets MS COCO', 'value': '6097', 'unit': 'images (médiane)', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': "Results (Toolset's validation)", 'source_quote': 'Dataset results obtained using BRIMA are comparable with the state-of-the-art datasets of annotated images such as MS COCO where 6097 is the median size of a training dataset for the particular object types such as cars, airplanes, stop signs.'}, {'outcome': 'Diversité des environnements OS/navigateur testés', 'value': '5 OS majeurs et 3 navigateurs majeurs', 'unit': None, 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': "Results (Toolset's validation)", 'source_quote': 'The browser extension performed without any issues in a sufficiently diverse set of user environments (5 major OS releases and 3 major browser variants).'}], 'qualitative_findings': ['Expertise en annotation auto-évaluée sur une échelle de 0 (novice) à 5 (expert)', "Facilité d'installation et d'utilisation auto-évaluée sur une échelle de 0 (extrêmement difficile) à 5 (extrêmement facile)", 'Expérience globale auto-évaluée sur une échelle de 0 (extrêmement mauvaise) à 5 (extrêmement bonne)'], 'main_findings': ["L'outil BRIMA a permis de collecter un dataset annoté de taille comparable aux datasets état de l'art (ex. MS COCO) en seulement 72 heures avec 8 annotateurs", "L'extension a fonctionné sans problème sur une diversité suffisante d'environnements utilisateurs (5 OS majeurs, 3 navigateurs majeurs)", "Le dataset collecté via BRIMA a permis d'atteindre des résultats état de l'art dans le développement d'un détecteur d'objets pour caméras CCTV"]}
+
+## Conclusions
+
+BRIMA est le premier outil d'annotation d'images fonctionnant uniquement dans le viewport du navigateur, permettant une annotation rapide et facile à faible coût de mise en place L'efficacité, l'efficience et l'utilisabilité de l'extension ont été validées via un effort de crowdsourcing réussi L'outil permet aux chercheurs de se concentrer sur le cœur de leurs expériences (ex. entraînement de détecteurs d'objets) plutôt que sur la logistique d'annotation Les auteurs considèrent BRIMA comme une contribution précieuse pour les communautés de chercheurs et praticiens, avec les artefacts rendus disponibles en open-source
+
+## Crowdsourced dataset statistics.
+
+| Total counts | Instances grouped by sub-type |
+| --- | --- | --- |
+| Total collected images | 4167 Directed camera instances | 3325 |
+| Total annotated camera instances | 5380 Round camera instances | 2055 |
+| Images grouped by source | Instances grouped by area |  |
+| Google (Street View, Image Search) 3873 Small (<32x32 px) | 1455 |
+| Baidu street view | 269 Medium (32x32 -96x96 px) 3345 |
+| Flickr | 25 Large (>96x96 px) | 580 |
