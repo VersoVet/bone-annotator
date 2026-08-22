@@ -169,6 +169,6 @@ graph LR
 
 ---
 
-**Dernière mise à jour**: 2026-08-16
+**Dernière mise à jour**: 2026-08-22
 **Phase**: v0.2.0 (Workflow annotation complet)
 **Version**: v0.2.0
