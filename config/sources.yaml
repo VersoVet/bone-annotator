@@ -22,8 +22,9 @@ dataset_storage_fallback:
 # Segment Anything Model pour CVAT (outil d'annotation AI)
 # Changer model_type et relancer scripts/deploy_sam.sh pour switch
 sam:
-  model_type: vit_b                # vit_b (rapide/CPU), vit_l (moyen), vit_h (précis/GPU)
+  model_type: vit_b                # vit_b (rapide), vit_l (moyen), vit_h (précis)
   checkpoint: sam_vit_b_01ec64.pth
   checkpoint_url: https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
   cvat_host: 10.0.0.59             # Machine où CVAT + Nuclio tourne
   cvat_path: /opt/onyx/cvat        # Répertoire CVAT sur la machine cible
+  gpu_backend: http://10.0.0.26:9470  # SAM GPU sur OnyxCortex (RTX 4070 SUPER)
