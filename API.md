@@ -1314,7 +1314,52 @@ Collections: bone_atlas, bone_annotations
 
 ---
 
-**Dernière mise à jour**: 2026-08-22
-**Phase**: 2 (Priority 1 modules implementation)
-**Version**: v0.1.20
-**Endpoints**: 57+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7)
+## SAM (Segment Anything Model)
+
+### `GET /api/sam/status`
+État du service SAM GPU (OnyxCortex).
+
+```bash
+curl http://10.0.0.59:9468/api/sam/status
+```
+
+### `GET /api/sam/models`
+Liste des modèles SAM disponibles (checkpoints sur GPU).
+
+```bash
+curl http://10.0.0.59:9468/api/sam/models
+```
+
+### `POST /api/sam/embed`
+Embeddings SAM pour une image (protocole CVAT interactor).
+
+```bash
+curl -X POST http://10.0.0.59:9468/api/sam/embed?model=vit_b \
+  -H "Content-Type: application/json" \
+  -d '{"image": "<base64>"}'
+```
+
+### `POST /api/sam/segment`
+Segmentation SAM (points/box → masque).
+
+```bash
+curl -X POST http://10.0.0.59:9468/api/sam/segment?model=vit_b \
+  -H "Content-Type: application/json" \
+  -d '{"image_base64": "<base64>", "points": [[100, 100]]}'
+```
+
+### `POST /api/sam/switch-model`
+Changer le modèle SAM actif sur le GPU.
+
+```bash
+curl -X POST http://10.0.0.59:9468/api/sam/switch-model \
+  -H "Content-Type: application/json" \
+  -d '{"model": "medsam"}'
+```
+
+---
+
+**Dernière mise à jour**: 2026-08-24
+**Phase**: SAM multi-model CVAT integration
+**Version**: v0.1.40
+**Endpoints**: 62+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7, SAM 5)
