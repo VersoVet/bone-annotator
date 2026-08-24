@@ -1,6 +1,6 @@
 {
   "name": "bone-annotator",
-  "version": "0.1.39",
+  "version": "0.1.40",
   "core": {
     "name": "bone-annotator",
     "type": "python",
@@ -16,7 +16,7 @@
   },
   "heart": {
     "deployment": {
-      "target_host": "10.0.0.59",
+      "target_host": "onyxsynapse",
       "platform": "linux"
     },
     "lifecycle": {
