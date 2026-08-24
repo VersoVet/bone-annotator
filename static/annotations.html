@@ -108,11 +108,9 @@
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Pipeline imaging-sdk</label>
+                <label>Pipeline imaging</label>
                 <select id="presetSelect">
-                    <option value="replay_membre">replay_membre (standard)</option>
-                    <option value="high_contrast">high_contrast</option>
-                    <option value="soft_denoise">soft_denoise</option>
+                    <option value="">Chargement...</option>
                 </select>
             </div>
             <div class="form-group">
@@ -336,9 +334,62 @@ async function validateTask(id, decision) {
     } catch(e) { alert('Erreur: '+e); }
 }
 
+async function loadPipelines() {
+    const sel = document.getElementById('presetSelect');
+    try {
+        const r = await fetch(`${API}/api/preparation/pipelines`);
+        const d = await r.json();
+        sel.innerHTML = '';
+        const groups = {replay: [], export: [], other: []};
+        (d.pipelines || []).forEach(p => {
+            if (p.name.startsWith('replay')) groups.replay.push(p);
+            else if (p.name.startsWith('export')) groups.export.push(p);
+            else groups.other.push(p);
+        });
+        if (groups.replay.length) {
+            const og = document.createElement('optgroup');
+            og.label = 'Replay (annotation)';
+            groups.replay.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.textContent = `${p.name} - ${p.description || p.display_name || ''}`;
+                if (p.name === 'replay_membre') opt.selected = true;
+                og.appendChild(opt);
+            });
+            sel.appendChild(og);
+        }
+        if (groups.other.length) {
+            const og = document.createElement('optgroup');
+            og.label = 'Live / Autre';
+            groups.other.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.textContent = `${p.name} - ${p.description || p.display_name || ''}`;
+                og.appendChild(opt);
+            });
+            sel.appendChild(og);
+        }
+        if (groups.export.length) {
+            const og = document.createElement('optgroup');
+            og.label = 'Export';
+            groups.export.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.textContent = `${p.name} - ${p.description || ''}`;
+                og.appendChild(opt);
+            });
+            sel.appendChild(og);
+        }
+    } catch(e) {
+        sel.innerHTML = '<option value="replay_membre">replay_membre (fallback)</option>';
+        console.error('Pipelines:', e);
+    }
+}
+
 // Init
 loadSources();
 loadCvatUsers();
+loadPipelines();
 loadTasks();
 </script>
 </body>

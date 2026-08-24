@@ -11,17 +11,41 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 from src.modules.imaging.imaging import _read_b2nd_frame
 
 logger = logging.getLogger(__name__)
 
+_SKILL_ROOT = Path(__file__).parent.parent.parent.parent
+
+
+def _load_pipeline_dir() -> Path:
+    """Load pipeline_dir from config/sources.yaml or use default.
+
+    Returns:
+        Path to the pipeline directory.
+    """
+    config_path = _SKILL_ROOT / "config" / "sources.yaml"
+    try:
+        with open(config_path) as f:
+            config = yaml.safe_load(f)
+        pipeline_dir = config.get("imaging", {}).get("pipeline_dir")
+        if pipeline_dir:
+            return Path(pipeline_dir)
+    except Exception:
+        pass
+    # Fallback: local data/pipelines
+    fallback = _SKILL_ROOT / "data" / "pipelines"
+    fallback.mkdir(parents=True, exist_ok=True)
+    return fallback
+
 
 def _get_pipeline_manager() -> Any:
     """Lazy-load imaging-sdk JSONPipelineManager.
 
-    Uses a pipeline_dir inside the skill's data/ directory to avoid
-    ProtectHome=yes restrictions from systemd.
+    Uses pipeline_dir from config (vet-fluoro-studio) to access
+    pipelines created by the studio app.
 
     Returns:
         JSONPipelineManager instance or None if unavailable.
@@ -29,8 +53,7 @@ def _get_pipeline_manager() -> Any:
     try:
         from imaging_sdk import JSONPipelineManager
 
-        pipeline_dir = Path(__file__).parent.parent.parent.parent / "data" / "pipelines"
-        pipeline_dir.mkdir(parents=True, exist_ok=True)
+        pipeline_dir = _load_pipeline_dir()
         return JSONPipelineManager(pipeline_dir=pipeline_dir)
     except ImportError:
         logger.warning("imaging_sdk not available, raw conversion only")
@@ -256,20 +279,50 @@ class DatasetPreparationService:
         return datasets
 
     def get_presets(self, bone_type: str) -> list[dict[str, Any]]:
-        """List available imaging-sdk presets for a bone type."""
-        presets = [
-            {"name": "replay_membre", "description": "Standard limb replay pipeline", "recommended": True},
-            {"name": "replay_thorax", "description": "Thorax replay pipeline"},
-            {"name": "replay_rachis", "description": "Spine replay pipeline"},
-            {"name": "high_contrast", "description": "High contrast for bone edges"},
-            {"name": "soft_denoise", "description": "Soft denoising for fine structures"},
-        ]
-        # Mark recommended based on bone type
+        """List available imaging-sdk presets for a bone type.
+
+        Args:
+            bone_type: Bone type for preset recommendation.
+
+        Returns:
+            List of preset descriptors from imaging-sdk.
+        """
+        pipelines = self.list_all_pipelines()
         limb_bones = {"humerus", "radius", "ulna", "femur", "tibia", "fibula"}
-        if bone_type in limb_bones:
-            for p in presets:
+        spine_bones = {"vertebra", "rachis", "spine", "cervical", "lumbar", "thoracic"}
+        for p in pipelines:
+            if bone_type in limb_bones:
                 p["recommended"] = p["name"] == "replay_membre"
-        return presets
+            elif bone_type in spine_bones:
+                p["recommended"] = p["name"] == "replay_rachis"
+            else:
+                p["recommended"] = p["name"] == "replay"
+        return pipelines
+
+    def list_all_pipelines(self) -> list[dict[str, Any]]:
+        """List all available pipelines from imaging-sdk + vet-fluoro-studio.
+
+        Returns:
+            List of pipeline descriptors with name, description, filters count.
+        """
+        if not self.manager:
+            return [{"name": "replay_membre", "description": "Standard (fallback)", "filters": 2}]
+
+        pipelines = []
+        for name in self.manager.list_pipelines():
+            try:
+                info = self.manager.load_pipeline(name)
+                pipelines.append({
+                    "name": name,
+                    "display_name": info.get("name", name) if info else name,
+                    "description": info.get("description", "") if info else "",
+                    "filters": len(info.get("filters", [])) if info else 0,
+                    "context": info.get("context", name) if info else name,
+                })
+            except Exception as e:
+                logger.warning("Failed to load pipeline %s: %s", name, e)
+                pipelines.append({"name": name, "description": "", "filters": 0})
+        return pipelines
 
 
 # Module singleton

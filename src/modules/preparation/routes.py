@@ -90,11 +90,25 @@ async def list_presets(bone_type: str) -> dict[str, Any]:
         bone_type: Bone type for preset suggestions.
 
     Returns:
-        List of preset descriptors.
+        List of preset descriptors with recommendations.
     """
     service = get_service()
     presets = service.get_presets(bone_type)
     return {"status": "ok", "bone_type": bone_type, "presets": presets}
+
+
+@router.get("/pipelines")
+async def list_pipelines() -> dict[str, Any]:
+    """List all available imaging pipelines.
+
+    Returns pipelines from imaging-sdk defaults and vet-fluoro-studio.
+
+    Returns:
+        List of pipeline descriptors.
+    """
+    service = get_service()
+    pipelines = service.list_all_pipelines()
+    return {"status": "ok", "pipelines": pipelines, "count": len(pipelines)}
 
 
 @router.get("/datasets/{dataset_id}/preview/{frame_name}")
