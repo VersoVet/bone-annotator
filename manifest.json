@@ -16,7 +16,7 @@
   },
   "heart": {
     "deployment": {
-      "target_host": "OnyxSynapse",
+      "target_host": "10.0.0.59",
       "platform": "linux"
     },
     "lifecycle": {
