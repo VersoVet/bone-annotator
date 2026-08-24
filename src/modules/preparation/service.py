@@ -20,13 +20,18 @@ logger = logging.getLogger(__name__)
 def _get_pipeline_manager() -> Any:
     """Lazy-load imaging-sdk JSONPipelineManager.
 
+    Uses a pipeline_dir inside the skill's data/ directory to avoid
+    ProtectHome=yes restrictions from systemd.
+
     Returns:
         JSONPipelineManager instance or None if unavailable.
     """
     try:
         from imaging_sdk import JSONPipelineManager
 
-        return JSONPipelineManager()
+        pipeline_dir = Path(__file__).parent.parent.parent.parent / "data" / "pipelines"
+        pipeline_dir.mkdir(parents=True, exist_ok=True)
+        return JSONPipelineManager(pipeline_dir=pipeline_dir)
     except ImportError:
         logger.warning("imaging_sdk not available, raw conversion only")
         return None
