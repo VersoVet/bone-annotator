@@ -19,7 +19,7 @@ dataset_pacs:
 dataset_storage_fallback:
   root: /mnt/soma-shared/annotation-datasets
 
-# SAM (Segment Anything) — via ml-compute Ray cluster
-# ml-compute gère l'allocation GPU automatiquement
+# SAM (Segment Anything) — serveur GPU direct sur OnyxCortex
 sam:
-  backend: http://10.0.0.44:9469/api/serve/sam
+  gpu_direct: http://10.0.0.26:9470
+  default_model: vit_b
