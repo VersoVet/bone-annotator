@@ -338,9 +338,9 @@ Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-08-22
-**Phase**: Priority 1 modules implementation
-**Version**: v0.1.20
-**Status**: Imaging routes + real dataset export + comprehensive tests
-**Coverage**: All modules have REST API routes (57+ endpoints)
+**Dernière mise à jour**: 2026-08-24
+**Phase**: SAM multi-model CVAT integration
+**Version**: v0.1.40
+**Status**: SAM multi-model proxy + CVAT interactor integration
+**Coverage**: All modules have REST API routes (62+ endpoints)
 **Test Coverage**: 85 passing
