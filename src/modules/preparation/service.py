@@ -142,7 +142,10 @@ class DatasetPreparationService:
         for frame_path in frame_files:
             try:
                 raw = _read_b2nd_frame(frame_path)
-                processed = self._apply_pipeline(raw, pipeline_config)
+                processed = self._apply_pipeline(
+                    raw, pipeline_config,
+                    context=pipeline_preset, bone_type=bone_type,
+                )
                 if image_size:
                     processed = self._resize(processed, image_size)
                 out_path = output_dir / f"{frame_path.stem}.png"
@@ -177,15 +180,24 @@ class DatasetPreparationService:
         )
 
     def _load_preset(self, preset_name: str, bone_type: str) -> list[dict[str, Any]]:
-        """Load imaging-sdk preset configuration."""
+        """Load imaging-sdk preset configuration.
+
+        Args:
+            preset_name: Pipeline context name (e.g. replay_membre).
+            bone_type: Bone type for anatomy-aware selection.
+
+        Returns:
+            Pipeline filter config list, or fallback if unavailable.
+        """
         if self.manager:
             try:
-                pipeline = self.manager.load_preset(preset_name)
-                return pipeline if isinstance(pipeline, list) else []
+                pipeline = self.manager.load_pipeline(preset_name)
+                if pipeline and isinstance(pipeline, dict):
+                    return pipeline.get("filters", [])
             except Exception as e:
-                logger.warning("Failed to load preset %s: %s", preset_name, e)
+                logger.warning("Failed to load pipeline %s: %s", preset_name, e)
 
-        # Fallback: basic enhancement pipeline
+        # Fallback: basic enhancement pipeline (no imaging-sdk)
         return [
             {"name": "window_level", "enabled": True, "params": {"width": 4000, "center": 2000}},
             {"name": "clahe", "enabled": True, "params": {"clip_limit": 2.0, "grid_size": 8}},
@@ -195,13 +207,27 @@ class DatasetPreparationService:
         self,
         image: np.ndarray,
         pipeline_config: list[dict[str, Any]],
+        context: str = "replay_membre",
+        bone_type: str | None = None,
     ) -> np.ndarray:
-        """Apply imaging-sdk pipeline to a frame."""
+        """Apply imaging-sdk pipeline to a frame.
+
+        Args:
+            image: Raw uint16 frame.
+            pipeline_config: Pipeline filter config (for logging/metadata).
+            context: imaging-sdk context name for apply_pipeline().
+            bone_type: Optional anatomy hint for pipeline optimization.
+
+        Returns:
+            Processed image array.
+        """
         if self.manager:
             try:
-                return self.manager.apply_pipeline(image, pipeline_config)
+                return self.manager.apply_pipeline(
+                    image, context, anatomy=bone_type,
+                )
             except Exception as e:
-                logger.warning("Pipeline failed, returning raw: %s", e)
+                logger.warning("Pipeline %s failed, returning raw: %s", context, e)
         return image
 
     def _resize(self, image: np.ndarray, size: int) -> np.ndarray:
