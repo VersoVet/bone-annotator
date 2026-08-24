@@ -1,7 +1,7 @@
-"""Configuration centralisée et checks de dépendances pour bone-annotator.
+"""Configuration centralisée pour bone-annotator.
 
-Gère les configurations de BoneStore, PostgreSQL, Qdrant, CVAT, ml-compute
-et fournit des fonctions de vérification pour le lifespan.
+Charge la config depuis config/bone-annotator.yaml, avec fallback
+sur les variables d'environnement et le Vault pour les secrets.
 """
 
 import logging
@@ -9,43 +9,71 @@ import os
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 logger = logging.getLogger(__name__)
 
-# ===== CONFIGURATION ENV/DEFAULT =====
+_SKILL_ROOT = Path(__file__).parent.parent
+_CONFIG_PATH = _SKILL_ROOT / "config" / "bone-annotator.yaml"
 
-BONESTORE_ROOT = os.getenv("BONESTORE_ROOT", "/mnt/bonestore")
 
-POSTGRES_HOST = os.getenv("POSTGRES_HOST", "10.0.0.59")
-POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
-POSTGRES_USER = os.getenv("POSTGRES_USER", "bone")
-POSTGRES_DBNAME = os.getenv("POSTGRES_DBNAME", "bone_recognition")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
+def _load_yaml_config() -> dict[str, Any]:
+    """Load configuration from YAML file."""
+    try:
+        with open(_CONFIG_PATH) as f:
+            return yaml.safe_load(f) or {}
+    except Exception as e:
+        logger.warning("Cannot load config YAML: %s", e)
+        return {}
 
-QDRANT_HOST = os.getenv("QDRANT_HOST", "10.0.0.59")
-QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
-QDRANT_COLLECTIONS = ["bone_atlas", "bone_annotations"]
 
-CVAT_HOST = os.getenv("CVAT_HOST", "10.0.0.59")
-CVAT_PORT = int(os.getenv("CVAT_PORT", "8080"))
-CVAT_USERNAME = os.getenv("CVAT_USERNAME", "admin")
-CVAT_PASSWORD = os.getenv("CVAT_PASSWORD", "")
+_CFG = _load_yaml_config()
 
-ML_COMPUTE_HOST = os.getenv("ML_COMPUTE_HOST", "10.0.0.44")
-ML_COMPUTE_PORT = int(os.getenv("ML_COMPUTE_PORT", "9469"))
 
-BONE_ML_HOST = os.getenv("BONE_ML_HOST", "10.0.0.86")
-BONE_ML_PORT = int(os.getenv("BONE_ML_PORT", "9463"))
+def _get(section: str, key: str, env_var: str, default: Any = "") -> Any:
+    """Get config value: env var > yaml > default."""
+    env = os.getenv(env_var)
+    if env is not None:
+        return env
+    return _CFG.get(section, {}).get(key, default)
 
-DATASET_PACS_HOST = os.getenv("DATASET_PACS_HOST", "10.0.0.90")
-DATASET_PACS_PORT = int(os.getenv("DATASET_PACS_PORT", "8042"))
-DATASET_PACS_USER = os.getenv("DATASET_PACS_USER", "")
-DATASET_PACS_PASSWORD = os.getenv("DATASET_PACS_PASSWORD", "")
 
-REDIS_HOST = os.getenv("REDIS_HOST", "10.0.0.44")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
-REDIS_DB = int(os.getenv("REDIS_DB", "0"))
+# ===== CONFIGURATION =====
 
-VAULT_URL = os.getenv("ONYX_VAULT_URL", "http://10.0.0.44:8050")
+BONESTORE_ROOT = _get("bonestore", "root", "BONESTORE_ROOT", "/mnt/bonestore")
+
+POSTGRES_HOST = _get("postgres", "host", "POSTGRES_HOST", "10.0.0.59")
+POSTGRES_PORT = int(_get("postgres", "port", "POSTGRES_PORT", 5432))
+POSTGRES_USER = _get("postgres", "user", "POSTGRES_USER", "bone")
+POSTGRES_DBNAME = _get("postgres", "dbname", "POSTGRES_DBNAME", "bone_recognition")
+POSTGRES_PASSWORD = _get("postgres", "password", "POSTGRES_PASSWORD", "")
+POSTGRES_SCHEMA = _get("postgres", "schema", "POSTGRES_SCHEMA", "bone_annotations")
+
+QDRANT_HOST = _get("qdrant", "host", "QDRANT_HOST", "10.0.0.59")
+QDRANT_PORT = int(_get("qdrant", "port", "QDRANT_PORT", 6333))
+QDRANT_COLLECTIONS = _CFG.get("qdrant", {}).get("collections", ["bone_atlas", "bone_annotations"])
+
+CVAT_HOST = _get("cvat", "host", "CVAT_HOST", "10.0.0.59")
+CVAT_PORT = int(_get("cvat", "port", "CVAT_PORT", 8080))
+CVAT_USERNAME = _get("cvat", "username", "CVAT_USERNAME", "admin")
+CVAT_PASSWORD = _get("cvat", "password", "CVAT_PASSWORD", "")
+
+ML_COMPUTE_HOST = _get("ml_compute", "host", "ML_COMPUTE_HOST", "10.0.0.44")
+ML_COMPUTE_PORT = int(_get("ml_compute", "port", "ML_COMPUTE_PORT", 9469))
+
+BONE_ML_HOST = _get("bone_ml", "host", "BONE_ML_HOST", "10.0.0.59")
+BONE_ML_PORT = int(_get("bone_ml", "port", "BONE_ML_PORT", 9463))
+
+DATASET_PACS_HOST = _get("dataset_pacs", "host", "DATASET_PACS_HOST", "10.0.0.90")
+DATASET_PACS_PORT = int(_get("dataset_pacs", "port", "DATASET_PACS_PORT", 8042))
+DATASET_PACS_USER = _get("dataset_pacs", "user", "DATASET_PACS_USER", "")
+DATASET_PACS_PASSWORD = _get("dataset_pacs", "password", "DATASET_PACS_PASSWORD", "")
+
+REDIS_HOST = _get("redis", "host", "REDIS_HOST", "10.0.0.44")
+REDIS_PORT = int(_get("redis", "port", "REDIS_PORT", 6379))
+REDIS_DB = int(_get("redis", "db", "REDIS_DB", 0))
+
+VAULT_URL = _get("vault", "url", "ONYX_VAULT_URL", "http://10.0.0.44:8050")
 VAULT_TOKEN = os.getenv("ONYX_VAULT_TOKEN", "")
 
 
@@ -59,7 +87,6 @@ async def check_bonestore() -> bool:
         if not path.exists() or not path.is_dir():
             logger.error("BoneStore not mounted at %s", BONESTORE_ROOT)
             return False
-        # Test read access
         list(path.iterdir())
         logger.info("✓ BoneStore mounted: %s", BONESTORE_ROOT)
         return True
@@ -91,7 +118,6 @@ async def check_qdrant() -> bool:
         from qdrant_client import QdrantClient
 
         client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT, timeout=5)
-        # Try to get collection info
         collections = [c.name for c in client.get_collections().collections]
         logger.info("✓ Qdrant connected: %s:%d (%d collections)", QDRANT_HOST, QDRANT_PORT, len(collections))
         return True
@@ -108,12 +134,8 @@ async def check_cvat() -> bool:
         url = f"http://{CVAT_HOST}:{CVAT_PORT}/api/server/about"
         async with httpx.AsyncClient() as client:
             response = await client.get(url, timeout=5.0)
-            if response.status_code == 200:
+            if response.status_code in (200, 401, 403):
                 logger.info("✓ CVAT API accessible: %s:%d", CVAT_HOST, CVAT_PORT)
-                return True
-            # 401/403 means API is up but auth required — still accessible
-            if response.status_code in (401, 403):
-                logger.info("✓ CVAT API accessible (auth required): %s:%d", CVAT_HOST, CVAT_PORT)
                 return True
             logger.error("CVAT API check failed: status %d", response.status_code)
             return False
@@ -133,9 +155,8 @@ async def check_ml_compute() -> bool:
             if response.status_code == 200:
                 logger.info("✓ ml-compute accessible: %s:%d", ML_COMPUTE_HOST, ML_COMPUTE_PORT)
                 return True
-            else:
-                logger.warning("ml-compute health check failed: status %d", response.status_code)
-                return False
+            logger.warning("ml-compute health check failed: status %d", response.status_code)
+            return False
     except Exception as e:
         logger.error("ml-compute check failed: %s", e)
         return False
@@ -158,9 +179,7 @@ async def check_redis() -> bool:
 async def load_vault_secret(key: str) -> str | None:
     """Charger un secret depuis OnyxVault."""
     if not VAULT_TOKEN:
-        logger.warning("VAULT_TOKEN not set, skipping vault lookup")
         return None
-
     try:
         import httpx
 
@@ -172,9 +191,7 @@ async def load_vault_secret(key: str) -> str | None:
             )
             if response.status_code == 200:
                 return response.json().get("value")
-            else:
-                logger.warning("Vault lookup failed for %s: status %d", key, response.status_code)
-                return None
+            return None
     except Exception as e:
         logger.error("Vault lookup failed for %s: %s", key, e)
         return None
@@ -188,52 +205,33 @@ def get_postgres_config() -> dict[str, Any]:
         "user": POSTGRES_USER,
         "dbname": POSTGRES_DBNAME,
         "password": POSTGRES_PASSWORD,
+        "schema": POSTGRES_SCHEMA,
     }
 
 
 def get_qdrant_config() -> dict[str, Any]:
     """Obtenir la configuration Qdrant complète."""
-    return {
-        "host": QDRANT_HOST,
-        "port": QDRANT_PORT,
-        "collections": QDRANT_COLLECTIONS,
-    }
+    return {"host": QDRANT_HOST, "port": QDRANT_PORT, "collections": QDRANT_COLLECTIONS}
 
 
 def get_cvat_config() -> dict[str, Any]:
     """Obtenir la configuration CVAT complète."""
-    return {
-        "host": CVAT_HOST,
-        "port": CVAT_PORT,
-        "username": CVAT_USERNAME,
-        "password": CVAT_PASSWORD,
-    }
+    return {"host": CVAT_HOST, "port": CVAT_PORT, "username": CVAT_USERNAME, "password": CVAT_PASSWORD}
 
 
 def get_ml_compute_config() -> dict[str, Any]:
     """Obtenir la configuration ml-compute."""
-    return {
-        "host": ML_COMPUTE_HOST,
-        "port": ML_COMPUTE_PORT,
-    }
+    return {"host": ML_COMPUTE_HOST, "port": ML_COMPUTE_PORT}
 
 
 def get_redis_config() -> dict[str, Any]:
     """Obtenir la configuration Redis."""
-    return {
-        "host": REDIS_HOST,
-        "port": REDIS_PORT,
-        "db": REDIS_DB,
-    }
+    return {"host": REDIS_HOST, "port": REDIS_PORT, "db": REDIS_DB}
 
 
 def get_bone_ml_config() -> dict[str, Any]:
     """Obtenir la configuration bone-ml."""
-    return {
-        "host": BONE_ML_HOST,
-        "port": BONE_ML_PORT,
-        "base_url": f"http://{BONE_ML_HOST}:{BONE_ML_PORT}",
-    }
+    return {"host": BONE_ML_HOST, "port": BONE_ML_PORT, "base_url": f"http://{BONE_ML_HOST}:{BONE_ML_PORT}"}
 
 
 def get_dataset_pacs_config() -> dict[str, Any]:
@@ -248,13 +246,8 @@ def get_dataset_pacs_config() -> dict[str, Any]:
 
 
 async def load_credentials_from_vault() -> None:
-    """Load PostgreSQL, CVAT, and PACS credentials from Vault."""
-    global POSTGRES_PASSWORD, CVAT_PASSWORD, DATASET_PACS_USER, DATASET_PACS_PASSWORD
-    if not POSTGRES_PASSWORD:
-        pg_pass = await load_vault_secret("bone_postgres_password")
-        if pg_pass:
-            POSTGRES_PASSWORD = pg_pass
-            logger.info("PostgreSQL password loaded from Vault")
+    """Load credentials from Vault for services not configured in YAML."""
+    global CVAT_PASSWORD, DATASET_PACS_USER, DATASET_PACS_PASSWORD
     if not CVAT_PASSWORD:
         cvat_pass = await load_vault_secret("cvat_admin_password")
         if cvat_pass:

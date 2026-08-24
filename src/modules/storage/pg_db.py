@@ -113,6 +113,7 @@ class AnnotationPgDB:
         frame_filename: str,
         annotations: dict[str, Any],
         *,
+        task_id: int | None = None,
         author: str = "unknown",
         source: str = "manual",
         confidence: float | None = None,
@@ -127,6 +128,7 @@ class AnnotationPgDB:
             acq_id: Acquisition ID.
             frame_filename: Frame filename (.b2nd).
             annotations: Dict {zones: [...], landmarks: [...], ...}.
+            task_id: Annotation task ID (links to annotation_tasks).
             author: Who created these annotations.
             source: Origin ('manual', 'ml', 'import').
             confidence: ML confidence score (None for manual).
@@ -136,14 +138,23 @@ class AnnotationPgDB:
             Number of annotations inserted.
         """
         conn = self._get_conn()
-        # Soft-replace: mark existing as superseded
-        conn.execute(
-            """UPDATE bone_annotations.frame_annotations
-            SET source = source || '_superseded'
-            WHERE acquisition_id=%s AND frame_filename=%s
-            AND source NOT LIKE '%%_superseded'""",
-            (acq_id, frame_filename),
-        )
+        # Soft-replace: mark existing as superseded (scoped by task_id if provided)
+        if task_id:
+            conn.execute(
+                """UPDATE bone_annotations.frame_annotations
+                SET source = source || '_superseded'
+                WHERE acquisition_id=%s AND frame_filename=%s AND task_id=%s
+                AND source NOT LIKE '%%_superseded'""",
+                (acq_id, frame_filename, task_id),
+            )
+        else:
+            conn.execute(
+                """UPDATE bone_annotations.frame_annotations
+                SET source = source || '_superseded'
+                WHERE acquisition_id=%s AND frame_filename=%s
+                AND source NOT LIKE '%%_superseded'""",
+                (acq_id, frame_filename),
+            )
         count = 0
         for ann_type in ("zones", "landmarks", "measurements", "lesions"):
             for item in annotations.get(ann_type, []):
@@ -156,8 +167,8 @@ class AnnotationPgDB:
                     """INSERT INTO bone_annotations.frame_annotations
                     (acquisition_id, frame_filename, annotation_type,
                      annotation_id, label, data, author, source,
-                     confidence, model_version)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                     confidence, model_version, task_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         acq_id,
                         frame_filename,
@@ -169,6 +180,7 @@ class AnnotationPgDB:
                         item_source,
                         item_conf,
                         item_model,
+                        task_id,
                     ),
                 )
                 count += 1

@@ -1,0 +1,57 @@
+# Configuration centralisée bone-annotator
+# Tous les endpoints, credentials et paramètres en un seul fichier
+
+# PostgreSQL — annotations, tâches, training runs
+postgres:
+  host: 10.0.0.59
+  port: 5432
+  user: bone
+  password: yhoc2MKfKe6CHQe2oLoW
+  dbname: bone_recognition
+  schema: bone_annotations
+
+# Qdrant — embeddings vectoriels
+qdrant:
+  host: 10.0.0.59
+  port: 6333
+  collections:
+    - bone_atlas
+    - bone_annotations
+
+# CVAT — annotation collaborative
+cvat:
+  host: 10.0.0.59
+  port: 8080
+  username: admin
+  # password chargé depuis Vault (cvat_admin_password)
+
+# ml-compute — Ray cluster, training GPU
+ml_compute:
+  host: 10.0.0.44
+  port: 9469
+
+# bone-ml — pré-annotation YOLO
+bone_ml:
+  host: 10.0.0.59
+  port: 9463
+
+# Redis — events, status
+redis:
+  host: 10.0.0.44
+  port: 6379
+  db: 0
+
+# BoneStore — acquisitions NFS
+bonestore:
+  root: /mnt/bonestore
+
+# PACS dataset training
+dataset_pacs:
+  host: 10.0.0.90
+  port: 8042
+  # user/password chargés depuis Vault
+
+# Vault — secrets
+vault:
+  url: http://10.0.0.44:8050
+  # token depuis env var ONYX_VAULT_TOKEN

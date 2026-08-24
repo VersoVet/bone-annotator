@@ -80,6 +80,15 @@ _MIGRATIONS = [
         started_at TIMESTAMPTZ, completed_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT NOW()
     )""",
+    # --- Multi-pipeline traceability migrations ---
+    # Link frame_annotations to the task that produced them
+    f"""ALTER TABLE {SCHEMA}.frame_annotations
+        ADD COLUMN IF NOT EXISTS task_id INTEGER""",
+    # Link training_runs to the tasks used for training
+    f"""ALTER TABLE {SCHEMA}.training_runs
+        ADD COLUMN IF NOT EXISTS task_ids INTEGER[]""",
+    f"""ALTER TABLE {SCHEMA}.training_runs
+        ADD COLUMN IF NOT EXISTS pipeline_preset VARCHAR(100)""",
 ]
 
 
