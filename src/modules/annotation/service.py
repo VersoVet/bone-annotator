@@ -23,6 +23,7 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
+
 class AnnotationWorkflowService:
     """Orchestrates the complete annotation workflow."""
 
@@ -64,9 +65,11 @@ class AnnotationWorkflowService:
             pipeline_preset=request.pipeline_preset,
         )
 
-        # Labels + CVAT task
+        # Labels (must exist in label-generator)
         anatomy = get_labels_for_bone(request.bone_type)
-        cvat_labels = labels_to_cvat_format(anatomy) if anatomy else []
+        if not anatomy:
+            raise ValueError(f"No labels found for bone_type '{request.bone_type}' in label-generator")
+        cvat_labels = labels_to_cvat_format(anatomy)
 
         await self.cvat.authenticate()
         task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
@@ -114,18 +117,24 @@ class AnnotationWorkflowService:
         if request.pre_annotate and cvat_task_id:
             from .ml_bridge import call_bone_ml_annotate
 
-            await call_bone_ml_annotate(cvat_task_id)
+            await call_bone_ml_annotate(cvat_task_id, request.bone_type)
             self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
 
         logger.info("Task %d created: %s (CVAT %s)", task_id, task_name, cvat_task_id)
         return TaskResponse(
-            id=task_id, acquisition_id=request.acquisition_id,
-            cvat_task_id=cvat_task_id, cvat_url=cvat_url,
+            id=task_id,
+            acquisition_id=request.acquisition_id,
+            cvat_task_id=cvat_task_id,
+            cvat_url=cvat_url,
             status="annotating" if request.pre_annotate else "created",
-            bone_type=request.bone_type, region=request.region,
-            frame_count=dataset.frame_count, author=request.assignee or "system",
-            assignee=request.assignee, has_pre_annotations=request.pre_annotate,
-            pipeline_preset=request.pipeline_preset, dataset_path=str(dataset.path),
+            bone_type=request.bone_type,
+            region=request.region,
+            frame_count=dataset.frame_count,
+            author=request.assignee or "system",
+            assignee=request.assignee,
+            has_pre_annotations=request.pre_annotate,
+            pipeline_preset=request.pipeline_preset,
+            dataset_path=str(dataset.path),
         )
 
     async def get_task(self, task_id: int) -> TaskResponse | None:
@@ -134,19 +143,28 @@ class AnnotationWorkflowService:
         if not t:
             return None
         return TaskResponse(
-            id=t["id"], acquisition_id=t["acquisition_id"],
-            cvat_task_id=t.get("cvat_task_id"), cvat_url=t.get("cvat_url"),
-            status=t.get("status", "unknown"), bone_type=t["bone_type"],
-            region=t.get("region", "entire"), frame_count=t.get("frame_count", 0),
+            id=t["id"],
+            acquisition_id=t["acquisition_id"],
+            cvat_task_id=t.get("cvat_task_id"),
+            cvat_url=t.get("cvat_url"),
+            status=t.get("status", "unknown"),
+            bone_type=t["bone_type"],
+            region=t.get("region", "entire"),
+            frame_count=t.get("frame_count", 0),
             annotated_frames=t.get("annotated_frames", 0),
-            author=t.get("author", "unknown"), assignee=t.get("assignee"),
+            author=t.get("author", "unknown"),
+            assignee=t.get("assignee"),
             has_pre_annotations=t.get("has_pre_annotations", False),
-            pipeline_preset=t.get("pipeline_preset"), dataset_path=t.get("dataset_path"),
+            pipeline_preset=t.get("pipeline_preset"),
+            dataset_path=t.get("dataset_path"),
         )
 
     async def list_tasks(
-        self, limit: int = 50, offset: int = 0,
-        status: str | None = None, bone_type: str | None = None,
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        status: str | None = None,
+        bone_type: str | None = None,
     ) -> TaskListResponse:
         """List annotation tasks with optional filters."""
         tasks, total = self.task_db.list_tasks(limit, offset, status, bone_type)
@@ -174,13 +192,7 @@ class AnnotationWorkflowService:
             annotated_frames=result["synced_frames"],
         )
 
-        return SyncResult(
-            task_id=task_id,
-            synced_frames=result["synced_frames"],
-            zones_count=result["zones_count"],
-            landmarks_count=result["landmarks_count"],
-            author=result["author"],
-        )
+        return SyncResult(task_id=task_id, **result)
 
     async def validate_task(self, task_id: int, request: ValidateRequest) -> TaskResponse:
         """Validate or reject a task. Triggers training if enough validated."""
@@ -206,11 +218,10 @@ class AnnotationWorkflowService:
 
         request = CreateTaskRequest(
             source_name=parent.get("source_name", "bonestore"),
-            acquisition_id=parent["acquisition_id"],
-            bone_type=parent["bone_type"],
+            acquisition_id=parent["acquisition_id"], bone_type=parent["bone_type"],
             region=parent.get("region", "entire"),
             pipeline_preset=parent.get("pipeline_preset", "replay_membre"),
-            pre_annotate=False,  # We'll push parent annotations instead
+            pre_annotate=False,
         )
         result = await self.create_task(request)
         self.task_db.update_task(result.id, parent_task_id=task_id)
@@ -223,7 +234,7 @@ class AnnotationWorkflowService:
         if pre_annotate and result.cvat_task_id:
             from .ml_bridge import call_bone_ml_annotate
 
-            await call_bone_ml_annotate(result.cvat_task_id)
+            await call_bone_ml_annotate(result.cvat_task_id, parent.get("bone_type"))
             self.task_db.update_task(result.id, has_pre_annotations=True)
 
         return result
@@ -244,38 +255,25 @@ class AnnotationWorkflowService:
         task = self.task_db.get_task(task_id)
         if not task or not task.get("cvat_task_id"):
             raise ValueError(f"Task {task_id} not found or no CVAT task")
-        ml_status = await call_bone_ml_annotate(task["cvat_task_id"])
+        ml_status = await call_bone_ml_annotate(task["cvat_task_id"], task.get("bone_type"))
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
         return PreAnnotateResponse(
             task_id=task_id, cvat_task_id=task["cvat_task_id"],
-            status="pre_annotation_requested", bone_ml_status=ml_status,
-        )
+            status="pre_annotation_requested", bone_ml_status=ml_status)
 
     async def _maybe_trigger_training(self, bone_type: str) -> None:
-        """Trigger fine-tuning if enough validated tasks since last run."""
+        """Trigger fine-tuning if enough validated tasks."""
         from .ml_bridge import maybe_trigger_training
         await maybe_trigger_training(self.task_db._get_conn(), bone_type)
 
     async def propagate_medsam2(self, task_id: int, seed_frame_idx: int = 0) -> dict[str, Any]:
-        """Propagate bone mask with MedSAM2 temporal propagation.
-
-        Args:
-            task_id: Internal annotation task ID.
-            seed_frame_idx: Frame index with the seed annotation.
-
-        Returns:
-            Propagation result with mask counts.
-        """
+        """Propagate bone mask with MedSAM2 temporal propagation."""
         from .medsam2_bridge import propagate
-
         task = self.task_db.get_task(task_id)
         if not task or not task.get("cvat_task_id"):
-            msg = f"Task {task_id} not found or no CVAT task"
-            raise ValueError(msg)
+            raise ValueError(f"Task {task_id} not found or no CVAT task")
         if not task.get("dataset_path"):
-            msg = f"Task {task_id} has no dataset_path"
-            raise ValueError(msg)
-
+            raise ValueError(f"Task {task_id} has no dataset_path")
         await self.cvat.authenticate()
         result = await propagate(self.cvat, task, seed_frame_idx)
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
@@ -284,7 +282,6 @@ class AnnotationWorkflowService:
     def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
         """Load prepared PNG images from directory."""
         from pathlib import Path
-
         return [(p.name, p.read_bytes()) for p in sorted(Path(images_dir).glob("*.png"))]
 
 

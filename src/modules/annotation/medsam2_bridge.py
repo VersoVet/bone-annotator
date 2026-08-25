@@ -91,7 +91,9 @@ async def propagate(
     medsam2_url = _load_medsam2_url()
     logger.info(
         "MedSAM2 propagate: %d frames (sampled %d), seed=%d",
-        len(frame_files), len(sampled_files), sampled_seed_idx,
+        len(frame_files),
+        len(sampled_files),
+        sampled_seed_idx,
     )
 
     async with httpx.AsyncClient() as client:
@@ -125,15 +127,17 @@ async def propagate(
         binary = (mask_arr > 128).astype(np.uint8)
         rle = _binary_mask_to_rle(binary)
         if rle:
-            cvat_shapes.append({
-                "type": "mask",
-                "frame": i * step,
-                "label_id": label_id,
-                "points": rle,
-                "occluded": False,
-                "z_order": 0,
-                "attributes": [],
-            })
+            cvat_shapes.append(
+                {
+                    "type": "mask",
+                    "frame": i * step,
+                    "label_id": label_id,
+                    "points": rle,
+                    "occluded": False,
+                    "z_order": 0,
+                    "attributes": [],
+                }
+            )
 
     if cvat_shapes:
         payload = {"version": 0, "shapes": cvat_shapes, "tracks": [], "tags": []}
@@ -204,7 +208,7 @@ def _binary_mask_to_rle(mask: np.ndarray) -> list[float]:
     rmin, rmax = np.where(rows)[0][[0, -1]]
     cmin, cmax = np.where(cols)[0][[0, -1]]
 
-    crop = mask[rmin:rmax + 1, cmin:cmax + 1].flatten()
+    crop = mask[rmin : rmax + 1, cmin : cmax + 1].flatten()
 
     rle: list[float] = []
     current_val, count = 0, 0

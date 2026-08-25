@@ -76,9 +76,7 @@ async def sync_from_cvat(
         # Resolve label IDs to names
         label_map: dict[int, str] = {}
         if cvat_client.client:
-            lbl_resp = await cvat_client.client.get(
-                f"{cvat_client.api_base}/labels?task_id={cvat_task_id}"
-            )
+            lbl_resp = await cvat_client.client.get(f"{cvat_client.api_base}/labels?task_id={cvat_task_id}")
             if lbl_resp.status_code == 200:
                 for lbl in lbl_resp.json().get("results", []):
                     label_map[lbl["id"]] = lbl["name"]
@@ -133,8 +131,15 @@ async def sync_from_cvat(
 
     logger.info(
         "Task %s synced: %d frames, %d zones, %d landmarks",
-        task.get("id"), synced_frames, zones_count, landmarks_count,
+        task.get("id"),
+        synced_frames,
+        zones_count,
+        landmarks_count,
     )
+
+    # Report label usage to label-generator
+    if raw_annotations and "shapes" in raw_annotations:
+        await _report_label_usage(task.get("bone_type"), frames)
 
     return {
         "synced_frames": synced_frames,
@@ -142,3 +147,39 @@ async def sync_from_cvat(
         "landmarks_count": landmarks_count,
         "author": author,
     }
+
+
+async def _report_label_usage(bone_type: str | None, frames: dict[int, dict[str, list[Any]]]) -> None:
+    """Report which labels were used in annotations to label-generator."""
+    if not bone_type:
+        return
+
+    zone_usage: dict[str, int] = {}
+    landmark_usage: dict[str, int] = {}
+
+    for frame_anns in frames.values():
+        for zone in frame_anns.get("zones", []):
+            label = zone.get("label", "")
+            if label:
+                zone_usage[label] = zone_usage.get(label, 0) + 1
+        for lm in frame_anns.get("landmarks", []):
+            label = lm.get("label", "")
+            if label:
+                landmark_usage[label] = landmark_usage.get(label, 0) + 1
+
+    try:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            if zone_usage:
+                await client.post(
+                    "http://10.0.0.59:9466/labels/api/report-usage",
+                    json={"entity_type": "zones", "usage": zone_usage},
+                )
+            if landmark_usage:
+                await client.post(
+                    "http://10.0.0.59:9466/labels/api/report-usage",
+                    json={"entity_type": "landmarks", "usage": landmark_usage},
+                )
+    except Exception as e:
+        logger.warning("Failed to report label usage: %s", e)

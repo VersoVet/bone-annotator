@@ -10,26 +10,39 @@ from src.config import get_bone_ml_config
 logger = logging.getLogger(__name__)
 
 
-async def call_bone_ml_annotate(cvat_task_id: int) -> str:
-    """Call bone-ml to pre-annotate. Checks training status first."""
+async def call_bone_ml_annotate(cvat_task_id: int, bone_type: str | None = None) -> str:
+    """Call bone-ml to pre-annotate. Routes to multitask if available."""
     ml_config = get_bone_ml_config()
     try:
         async with httpx.AsyncClient() as client:
+            # Try multitask endpoint first if bone_type is provided
+            if bone_type:
+                try:
+                    resp = await client.post(
+                        f"{ml_config['base_url']}/api/multitask/annotate",
+                        json={"task_id": cvat_task_id, "bone_type": bone_type},
+                        timeout=60.0,
+                    )
+                    if resp.status_code == 200:
+                        return resp.json().get("status", "multitask_ok")
+                except Exception:
+                    pass  # Fall through to YOLO
+
+            # Check training status before YOLO fallback
             status_resp = await client.get(
                 f"{ml_config['base_url']}/api/training/status",
                 timeout=5.0,
             )
             if status_resp.status_code == 200:
-                status = status_resp.json().get("status", "")
-                if status in ("running", "training"):
+                if status_resp.json().get("status", "") in ("running", "training"):
                     return "deferred:training_active"
+
             resp = await client.post(
                 f"{ml_config['base_url']}/api/cvat/annotate",
                 json={"task_id": cvat_task_id},
                 timeout=30.0,
             )
-            data = resp.json()
-            return data.get("status", "unknown")
+            return resp.json().get("status", "unknown")
     except Exception as e:
         logger.error("bone-ml pre-annotation failed: %s", e)
         return f"error: {e}"

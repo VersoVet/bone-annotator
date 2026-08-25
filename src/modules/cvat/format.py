@@ -29,7 +29,7 @@ def labels_to_cvat_format(anatomy: dict[str, Any]) -> list[dict[str, Any]]:
                 {
                     "name": name,
                     "color": zone.get("color", "#00FF00"),
-                    "type": "rectangle",
+                    "type": "any",
                     "attributes": [],
                 }
             )
