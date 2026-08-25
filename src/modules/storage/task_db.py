@@ -300,6 +300,17 @@ class AnnotationTaskDB:
                     (validated_by, task["acquisition_id"]),
                 )
 
+    def save_project_mapping(self, bone_type: str, project_id: int) -> None:
+        """Cache bone_type → CVAT project_id in PostgreSQL."""
+        try:
+            self._get_conn().execute(
+                f"""INSERT INTO {SCHEMA}.cvat_projects (bone_type, cvat_project_id)
+                VALUES (%s, %s) ON CONFLICT (bone_type) DO UPDATE SET cvat_project_id = %s""",
+                (bone_type, project_id, project_id),
+            )
+        except Exception as e:
+            logger.warning("Failed to save project mapping: %s", e)
+
     def close(self) -> None:
         """Close the connection."""
         if self._conn and not self._conn.closed:

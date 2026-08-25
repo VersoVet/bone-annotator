@@ -67,7 +67,7 @@ class AnnotationWorkflowService:
         project_id = await self.cvat.get_or_create_project(request.bone_type, cvat_labels)
         if project_id:
             await self.cvat.sync_project_labels(project_id, cvat_labels)
-            self._save_project_mapping(request.bone_type, project_id)
+            self.task_db.save_project_mapping(request.bone_type, project_id)
 
         task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
         cvat_task = await self.cvat.create_task(task_name, project_id=project_id)
@@ -280,18 +280,6 @@ class AnnotationWorkflowService:
         result = await propagate(self.cvat, task, seed_frame_idx)
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
         return result
-
-    def _save_project_mapping(self, bone_type: str, project_id: int) -> None:
-        """Cache bone_type → CVAT project_id in PostgreSQL."""
-        try:
-            conn = self.task_db._get_conn()
-            conn.execute(
-                """INSERT INTO bone_annotations.cvat_projects (bone_type, cvat_project_id)
-                VALUES (%s, %s) ON CONFLICT (bone_type) DO UPDATE SET cvat_project_id = %s""",
-                (bone_type, project_id, project_id),
-            )
-        except Exception as e:
-            logger.warning("Failed to save project mapping: %s", e)
 
     def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
         """Load prepared PNG images from directory."""
