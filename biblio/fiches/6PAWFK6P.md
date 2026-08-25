@@ -1,0 +1,26 @@
+# The VIA Annotation Software for Images, Audio and Video
+
+**Auteurs** : Abhishek Dutta, Andrew Zisserman
+**Année** : 2019
+**DOI** : 10.1145/3343031.3350535
+
+## Résumé
+
+In this paper, we introduce a simple and standalone manual annotation tool for images, audio and video: the VGG Image Annotator (VIA). This is a light weight, standalone and offline software package that does not require any installation or setup and runs solely in a web browser. The VIA software allows human annotators to define and describe spatial regions in images or video frames, and temporal segments in audio or video. These manual annotations can be exported to plain text data formats such as JSON and CSV and therefore are amenable to further processing by other software tools. VIA also supports collaborative annotation of a large dataset by a group of human annotators. The BSD open source license of this software allows it to be used in any academic project or commercial application.
+
+## Méthodologie
+
+{'study_design': "Article de présentation d'un outil logiciel (software/tool paper), décrivant l'architecture, les fonctionnalités et les cas d'usage du logiciel VIA", 'intervention': "Développement et déploiement d'un logiciel d'annotation manuelle (VIA) fonctionnant hors ligne dans un navigateur web, sans installation requise", 'control': None, 'primary_outcomes': [], 'secondary_outcomes': [], 'statistical_methods': [], 'duration': "Développement débuté en août 2016, Version 1 publiée en avril 2017, Version 2 en juin 2018, Version 3 (support audio/vidéo) publiée récemment; données d'usage rapportées jusqu'en juillet 2019", 'setting': "Développement au sein du VGG (Visual Geometry Group), Université d'Oxford; usage distribué via téléchargement web et communauté open source (Gitlab)"}
+
+## Résultats
+
+{'quantitative': [{'outcome': 'Taille du logiciel VIA', 'value': 'moins de 400', 'unit': 'kilooctets', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': 'Introduction', 'source_quote': 'The complete VIA software fits in a single self-contained HTML page of size less than 400 kilobyte.'}, {'outcome': "Nombre total d'utilisations du logiciel VIA", 'value': 'plus de 1 000 000', 'unit': 'utilisations', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': 'Introduction', 'source_quote': 'As of July 2019, the VIA software has been used more than 1, 000, 000 times (+220, 000 unique pageviews).'}, {'outcome': 'Nombre de pages vues uniques', 'value': '220 000', 'unit': 'pageviews', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': 'Introduction', 'source_quote': 'As of July 2019, the VIA software has been used more than 1, 000, 000 times (+220, 000 unique pageviews).'}, {'outcome': 'Taille du code source Javascript', 'value': '9000', 'unit': 'lignes de code', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': 'Software Design', 'source_quote': 'The HTML and CSS based user interface of VIA is powered by nearly 9000 lines of Javascript code which is based solely on standard features available in modern web browsers.'}, {'outcome': 'Taille du prototype initial de VIA', 'value': '40', 'unit': 'lignes de code HTML/CSS/Javascript', 'confidence_interval': None, 'p_value': None, 'effect_size': None, 'source_section': 'Software Design', 'source_quote': 'The full VIA software sprouted from an early prototype 1 of VIA which implemented a minimal -yet functional -image annotation tool using only 40 lines of HTML/CSS/Javascript code that runs as an offline application in most modern web browsers.'}], 'qualitative_findings': ['Adoption large de VIA dans de nombreuses disciplines académiques et secteurs industriels', 'Communauté open source active fournissant retours et contributions de code', 'Utilisation en Humanités pour annoter des illustrations imprimées du 15e siècle', "Utilisation en Informatique pour annoter de grands jeux de données d'images et de vidéos", "Utilisation en Histoire de l'Art pour annoter un diagramme cosmologique multicouche du 14e siècle", 'Utilisation en Sciences Physiques pour annoter des particules dans des images de microscopie électronique', "Utilisation en Médecine pour créer des jeux de données d'imagerie médicale annotés"], 'main_findings': ["VIA est un outil d'annotation léger, autonome et hors ligne fonctionnant entièrement dans un navigateur web sans installation", "VIA prend en charge l'annotation spatiale d'images (rectangle, cercle, ellipse, polygone, point, polyligne) et l'annotation temporelle d'audio/vidéo", 'Les annotations peuvent être exportées en JSON et CSV pour un traitement ultérieur', "VIA prend en charge l'annotation collaborative de grands jeux de données par un groupe d'annotateurs", 'La fonctionnalité Image Grid View facilite un flux de travail en deux étapes (annotation automatique puis filtrage/sélection/mise à jour manuelle)']}
+
+## Conclusions
+
+VIA est devenu un outil de support à la recherche essentiel et précieux dans de nombreuses disciplines académiques ainsi que dans l'industrie La légèreté, l'absence d'installation et la simplicité d'utilisation de VIA expliquent son adoption rapide et large
+
+### Formule
+
+
+$$(a) (b) (c) (d)$$

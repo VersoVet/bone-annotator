@@ -1,0 +1,21 @@
+# Labelling point clouds in VR
+
+**Auteurs** : C. R. Fol, A. Murtiyoso, A. Murtiyoso, G. Mazzacca, G. Mazzacca, T. Saint-André, F. Remondino, V. C. Griess
+**Année** : 2024
+**DOI** : 10.5194/isprs-archives-xlviii-2-w8-2024-163-2024
+
+## Résumé
+
+Recent advancements in Virtual Reality (VR) technology have extended its applications beyond entertainment, offering promising tools for professional fields such as 3D data annotation. This paper explores the use of VR for labelling 3D point clouds in forestry and cultural heritage datasets. We employ Labelling Flora, an open-source VR annotation tool, to re-label three existing cultural heritage and one forestry datasets and assess the effectiveness of VR-based annotations in training machine learning models. By comparing the accuracy, precision, and F1-score of inference models trained with VR-generated labels to those trained with traditional desktop labelling methods, we evaluate the potential of VR to streamline labour-intensive annotation tasks. Our results indicate that VR enables intuitive 3D segmentation, even for individuals without technical expertise, particularly for very complex scenes, improving labelling efficiency and contributing to the overall automation of complex d
+
+## Méthodologie
+
+{'study_design': 'Comparative experimental study: datasets are re-labelled in VR (Labelling Flora, built with Unity Game Engine, used with an Oculus CV1 headset), then the Random Forest for Point Cloud Classification (RF4PCC) method is used to perform semantic segmentation prediction on the rest of the dataset; results from VR-based labels are compared against test sets generated using desktop-based labelling methods', 'intervention': 'Re-labelling 3D point cloud datasets (forestry and cultural heritage) using the VR annotation tool Labelling Flora', 'control': 'Datasets labelled manually using traditional desktop-based segmentation tools', 'primary_outcomes': ['Average intersection over union (IoU)', 'Overall accuracy (oacc)', 'Average precision (P)', 'Average recall (R)', 'Average F1 score (F1)'], 'secondary_outcomes': ['Labelling efficiency / time taken to annotate'], 'statistical_methods': ['Random Forest for Point Cloud Classification (RF4PCC)'], 'duration': None, 'setting': 'Forestry and cultural heritage 3D point cloud datasets'}
+
+## Résultats
+
+{'quantitative': [], 'qualitative_findings': ['VR enables intuitive 3D segmentation, even for individuals without technical expertise, particularly for very complex scenes', 'VR labelling method demonstrated its advantage more clearly when working with complex scenes such as forests', 'VR labelling method produced annotated point clouds within a generally faster timeframe while achieving classification quality comparable to traditional desktop-based methods'], 'main_findings': ['VR enables intuitive 3D segmentation, even for individuals without technical expertise, particularly for very complex scenes, improving labelling efficiency and contributing to the overall automation of complex datasets', 'The VR labelling method is capable of producing annotated point clouds within a generally faster timeframe while achieving a classification quality comparable to results created using traditional desktop-based methods', 'The proposed VR method demonstrated its advantage more clearly when working with complex scenes such as forests']}
+
+## Conclusions
+
+VR enables individuals, including those without technical expertise, to support 3D segmentation tasks in an intuitive way Integrating VR with machine/deep learning methods can facilitate segmentation of larger and complex datasets VR presents a promising solution allowing domain experts to label data more efficiently than traditional time-consuming labelling VR can be used to refine existing labels and retrain inference models, potentially enhancing overall accuracy The VR labelling method produces annotated point clouds faster while achieving classification quality comparable to desktop-based methods The proposed method is accurate enough to be reliably used for machine learning annotation purposes The use of VR in labelling 3D datasets is a reliable method that is easily repeatable even by those who have only started working with point clouds
