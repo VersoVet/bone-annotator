@@ -23,6 +23,10 @@ dataset_storage_fallback:
 imaging:
   pipeline_dir: /opt/onyx/skills/vet-fluoro-studio/pipelines
 
+# MedSAM2 — propagation temporelle sur OnyxCortex
+medsam2:
+  gpu_direct: http://10.0.0.26:9473
+
 # SAM (Segment Anything) — serveur GPU direct sur OnyxCortex
 sam:
   gpu_direct: http://10.0.0.26:9470

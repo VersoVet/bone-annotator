@@ -197,6 +197,7 @@ _module_routers = [
     ("analysis", "src.modules.analysis.routes"),
     ("cvat", "src.modules.cvat.routes"),
     ("sam", "src.modules.annotation.sam_proxy"),
+    ("medsam2", "src.modules.annotation.medsam2_proxy"),
     ("labels", "src.modules.labels.routes"),
 ]
 
