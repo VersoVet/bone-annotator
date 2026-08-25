@@ -397,6 +397,262 @@ class AnnotationWorkflowService:
         conn = self.task_db._get_conn()
         await maybe_trigger_training(conn, bone_type)
 
+    async def propagate_medsam2(
+        self,
+        task_id: int,
+        seed_frame_idx: int = 0,
+    ) -> dict[str, Any]:
+        """Propagate bone mask with MedSAM2 temporal propagation.
+
+        Flow:
+        1. Get task info (dataset_path, cvat_task_id)
+        2. Pull seed mask from CVAT (first annotated frame)
+        3. Load frames from prepared dataset
+        4. Call MedSAM2 /propagate
+        5. Push propagated masks back to CVAT
+
+        Args:
+            task_id: Internal annotation task ID.
+            seed_frame_idx: Frame index with the seed mask.
+
+        Returns:
+            Propagation result with frame count.
+        """
+        import base64
+        import io
+        from pathlib import Path
+
+        import httpx
+        import yaml
+        from PIL import Image
+
+        task = self.task_db.get_task(task_id)
+        if not task or not task.get("cvat_task_id"):
+            msg = f"Task {task_id} not found or no CVAT task"
+            raise ValueError(msg)
+
+        cvat_task_id = task["cvat_task_id"]
+        dataset_path = task.get("dataset_path")
+        if not dataset_path:
+            msg = f"Task {task_id} has no dataset_path"
+            raise ValueError(msg)
+
+        images_dir = Path(dataset_path) / "images"
+        if not images_dir.exists():
+            msg = f"Dataset images not found: {images_dir}"
+            raise ValueError(msg)
+
+        # 1. Pull seed mask from CVAT
+        await self.cvat.authenticate()
+        annotations = await self.cvat.get_annotations(cvat_task_id)
+
+        seed_mask = None
+        if annotations and annotations.get("shapes"):
+            # Find a mask or polygon shape on the seed frame
+            for shape in annotations["shapes"]:
+                if shape.get("frame") == seed_frame_idx:
+                    if shape.get("type") == "mask":
+                        # CVAT mask format: RLE + bounds
+                        seed_mask = self._cvat_mask_to_binary(shape, task.get("frame_count", 0))
+                        break
+                    elif shape.get("type") in ("polygon", "rectangle"):
+                        # Convert polygon/rect to binary mask
+                        seed_mask = self._cvat_shape_to_binary(shape, images_dir, seed_frame_idx)
+                        break
+
+        if seed_mask is None:
+            msg = f"No annotation found on frame {seed_frame_idx} in CVAT task {cvat_task_id}. Annotate at least one frame first."
+            raise ValueError(msg)
+
+        # 2. Load frames from dataset (sample for large series)
+        frame_files = sorted(images_dir.glob("*.png"))
+        max_frames = 100  # Limit for MedSAM2 memory
+        step = max(1, len(frame_files) // max_frames)
+        sampled_files = frame_files[::step]
+        sampled_seed_idx = seed_frame_idx // step
+
+        frames_b64 = []
+        for fp in sampled_files:
+            frames_b64.append(base64.b64encode(fp.read_bytes()).decode())
+
+        # Encode seed mask as PNG base64
+        mask_pil = Image.fromarray((seed_mask * 255).astype("uint8"))
+        buf = io.BytesIO()
+        mask_pil.save(buf, format="PNG")
+        seed_mask_b64 = base64.b64encode(buf.getvalue()).decode()
+
+        # 3. Call MedSAM2 /propagate
+        config_path = Path(__file__).parent.parent.parent.parent / "config" / "sources.yaml"
+        medsam2_url = "http://10.0.0.26:9473"
+        try:
+            with open(config_path) as f:
+                cfg = yaml.safe_load(f)
+            medsam2_url = cfg.get("medsam2", {}).get("gpu_direct", medsam2_url)
+        except Exception:
+            pass
+
+        logger.info(
+            "MedSAM2 propagate: %d frames (sampled %d), seed=%d", len(frame_files), len(sampled_files), sampled_seed_idx
+        )
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{medsam2_url}/propagate",
+                json={
+                    "frames": frames_b64,
+                    "seed_frame_idx": sampled_seed_idx,
+                    "seed_mask": seed_mask_b64,
+                    "score_threshold": 0.0,
+                },
+                timeout=300.0,
+            )
+
+        if resp.status_code != 200:
+            msg = f"MedSAM2 propagation failed: {resp.text[:200]}"
+            raise RuntimeError(msg)
+
+        result = resp.json()
+        propagated_masks = result.get("masks", [])
+        logger.info("MedSAM2 returned %d masks", len(propagated_masks))
+
+        # 4. Convert masks to CVAT polygon shapes and push
+        import numpy as np
+        from PIL import Image as PILImage
+
+        cvat_shapes = []
+        for i, mask_b64 in enumerate(propagated_masks):
+            mask_bytes = base64.b64decode(mask_b64)
+            mask_arr = np.array(PILImage.open(io.BytesIO(mask_bytes)))
+            if mask_arr.max() == 0:
+                continue
+            # Convert mask to CVAT RLE format
+            binary = (mask_arr > 128).astype(np.uint8)
+            rle = self._binary_mask_to_rle(binary)
+            if rle:
+                # Map sampled index back to original frame index
+                original_frame_idx = i * step
+                cvat_shapes.append(
+                    {
+                        "type": "mask",
+                        "frame": original_frame_idx,
+                        "label_id": self._get_bone_label_id(annotations),
+                        "points": rle,
+                        "occluded": False,
+                        "z_order": 0,
+                        "attributes": [
+                            {"spec_id": None, "name": "source", "value": "medsam2"},
+                            {"spec_id": None, "name": "model_version", "value": "MedSAM2_latest"},
+                        ],
+                    }
+                )
+
+        if cvat_shapes:
+            payload = {"version": 0, "shapes": cvat_shapes, "tracks": [], "tags": []}
+            await self.cvat.update_annotations(cvat_task_id, payload)
+            logger.info("Pushed %d MedSAM2 masks to CVAT task %d", len(cvat_shapes), cvat_task_id)
+
+        self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
+
+        return {
+            "task_id": task_id,
+            "cvat_task_id": cvat_task_id,
+            "total_frames": len(frame_files),
+            "sampled_frames": len(sampled_files),
+            "propagated_masks": len(cvat_shapes),
+            "seed_frame": seed_frame_idx,
+        }
+
+    def _cvat_shape_to_binary(self, shape: dict, images_dir: Any, frame_idx: int) -> Any:
+        """Convert a CVAT polygon/rectangle to binary mask."""
+        from pathlib import Path
+
+        import numpy as np
+        from PIL import Image
+
+        # Get image dimensions from first frame
+        first_frame = sorted(Path(images_dir).glob("*.png"))[0]
+        img = Image.open(first_frame)
+        h, w = img.size[1], img.size[0]
+
+        mask = np.zeros((h, w), dtype=np.uint8)
+        pts = shape.get("points", [])
+
+        if shape["type"] == "rectangle" and len(pts) >= 4:
+            x1, y1, x2, y2 = int(pts[0]), int(pts[1]), int(pts[2]), int(pts[3])
+            mask[y1:y2, x1:x2] = 1
+        elif shape["type"] == "polygon" and len(pts) >= 6:
+            import cv2
+
+            points = np.array([(int(pts[i]), int(pts[i + 1])) for i in range(0, len(pts), 2)])
+            cv2.fillPoly(mask, [points], 1)
+
+        return mask
+
+    def _cvat_mask_to_binary(self, shape: dict, frame_count: int) -> Any:
+        """Convert CVAT RLE mask to binary numpy array."""
+        import numpy as np
+
+        pts = shape.get("points", [])
+        if len(pts) < 5:
+            return None
+        # CVAT mask format: RLE values followed by [left, top, right, bottom]
+        rle = pts[:-4]
+        left, top, right, bottom = int(pts[-4]), int(pts[-3]), int(pts[-2]), int(pts[-1])
+        w = right - left
+        h = bottom - top
+
+        mask_crop = np.zeros(h * w, dtype=np.uint8)
+        pos = 0
+        val = 0
+        for run_len in rle:
+            run_len = int(run_len)
+            if pos + run_len > len(mask_crop):
+                run_len = len(mask_crop) - pos
+            mask_crop[pos : pos + run_len] = val
+            pos += run_len
+            val = 1 - val
+
+        return mask_crop.reshape(h, w)
+
+    def _binary_mask_to_rle(self, mask: Any) -> list[float]:
+        """Convert binary mask to CVAT RLE format (values + bounds)."""
+        import numpy as np
+
+        # Find bounding box
+        rows = np.any(mask, axis=1)
+        cols = np.any(mask, axis=0)
+        if not rows.any():
+            return []
+        rmin, rmax = np.where(rows)[0][[0, -1]]
+        cmin, cmax = np.where(cols)[0][[0, -1]]
+
+        # Crop mask to bounding box
+        crop = mask[rmin : rmax + 1, cmin : cmax + 1].flatten()
+
+        # RLE encode
+        rle = []
+        current_val = 0  # Start with 0 (background)
+        count = 0
+        for val in crop:
+            if val == current_val:
+                count += 1
+            else:
+                rle.append(count)
+                current_val = val
+                count = 1
+        rle.append(count)
+
+        # Append bounds [left, top, right, bottom]
+        rle.extend([float(cmin), float(rmin), float(cmax + 1), float(rmax + 1)])
+        return rle
+
+    def _get_bone_label_id(self, annotations: dict) -> int:
+        """Get the first label ID from existing annotations (for bone label)."""
+        for shape in annotations.get("shapes", []):
+            if "label_id" in shape:
+                return shape["label_id"]
+        return 0
+
     def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
         """Load prepared PNG images from directory."""
         from pathlib import Path

@@ -200,6 +200,37 @@ async def re_annotate_task(
         raise HTTPException(status_code=500, detail="Failed to re-annotate")
 
 
+@router.post("/propagate/{task_id}")
+async def propagate_medsam2(
+    task_id: int,
+    seed_frame: int = Query(0, ge=0, description="Frame index with the seed mask"),
+) -> dict[str, Any]:
+    """Propagate bone mask with MedSAM2 temporal propagation.
+
+    Annotate one frame in CVAT, then call this to propagate
+    the mask to all other frames in the series.
+
+    Args:
+        task_id: Internal task ID.
+        seed_frame: Frame index with the initial annotation.
+
+    Returns:
+        Propagation result with mask counts.
+
+    Raises:
+        HTTPException: If propagation fails.
+    """
+    try:
+        service = get_service()
+        result = await service.propagate_medsam2(task_id, seed_frame)
+        return {"status": "propagated", **result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Error propagating MedSAM2 for task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail=f"Propagation failed: {e}")
+
+
 @router.post("/export")
 async def export_annotations(
     task_ids: list[int] | None = None,

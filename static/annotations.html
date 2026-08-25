@@ -293,6 +293,7 @@ function renderTasks(tasks) {
         <td class="actions">
             ${t.cvat_url ? `<a href="${t.cvat_url}" target="_blank" class="btn btn-sm btn-outline">CVAT</a>` : ''}
             ${['created','annotating'].includes(t.status) ? `<button class="btn btn-sm btn-outline" onclick="syncTask(${t.id})">Sync</button>` : ''}
+            ${['created','annotating'].includes(t.status) ? `<button class="btn btn-sm btn-outline" style="background:#7c3aed;color:white;border-color:#7c3aed" onclick="propagateMedSAM2(${t.id})">MedSAM2</button>` : ''}
             ${!t.has_pre_annotations ? `<button class="btn btn-sm btn-outline" onclick="preAnnotate(${t.id})">ML</button>` : ''}
             ${t.status === 'reviewing' ? `<button class="btn btn-sm btn-success" onclick="validateTask(${t.id},'validated')">Valider</button>
                 <button class="btn btn-sm btn-danger" onclick="validateTask(${t.id},'rejected')">Rejeter</button>` : ''}
@@ -308,6 +309,30 @@ async function syncTask(id) {
         alert(`Sync: ${d.synced_frames} frames, ${d.zones_count} zones, ${d.landmarks_count} landmarks (auteur: ${d.author})`);
         loadTasks();
     } catch(e) { alert('Erreur sync: '+e); }
+}
+
+async function propagateMedSAM2(id) {
+    const seedFrame = prompt('Frame seed (index de la frame annotee, defaut 0):', '0');
+    if (seedFrame === null) return;
+    const seed = parseInt(seedFrame) || 0;
+    if (!confirm(`Propager MedSAM2 depuis la frame ${seed} vers toute la serie ?\\n\\nAssurez-vous d\\'avoir annote au moins une frame dans CVAT avant.`)) return;
+    const status = document.getElementById('createStatus');
+    status.textContent = 'MedSAM2 propagation en cours... (peut prendre 1-2 min)';
+    status.style.color = '#7c3aed';
+    try {
+        const r = await fetch(`${API}/api/annotation/propagate/${id}?seed_frame=${seed}`, {method:'POST'});
+        const d = await r.json();
+        if (r.ok) {
+            alert(`MedSAM2: ${d.propagated_masks} masques propages sur ${d.sampled_frames} frames (total: ${d.total_frames})`);
+        } else {
+            alert(`Erreur: ${d.detail || JSON.stringify(d)}`);
+        }
+        status.textContent = '';
+        loadTasks();
+    } catch(e) {
+        alert('Erreur MedSAM2: '+e);
+        status.textContent = '';
+    }
 }
 
 async function preAnnotate(id) {
