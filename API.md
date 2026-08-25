@@ -1359,7 +1359,27 @@ curl -X POST http://10.0.0.59:9468/api/sam/switch-model \
 
 ---
 
-**Dernière mise à jour**: 2026-08-24
-**Phase**: SAM multi-model CVAT integration
-**Version**: v0.1.40
-**Endpoints**: 62+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 5, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7, SAM 5)
+## MedSAM2 (Propagation Temporelle)
+
+### `GET /api/medsam2/status`
+Statut du serveur MedSAM2 GPU.
+
+### `POST /api/medsam2/propagate`
+Propager un masque seed sur toute une série de frames.
+
+### `POST /api/medsam2/segment`
+Segmentation 2D single frame avec MedSAM2.
+
+### `POST /api/annotation/propagate/{task_id}`
+Propagation MedSAM2 intégrée au workflow : pull seed mask CVAT, propage, push résultats.
+
+```bash
+curl -X POST http://10.0.0.59:9468/api/annotation/propagate/1?seed_frame=0
+```
+
+---
+
+**Dernière mise à jour**: 2026-08-25
+**Phase**: MedSAM2 temporal propagation
+**Version**: v0.1.47
+**Endpoints**: 68+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 6, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7, SAM 5, MedSAM2 4)
