@@ -294,23 +294,46 @@ async def list_cvat_users() -> dict[str, Any]:
 
 @router.get("/status")
 async def cvat_status() -> dict[str, Any]:
-    """Get CVAT service status.
-
-    Returns:
-        Service health and connection status.
-
-    Raises:
-        HTTPException: If status check fails.
-    """
+    """Get CVAT service status."""
     try:
         service = get_service()
         status = await service.status()
-
-        return {
-            "status": "ready",
-            "service": "cvat",
-            "components": status,
-        }
+        return {"status": "ready", "service": "cvat", "components": status}
     except Exception as e:
         logger.error("Error fetching CVAT status: %s", e)
         raise HTTPException(status_code=500, detail="Failed to fetch CVAT status")
+
+
+@router.post("/projects/{bone_type}/sync-labels")
+async def sync_project_labels(bone_type: str) -> dict[str, Any]:
+    """Sync labels from label-generator to the CVAT project for a bone type.
+
+    Adds missing labels to the project. Never deletes existing labels.
+
+    Args:
+        bone_type: Bone type (matches project bone_{bone_type}).
+
+    Returns:
+        Sync result with labels added count.
+    """
+    try:
+        from src.modules.cvat.format import labels_to_cvat_format
+        from src.modules.labels.service import get_labels_for_bone
+
+        anatomy = get_labels_for_bone(bone_type)
+        if not anatomy:
+            raise HTTPException(status_code=404, detail=f"No labels for {bone_type}")
+        cvat_labels = labels_to_cvat_format(anatomy)
+
+        service = get_service()
+        await service.connect()
+        project_id = await service.client.get_or_create_project(bone_type, cvat_labels)
+        if not project_id:
+            raise HTTPException(status_code=503, detail="Cannot create/find project")
+        added = await service.client.sync_project_labels(project_id, cvat_labels)
+        return {"status": "ok", "bone_type": bone_type, "project_id": project_id, "labels_added": added}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error syncing project labels: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))

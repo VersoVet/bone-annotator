@@ -89,6 +89,12 @@ _MIGRATIONS = [
         ADD COLUMN IF NOT EXISTS task_ids INTEGER[]""",
     f"""ALTER TABLE {SCHEMA}.training_runs
         ADD COLUMN IF NOT EXISTS pipeline_preset VARCHAR(100)""",
+    # CVAT projects cache (bone_type → project_id)
+    f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.cvat_projects (
+        bone_type TEXT PRIMARY KEY,
+        cvat_project_id INTEGER NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+    )""",
 ]
 
 

@@ -55,60 +55,31 @@ class CVATClient:
             return False
 
     async def get_tasks(self, limit: int = 100) -> list[dict[str, Any]]:
-        """Get list of CVAT tasks.
-
-        Args:
-            limit: Max tasks to return.
-
-        Returns:
-            List of task dicts.
-        """
+        """Get list of CVAT tasks."""
         try:
             if self.client is None:
                 return []
             response = await self.client.get(f"{self.api_base}/tasks?limit={limit}")
             if response.status_code == 200:
-                data = response.json()
-                return data.get("results", [])
+                return response.json().get("results", [])
             return []
         except Exception as e:
             logger.error("Error fetching tasks: %s", e)
             return []
 
     async def get_task(self, task_id: int) -> dict[str, Any] | None:
-        """Get task details.
-
-        Args:
-            task_id: Task ID.
-
-        Returns:
-            Task dict or None.
-        """
+        """Get task details by ID."""
         try:
             if self.client is None:
                 return None
             response = await self.client.get(f"{self.api_base}/tasks/{task_id}")
-            if response.status_code == 200:
-                return response.json()
-            return None
+            return response.json() if response.status_code == 200 else None
         except Exception as e:
             logger.error("Error fetching task %d: %s", task_id, e)
             return None
 
-    async def create_task(
-        self,
-        name: str,
-        project_id: int | None = None,
-    ) -> dict[str, Any] | None:
-        """Create a new CVAT task.
-
-        Args:
-            name: Task name.
-            project_id: Optional project ID.
-
-        Returns:
-            Created task dict or None.
-        """
+    async def create_task(self, name: str, project_id: int | None = None) -> dict[str, Any] | None:
+        """Create a new CVAT task, optionally in a project."""
         try:
             if self.client is None:
                 return None
@@ -129,14 +100,7 @@ class CVATClient:
             return None
 
     async def get_annotations(self, task_id: int) -> dict[str, Any] | None:
-        """Get task annotations.
-
-        Args:
-            task_id: Task ID.
-
-        Returns:
-            Annotations dict or None.
-        """
+        """Get task annotations."""
         try:
             if self.client is None:
                 return None
@@ -148,20 +112,8 @@ class CVATClient:
             logger.error("Error fetching annotations for task %d: %s", task_id, e)
             return None
 
-    async def update_annotations(
-        self,
-        task_id: int,
-        annotations: dict[str, Any],
-    ) -> bool:
-        """Update task annotations.
-
-        Args:
-            task_id: Task ID.
-            annotations: Annotation data.
-
-        Returns:
-            True if successful.
-        """
+    async def update_annotations(self, task_id: int, annotations: dict[str, Any]) -> bool:
+        """Update task annotations."""
         try:
             if self.client is None:
                 return False
@@ -178,20 +130,8 @@ class CVATClient:
             logger.error("Error updating annotations: %s", e)
             return False
 
-    async def upload_images(
-        self,
-        task_id: int,
-        images: list[tuple[str, bytes]],
-    ) -> bool:
-        """Upload images to a CVAT task.
-
-        Args:
-            task_id: Task ID.
-            images: List of (filename, png_bytes) tuples.
-
-        Returns:
-            True if successful.
-        """
+    async def upload_images(self, task_id: int, images: list[tuple[str, bytes]]) -> bool:
+        """Upload images to a CVAT task."""
         try:
             if self.client is None:
                 return False
@@ -211,20 +151,8 @@ class CVATClient:
             logger.error("Error uploading images to task %d: %s", task_id, e)
             return False
 
-    async def set_labels(
-        self,
-        task_id: int,
-        labels: list[dict[str, Any]],
-    ) -> bool:
-        """Set labels on a CVAT task.
-
-        Args:
-            task_id: Task ID.
-            labels: List of CVAT label dicts.
-
-        Returns:
-            True if successful.
-        """
+    async def set_labels(self, task_id: int, labels: list[dict[str, Any]]) -> bool:
+        """Set labels on a CVAT task."""
         try:
             if self.client is None:
                 return False
@@ -242,14 +170,7 @@ class CVATClient:
             return False
 
     async def get_task_jobs(self, task_id: int) -> list[dict[str, Any]]:
-        """Get jobs for a CVAT task (includes assignee info).
-
-        Args:
-            task_id: Task ID.
-
-        Returns:
-            List of job dicts.
-        """
+        """Get jobs for a CVAT task (includes assignee info)."""
         try:
             if self.client is None:
                 return []
@@ -275,6 +196,90 @@ class CVATClient:
         except Exception as e:
             logger.error("Error fetching users: %s", e)
             return []
+
+    async def get_projects(self) -> list[dict[str, Any]]:
+        """List all CVAT projects."""
+        try:
+            if self.client is None:
+                return []
+            response = await self.client.get(f"{self.api_base}/projects?page_size=100")
+            if response.status_code == 200:
+                return response.json().get("results", [])
+            return []
+        except Exception as e:
+            logger.error("Error fetching projects: %s", e)
+            return []
+
+    async def get_or_create_project(
+        self, bone_type: str, labels: list[dict[str, Any]],
+    ) -> int | None:
+        """Get or create a CVAT project for a bone type.
+
+        Args:
+            bone_type: Bone type (used as project name: bone_{type}).
+            labels: CVAT labels to set on creation.
+
+        Returns:
+            Project ID, or None if failed.
+        """
+        project_name = f"bone_{bone_type}"
+        try:
+            if self.client is None:
+                return None
+            # Search existing
+            resp = await self.client.get(f"{self.api_base}/projects?search={project_name}")
+            if resp.status_code == 200:
+                for p in resp.json().get("results", []):
+                    if p.get("name") == project_name:
+                        return p["id"]
+            # Create new
+            resp = await self.client.post(
+                f"{self.api_base}/projects",
+                json={"name": project_name, "labels": labels},
+            )
+            if resp.status_code == 201:
+                pid = resp.json()["id"]
+                logger.info("Created CVAT project %s (id=%d)", project_name, pid)
+                return pid
+            logger.error("Failed to create project %s: %s", project_name, resp.status_code)
+            return None
+        except Exception as e:
+            logger.error("Error in get_or_create_project: %s", e)
+            return None
+
+    async def sync_project_labels(
+        self, project_id: int, labels: list[dict[str, Any]],
+    ) -> int:
+        """Sync labels on a CVAT project (add-only, never delete).
+
+        Args:
+            project_id: CVAT project ID.
+            labels: Desired labels from label-generator.
+
+        Returns:
+            Number of labels added.
+        """
+        try:
+            if self.client is None:
+                return 0
+            resp = await self.client.get(f"{self.api_base}/projects/{project_id}")
+            if resp.status_code != 200:
+                return 0
+            existing = {lbl["name"] for lbl in resp.json().get("labels", [])}
+            new_labels = [lbl for lbl in labels if lbl["name"] not in existing]
+            if not new_labels:
+                return 0
+            # PATCH: add new labels to existing
+            all_labels = resp.json().get("labels", []) + new_labels
+            await self.client.patch(
+                f"{self.api_base}/projects/{project_id}",
+                json={"labels": all_labels},
+            )
+            logger.info("Added %d labels to project %d", len(new_labels), project_id)
+            return len(new_labels)
+        except Exception as e:
+            logger.error("Error syncing project labels: %s", e)
+            return 0
 
     async def close(self) -> None:
         """Close client session."""

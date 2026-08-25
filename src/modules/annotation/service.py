@@ -12,14 +12,7 @@ from src.modules.preparation.service import get_service as get_prep_service
 from src.modules.sources.service import get_service as get_source_service
 from src.modules.storage.task_db import AnnotationTaskDB, create_task_db
 
-from .models import (
-    CreateTaskRequest,
-    PreAnnotateResponse,
-    SyncResult,
-    TaskListResponse,
-    TaskResponse,
-    ValidateRequest,
-)
+from .models import CreateTaskRequest, PreAnnotateResponse, SyncResult, TaskListResponse, TaskResponse, ValidateRequest
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +44,6 @@ class AnnotationWorkflowService:
         """Create annotation task: prepare dataset, create CVAT task, configure labels."""
         source_svc = get_source_service()
         prep_svc = get_prep_service()
-        # 1. Get acquisition path
         acq_path = source_svc.get_acquisition_path(request.source_name, request.acquisition_id)
         if acq_path is None:
             msg = f"Acquisition not found: {request.acquisition_id}"
@@ -72,17 +64,20 @@ class AnnotationWorkflowService:
         cvat_labels = labels_to_cvat_format(anatomy)
 
         await self.cvat.authenticate()
+        project_id = await self.cvat.get_or_create_project(request.bone_type, cvat_labels)
+        if project_id:
+            await self.cvat.sync_project_labels(project_id, cvat_labels)
+            self._save_project_mapping(request.bone_type, project_id)
+
         task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
-        cvat_task = await self.cvat.create_task(task_name)
+        cvat_task = await self.cvat.create_task(task_name, project_id=project_id)
         if not cvat_task:
-            msg = "Failed to create CVAT task"
-            raise RuntimeError(msg)
+            raise RuntimeError("Failed to create CVAT task")
         cvat_task_id = cvat_task["id"]
         cvat_url = f"{self.cvat.base_url}/tasks/{cvat_task_id}"
 
-        # Upload
         try:
-            if cvat_labels:
+            if not project_id and cvat_labels:
                 await self.cvat.set_labels(cvat_task_id, cvat_labels)
             images = await asyncio.to_thread(self._load_prepared_images, dataset.path / "images")
             if images:
@@ -218,7 +213,8 @@ class AnnotationWorkflowService:
 
         request = CreateTaskRequest(
             source_name=parent.get("source_name", "bonestore"),
-            acquisition_id=parent["acquisition_id"], bone_type=parent["bone_type"],
+            acquisition_id=parent["acquisition_id"],
+            bone_type=parent["bone_type"],
             region=parent.get("region", "entire"),
             pipeline_preset=parent.get("pipeline_preset", "replay_membre"),
             pre_annotate=False,
@@ -252,23 +248,29 @@ class AnnotationWorkflowService:
     async def request_pre_annotation(self, task_id: int) -> PreAnnotateResponse:
         """Request ML pre-annotations from bone-ml."""
         from .ml_bridge import call_bone_ml_annotate
+
         task = self.task_db.get_task(task_id)
         if not task or not task.get("cvat_task_id"):
             raise ValueError(f"Task {task_id} not found or no CVAT task")
         ml_status = await call_bone_ml_annotate(task["cvat_task_id"], task.get("bone_type"))
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
         return PreAnnotateResponse(
-            task_id=task_id, cvat_task_id=task["cvat_task_id"],
-            status="pre_annotation_requested", bone_ml_status=ml_status)
+            task_id=task_id,
+            cvat_task_id=task["cvat_task_id"],
+            status="pre_annotation_requested",
+            bone_ml_status=ml_status,
+        )
 
     async def _maybe_trigger_training(self, bone_type: str) -> None:
         """Trigger fine-tuning if enough validated tasks."""
         from .ml_bridge import maybe_trigger_training
+
         await maybe_trigger_training(self.task_db._get_conn(), bone_type)
 
     async def propagate_medsam2(self, task_id: int, seed_frame_idx: int = 0) -> dict[str, Any]:
         """Propagate bone mask with MedSAM2 temporal propagation."""
         from .medsam2_bridge import propagate
+
         task = self.task_db.get_task(task_id)
         if not task or not task.get("cvat_task_id"):
             raise ValueError(f"Task {task_id} not found or no CVAT task")
@@ -279,13 +281,25 @@ class AnnotationWorkflowService:
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
         return result
 
+    def _save_project_mapping(self, bone_type: str, project_id: int) -> None:
+        """Cache bone_type → CVAT project_id in PostgreSQL."""
+        try:
+            conn = self.task_db._get_conn()
+            conn.execute(
+                """INSERT INTO bone_annotations.cvat_projects (bone_type, cvat_project_id)
+                VALUES (%s, %s) ON CONFLICT (bone_type) DO UPDATE SET cvat_project_id = %s""",
+                (bone_type, project_id, project_id),
+            )
+        except Exception as e:
+            logger.warning("Failed to save project mapping: %s", e)
+
     def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
         """Load prepared PNG images from directory."""
         from pathlib import Path
+
         return [(p.name, p.read_bytes()) for p in sorted(Path(images_dir).glob("*.png"))]
 
 
-# Module singleton
 _service: AnnotationWorkflowService | None = None
 
 
