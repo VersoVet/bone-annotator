@@ -300,7 +300,7 @@ class AnnotationTaskDB:
             self._conn.close()
 
 
-def create_task_db(host: str, port: int, user: str, password: str, dbname: str) -> AnnotationTaskDB:
+def create_task_db(host: str, port: int, user: str, password: str, dbname: str, **kwargs: Any) -> AnnotationTaskDB:
     """Create AnnotationTaskDB from connection parameters.
 
     Args:
@@ -309,6 +309,7 @@ def create_task_db(host: str, port: int, user: str, password: str, dbname: str) 
         user: Database user.
         password: Database password.
         dbname: Database name.
+        **kwargs: Extra params (schema, etc.) ignored for conninfo.
 
     Returns:
         AnnotationTaskDB instance.

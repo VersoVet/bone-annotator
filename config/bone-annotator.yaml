@@ -23,7 +23,7 @@ cvat:
   host: 10.0.0.59
   port: 8080
   username: admin
-  # password chargé depuis Vault (cvat_admin_password)
+  password: cvat_admin_2026
 
 # ml-compute — Ray cluster, training GPU
 ml_compute:
