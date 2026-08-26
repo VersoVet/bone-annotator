@@ -138,10 +138,7 @@ class CVATClient:
         try:
             if self.client is None:
                 return False
-            files = [
-                (f"client_files[{index}]", (name, data, "image/png"))
-                for index, (name, data) in enumerate(images)
-            ]
+            files = [(f"client_files[{index}]", (name, data, "image/png")) for index, (name, data) in enumerate(images)]
             return await self._post_image_files(task_id, files, len(images))
         except Exception as e:
             logger.error("Error uploading images to task %d: %s", task_id, e)
@@ -160,22 +157,15 @@ class CVATClient:
         if self.client is None:
             return False
         try:
-            batch_size = 50
-            for batch_start in range(0, len(image_paths), batch_size):
-                batch = image_paths[batch_start : batch_start + batch_size]
-                with ExitStack() as stack:
-                    files = [
-                        (
-                            f"client_files[{index}]",
-                            (path.name, stack.enter_context(path.open("rb")), "image/png"),
-                        )
-                        for index, path in enumerate(batch)
-                    ]
-                    if not await self._post_image_files(task_id, files, len(batch)):
-                        return False
-                if not await self._wait_for_task_size(task_id, batch_start + len(batch)):
-                    return False
-            return True
+            with ExitStack() as stack:
+                files = [
+                    (
+                        f"client_files[{index}]",
+                        (path.name, stack.enter_context(path.open("rb")), "image/png"),
+                    )
+                    for index, path in enumerate(image_paths)
+                ]
+                return await self._post_image_files(task_id, files, len(image_paths))
         except Exception as e:
             logger.error("Error uploading image files to task %d: %s", task_id, e)
             return False
@@ -193,12 +183,12 @@ class CVATClient:
             f"{self.api_base}/tasks/{task_id}/data",
             files=files,
             data={"image_quality": 95},
-            timeout=300.0,
+            timeout=900.0,
         )
         if response.status_code in (200, 201, 202):
             logger.info("Uploaded %d images to task %d", image_count, task_id)
             return True
-        logger.error("Upload failed: %s", response.status_code)
+        logger.error("Upload failed: %s %s", response.status_code, response.text[:500])
         return False
 
     async def _wait_for_task_size(self, task_id: int, expected_size: int) -> bool:
