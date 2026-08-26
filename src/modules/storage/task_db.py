@@ -135,6 +135,7 @@ class AnnotationTaskDB:
         cvat_task_id: int | None = None,
         source_name: str = "bonestore",
         region: str = "entire",
+        status: str = "created",
         assignee: str | None = None,
         frame_count: int = 0,
         dataset_path: str | None = None,
@@ -145,21 +146,6 @@ class AnnotationTaskDB:
     ) -> int:
         """Insert a new annotation task.
 
-        Args:
-            acquisition_id: Acquisition ID.
-            bone_type: Bone type.
-            author: Task creator.
-            cvat_task_id: CVAT task ID.
-            source_name: Image source name.
-            region: Anatomical region.
-            assignee: Assigned annotator.
-            frame_count: Number of frames.
-            dataset_path: Path to prepared dataset.
-            pipeline_preset: Imaging-sdk preset used.
-            pipeline_config: Pipeline configuration.
-            has_pre_annotations: Whether ML pre-annotations applied.
-            cvat_url: CVAT task URL.
-
         Returns:
             Created task ID.
         """
@@ -167,9 +153,9 @@ class AnnotationTaskDB:
         row = conn.execute(
             f"""INSERT INTO {SCHEMA}.annotation_tasks
             (acquisition_id, bone_type, author, cvat_task_id, source_name,
-             region, assignee, frame_count, dataset_path, pipeline_preset,
+             region, status, assignee, frame_count, dataset_path, pipeline_preset,
              pipeline_config, has_pre_annotations, cvat_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id""",
             (
                 acquisition_id,
@@ -178,6 +164,7 @@ class AnnotationTaskDB:
                 cvat_task_id,
                 source_name,
                 region,
+                status,
                 assignee,
                 frame_count,
                 dataset_path,

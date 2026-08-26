@@ -6,9 +6,7 @@ from typing import Any
 
 from src.config import get_cvat_config, get_postgres_config
 from src.modules.cvat.client import CVATClient
-from src.modules.cvat.format import labels_to_cvat_format
 from src.modules.labels.service import get_labels_for_bone
-from src.modules.preparation.service import get_service as get_prep_service
 from src.modules.sources.service import get_service as get_source_service
 from src.modules.storage.task_db import AnnotationTaskDB, create_task_db
 
@@ -41,95 +39,48 @@ class AnnotationWorkflowService:
         return self._task_db
 
     async def create_task(self, request: CreateTaskRequest) -> TaskResponse:
-        """Create annotation task: prepare dataset, create CVAT task, configure labels."""
+        """Create annotation task asynchronously.
+
+        Returns immediately with status="preparing". The actual dataset
+        preparation and CVAT upload happen in background.
+        """
+        # Validate inputs synchronously
         source_svc = get_source_service()
-        prep_svc = get_prep_service()
         acq_path = source_svc.get_acquisition_path(request.source_name, request.acquisition_id)
         if acq_path is None:
-            msg = f"Acquisition not found: {request.acquisition_id}"
-            raise ValueError(msg)
-
-        # Prepare dataset
-        dataset = await prep_svc.prepare_dataset(
-            acquisition_path=acq_path,
-            acquisition_id=request.acquisition_id,
-            bone_type=request.bone_type,
-            pipeline_preset=request.pipeline_preset,
-        )
-
-        # Labels (must exist in label-generator)
+            raise ValueError(f"Acquisition not found: {request.acquisition_id}")
         anatomy = get_labels_for_bone(request.bone_type)
         if not anatomy:
-            raise ValueError(f"No labels found for bone_type '{request.bone_type}' in label-generator")
-        cvat_labels = labels_to_cvat_format(anatomy)
+            raise ValueError(f"No labels for bone_type '{request.bone_type}' in label-generator")
 
-        await self.cvat.authenticate()
-        project_id = await self.cvat.get_or_create_project(request.bone_type, cvat_labels)
-        if project_id:
-            await self.cvat.sync_project_labels(project_id, cvat_labels)
-            self.task_db.save_project_mapping(request.bone_type, project_id)
-
-        task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
-        cvat_task = await self.cvat.create_task(task_name, project_id=project_id)
-        if not cvat_task:
-            raise RuntimeError("Failed to create CVAT task")
-        cvat_task_id = cvat_task["id"]
-        cvat_url = f"{self.cvat.base_url}/tasks/{cvat_task_id}"
-
-        try:
-            if not project_id and cvat_labels:
-                await self.cvat.set_labels(cvat_task_id, cvat_labels)
-            images = await asyncio.to_thread(self._load_prepared_images, dataset.path / "images")
-            if images:
-                await self.cvat.upload_images(cvat_task_id, images)
-        except Exception:
-            logger.error("CVAT setup failed, deleting task %d", cvat_task_id)
-            try:
-                if self.cvat.client:
-                    await self.cvat.client.delete(f"{self.cvat.api_base}/tasks/{cvat_task_id}")
-            except Exception as cleanup_err:
-                logger.warning("CVAT cleanup failed: %s", cleanup_err)
-            raise
-
-        # Save to DB
+        # Create DB entry immediately (status="preparing")
         task_id = await asyncio.to_thread(
             self.task_db.save_task,
             acquisition_id=request.acquisition_id,
             bone_type=request.bone_type,
             author=request.assignee or "system",
-            cvat_task_id=cvat_task_id,
             source_name=request.source_name,
             region=request.region,
             assignee=request.assignee,
-            frame_count=dataset.frame_count,
-            dataset_path=str(dataset.path),
             pipeline_preset=request.pipeline_preset,
-            pipeline_config=dataset.pipeline_config,
-            cvat_url=cvat_url,
+            status="preparing",
         )
 
-        # ML pre-annotations
-        if request.pre_annotate and cvat_task_id:
-            from .ml_bridge import call_bone_ml_annotate
+        # Launch background preparation
+        from .background import prepare_and_upload
 
-            await call_bone_ml_annotate(cvat_task_id, request.bone_type)
-            self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
+        asyncio.create_task(prepare_and_upload(task_id, request, self.task_db))
+        logger.info("Task %d queued for preparation", task_id)
 
-        logger.info("Task %d created: %s (CVAT %s)", task_id, task_name, cvat_task_id)
         return TaskResponse(
             id=task_id,
             acquisition_id=request.acquisition_id,
-            cvat_task_id=cvat_task_id,
-            cvat_url=cvat_url,
-            status="annotating" if request.pre_annotate else "created",
+            status="preparing",
             bone_type=request.bone_type,
             region=request.region,
-            frame_count=dataset.frame_count,
             author=request.assignee or "system",
             assignee=request.assignee,
-            has_pre_annotations=request.pre_annotate,
             pipeline_preset=request.pipeline_preset,
-            dataset_path=str(dataset.path),
         )
 
     async def get_task(self, task_id: int) -> TaskResponse | None:
@@ -280,12 +231,6 @@ class AnnotationWorkflowService:
         result = await propagate(self.cvat, task, seed_frame_idx)
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
         return result
-
-    def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
-        """Load prepared PNG images from directory."""
-        from pathlib import Path
-
-        return [(p.name, p.read_bytes()) for p in sorted(Path(images_dir).glob("*.png"))]
 
 
 _service: AnnotationWorkflowService | None = None

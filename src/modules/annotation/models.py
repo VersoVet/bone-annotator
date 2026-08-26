@@ -20,6 +20,13 @@ class CreateTaskRequest(BaseModel):
     pre_annotate: bool = Field(default=False, description="Request ML pre-annotations")
 
 
+class TaskProgress(BaseModel):
+    """Task preparation progress."""
+
+    step: str = Field(default="", description="Current step")
+    detail: str = Field(default="")
+
+
 class TaskResponse(BaseModel):
     """Annotation task response."""
 
@@ -37,6 +44,7 @@ class TaskResponse(BaseModel):
     has_pre_annotations: bool = Field(default=False)
     pipeline_preset: str | None = Field(None)
     dataset_path: str | None = Field(None)
+    progress: TaskProgress | None = Field(None, description="Preparation progress")
 
 
 class TaskListResponse(BaseModel):
