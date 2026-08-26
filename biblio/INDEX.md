@@ -1,9 +1,10 @@
 # Bibliographie
 
-*278 article(s) — généré le 2026-08-26 14:35 UTC*
+*292 article(s) — généré le 2026-08-26 18:23 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|
+| [Large-vocabulary segmentation for medical images with text p](fiches/25RQ9QID.md) | `25RQ9QID` | 12k |
 | [Detection and Localization of Spine Disorders from Plain Rad](fiches/2A5UGAZ5.md) | `2A5UGAZ5` | 8k |
 | [Quick Annotator: an open‐source digital pathology based rapi](fiches/2AEJ8SPK.md) | `2AEJ8SPK` | 6k |
 | [Segment anything model for medical image analysis: An experi](fiches/2C5HE2XU.md) | `2C5HE2XU` | 7k |
@@ -20,7 +21,9 @@
 | [Deep learning framework for vertebral heart size and cardiot](fiches/32QJFNQ8.md) | `32QJFNQ8` | 1k |
 | [Proximal femur fracture detection on plain radiography via f](fiches/33XXRKQF.md) | `33XXRKQF` | 5k |
 | [Detecting pediatric appendicular fractures using artificial ](fiches/397S4X7E.md) | `397S4X7E` | 8k |
+| [Towards annotation-efficient segmentation via image-to-image](fiches/3B8E7CST.md) | `3B8E7CST` | 7k |
 | [Invited 2 - Annotation-Efficient Deep Learning for Medical I](fiches/3D294B5D.md) | `3D294B5D` | 10k |
+| [Lung segment anything model (LuSAM): a decoupled prompt-inte](fiches/3D658MPP.md) | `3D658MPP` | 1k |
 | [Adapting SAM2 Model from Natural Images for Tooth Segmentati](fiches/3DTCV6RJ.md) | `3DTCV6RJ` | 9k |
 | [Cat Skin Disease Detection System Using You Only Look Once (](fiches/3IETZMUA.md) | `3IETZMUA` | 6k |
 | [Fracture detection in pediatric wrist trauma X-ray images us](fiches/3MI9BR5T.md) | `3MI9BR5T` | 15k |
@@ -42,6 +45,7 @@
 | [Classification of Canine Maturity and Bone Fracture Time Bas](fiches/4MPW8C48.md) | `4MPW8C48` | 1k |
 | [BRIMA: low-overhead BRowser-only IMage Annotation tool (Prep](fiches/4PQRND76.md) | `4PQRND76` | 6k |
 | [Automatic annotation of hip anatomy in fluoroscopy for robus](fiches/4SRMEW8B.md) | `4SRMEW8B` | 7k |
+| [Combined expert-in-the-loop—random forest multiclass segment](fiches/4TGQ8MD8.md) | `4TGQ8MD8` | 3k |
 | [Dataset for autonomous agriculture using robots to inspect c](fiches/4TS292PX.md) | `4TS292PX` | 1k |
 | [Vision6D: 3D-to-2D Interactive Visualization and Annotation ](fiches/4U95MVDB.md) | `4U95MVDB` | 4k |
 | [Computer Vision in Lower Limb Orthopaedics: A Scoping Review](fiches/52TAPA8H.md) | `52TAPA8H` | 1k |
@@ -77,6 +81,7 @@
 | [An annotated dataset of images of Chinese giant salamanders.](fiches/9DN86QDR.md) | `9DN86QDR` | 5k |
 | [Interactive user interface based on Convolutional Auto-encod](fiches/9HZ8ED29.md) | `9HZ8ED29` | 6k |
 | [An efficient segment anything model for the segmentation of ](fiches/9MW6C66A.md) | `9MW6C66A` | 13k |
+| [Enhancing Diagnostic Images to Improve the Performance of th](fiches/9RN28KNE.md) | `9RN28KNE` | 3k |
 | [Capturing Requirements for a Data Annotation Tool for Intens](fiches/A7GGG9C6.md) | `A7GGG9C6` | 1k |
 | [Deep neural network improves fracture detection by clinician](fiches/A8VRJPWD.md) | `A8VRJPWD` | 9k |
 | [An annotated image dataset for small apple fruitlet detectio](fiches/AAX5HD8S.md) | `AAX5HD8S` | 8k |
@@ -120,7 +125,9 @@
 | [Rib fracture detection system based on deep learning.](fiches/ER8HJT5W.md) | `ER8HJT5W` | 2k |
 | [Explainable opportunistic osteoporosis screening from chest ](fiches/ERQAHR7Q.md) | `ERQAHR7Q` | 9k |
 | [Segment Anything Model 2: An Application to 2D and 3D Medica](fiches/ESRHXHNN.md) | `ESRHXHNN` | 6k |
+| [Language-Guided Segmentation of Medical Images: A Review of ](fiches/ETZ9XE3X.md) | `ETZ9XE3X` | 20k |
 | [Autonomous skeletal landmark localization toward agentic C-a](fiches/EVKI8WFD.md) | `EVKI8WFD` | 1k |
+| [MedZeroSeg: Zero-shot medical image segmentation via vision ](fiches/F3IWA4V2.md) | `F3IWA4V2` | 16k |
 | [VIBESegmentator: full body MRI segmentation for the NAKO and](fiches/F6ZGIJKD.md) | `F6ZGIJKD` | 14k |
 | [Generalist models in medical image segmentation: A survey an](fiches/FRGRR9CF.md) | `FRGRR9CF` | 64k |
 | [Deep learning image segmentation approaches for malignant bo](fiches/FRT2MP28.md) | `FRT2MP28` | 8k |
@@ -144,6 +151,7 @@
 | [Table 3: Image annotation process configuration.](fiches/HN9AHM9X.md) | `HN9AHM9X` | 8k |
 | [MCP-MedSAM: A Powerful Lightweight Medical Segment Anything ](fiches/HSGXIS3C.md) | `HSGXIS3C` | 8k |
 | [Accuracy of segment anything model for classification of vas](fiches/HTVQES56.md) | `HTVQES56` | 10k |
+| [Vessel-CAPTCHA: An efficient learning framework for vessel a](fiches/I3AQ2Q5R.md) | `I3AQ2Q5R` | 17k |
 | [A probabilistic segment anything model for ambiguity‑aware m](fiches/I7M9WVQA.md) | `I7M9WVQA` | 5k |
 | [Efficient Quantization-Aware Training on Segment Anything Mo](fiches/I8GG3UI6.md) | `I8GG3UI6` | 8k |
 | [SAMCT: Segment Any CT Allowing Labor-Free Task-Indicator Pro](fiches/IBWSDW3T.md) | `IBWSDW3T` | 25k |
@@ -152,6 +160,7 @@
 | [Detection of Hand Bone Fractures in X-Ray Images Using Hybri](fiches/IPRSP4UQ.md) | `IPRSP4UQ` | 1k |
 | [SLD: Segmentation-Based Landmark Detection for Spinal Ligame](fiches/IRSARMX4.md) | `IRSARMX4` | 7k |
 | [Labeling instructions matter in biomedical image analysis](fiches/ITP3HPHJ.md) | `ITP3HPHJ` | 6k |
+| [LDFSAM: Localization Distillation-Enhanced Feature Prompting](fiches/J2RN9FJW.md) | `J2RN9FJW` | 12k |
 | [Critical evaluation of deep neural networks for wrist fractu](fiches/J9BHQK4V.md) | `J9BHQK4V` | 4k |
 | [A Systematic Literature Review of You Only Look Once Archite](fiches/JBJQII7X.md) | `JBJQII7X` | 12k |
 | [Annotated image dataset of fire blight symptoms for object d](fiches/JFFITIDT.md) | `JFFITIDT` | 7k |
@@ -195,6 +204,7 @@
 | [Current Trends and Future Directions of Large Scale Image an](fiches/NQC843TS.md) | `NQC843TS` | 4k |
 | [An automatic congenital radio-ulnar synostosis deformity eva](fiches/NTSIGT7X.md) | `NTSIGT7X` | 8k |
 | [VisioFirm: Cross-Platform AI-assisted Annotation Tool for Co](fiches/NVQGT9SN.md) | `NVQGT9SN` | 7k |
+| [Fine-Tuned Segment Anything Model with Low-Rank Adaptation f](fiches/P2MJKTP8.md) | `P2MJKTP8` | 6k |
 | [Language-Guided Segmentation of Medical Images: A Review of ](fiches/P4RUKWPW.md) | `P4RUKWPW` | 20k |
 | [Efficient musculoskeletal annotation using free-form deforma](fiches/P7D7ZR7A.md) | `P7D7ZR7A` | 10k |
 | [CervSpineNet: a hybrid deep learning-based approach for the ](fiches/P8WE6IPZ.md) | `P8WE6IPZ` | 8k |
@@ -213,6 +223,7 @@
 | [Image Analysis and Computer Vision Applications in Animal Sc](fiches/QJ3N3VZU.md) | `QJ3N3VZU` | 2k |
 | [Accelerating Volumetric Medical Image Annotation via Short-L](fiches/QKFJZ8JX.md) | `QKFJZ8JX` | 8k |
 | [A deep learning-based iterative digital pathology annotation](fiches/QNUTVUB8.md) | `QNUTVUB8` | 2k |
+| [FluoroSAM: A Language-promptable Foundation Model for Flexib](fiches/QQ5Z2KBG.md) | `QQ5Z2KBG` | 1k |
 | [A survey on active learning and human-in-the-loop deep learn](fiches/QW7DT8RF.md) | `QW7DT8RF` | 5k |
 | [Large-vocabulary segmentation for medical images with text p](fiches/QZD9N38V.md) | `QZD9N38V` | 11k |
 | [Veterinary fracture diagnosis: a deep learning model for dog](fiches/R5PSXHRJ.md) | `R5PSXHRJ` | 14k |
@@ -220,6 +231,7 @@
 | [INTERACTIVE CHANGE DETECTION USING HIGH RESOLUTION REMOTE SE](fiches/RG9JMVFA.md) | `RG9JMVFA` | 5k |
 | [ChEX: Interactive Localization and Region Description in Che](fiches/RH6Q4ZFA.md) | `RH6Q4ZFA` | 16k |
 | [Joint aortic root segmentation and landmark localization on ](fiches/RHJHT9KG.md) | `RHJHT9KG` | 1k |
+| [Accuracy of segment anything model for classification of vas](fiches/RMIE793G.md) | `RMIE793G` | 9k |
 | [Region‐Based Convolutional Neural Network‐Based Spine Model ](fiches/RSR85EAH.md) | `RSR85EAH` | 1k |
 | [Automating Ground Truth Annotations for Gland Segmentation T](fiches/RTRUFDJN.md) | `RTRUFDJN` | 7k |
 | [Feature Aggregation and Refinement Network for 2D Anatomical](fiches/S4WAVKQ2.md) | `S4WAVKQ2` | 7k |
@@ -274,7 +286,9 @@
 | [Labels4Rails: A Railway Image Annotation Tool and Associated](fiches/XIUEUBHE.md) | `XIUEUBHE` | 5k |
 | [Ladder: A Software to Label Images, Detect Objects and Deplo](fiches/XU3ZP8TB.md) | `XU3ZP8TB` | 9k |
 | [Data-centric annotation analysis for plant disease detection](fiches/Z79U6JA2.md) | `Z79U6JA2` | 12k |
+| [A Semi-Automatic Magnetic Resonance Imaging Annotation Algor](fiches/ZFCMRFWV.md) | `ZFCMRFWV` | 4k |
 | [SegmentAnyBone: A universal model that segments any bone at ](fiches/ZH77TVM2.md) | `ZH77TVM2` | 8k |
+| [A probabilistic segment anything model for ambiguity‑aware m](fiches/ZIKXA2MJ.md) | `ZIKXA2MJ` | 6k |
 | [A high-resolution beach imagery dataset with COCO annotation](fiches/ZJ4MHTVC.md) | `ZJ4MHTVC` | 1k |
 | [A localization strategy combined with transfer learning for ](fiches/ZJPU5ISQ.md) | `ZJPU5ISQ` | 12k |
 | [BRIMA: low-overhead BRowser-only IMage Annotation tool (Prep](fiches/ZMW23MJX.md) | `ZMW23MJX` | 6k |
