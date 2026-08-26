@@ -1379,7 +1379,7 @@ curl -X POST http://10.0.0.59:9468/api/annotation/propagate/1?seed_frame=0
 
 ---
 
-**Dernière mise à jour**: 2026-08-25
+**Dernière mise à jour**: 2026-08-26
 **Phase**: MedSAM2 temporal propagation
 **Version**: v0.1.47
 **Endpoints**: 68+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 6, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7, SAM 5, MedSAM2 4)

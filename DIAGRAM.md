@@ -169,6 +169,6 @@ graph LR
 
 ---
 
-**Dernière mise à jour**: 2026-08-25
+**Dernière mise à jour**: 2026-08-26
 **Phase**: SAM multi-model CVAT integration
 **Version**: v0.1.40
