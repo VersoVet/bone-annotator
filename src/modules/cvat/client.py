@@ -159,15 +159,20 @@ class CVATClient:
         if self.client is None:
             return False
         try:
-            with ExitStack() as stack:
-                files = [
-                    (
-                        f"client_files[{index}]",
-                        (path.name, stack.enter_context(path.open("rb")), "image/png"),
-                    )
-                    for index, path in enumerate(image_paths)
-                ]
-                return await self._post_image_files(task_id, files, len(image_paths))
+            batch_size = 50
+            for batch_start in range(0, len(image_paths), batch_size):
+                batch = image_paths[batch_start : batch_start + batch_size]
+                with ExitStack() as stack:
+                    files = [
+                        (
+                            f"client_files[{index}]",
+                            (path.name, stack.enter_context(path.open("rb")), "image/png"),
+                        )
+                        for index, path in enumerate(batch)
+                    ]
+                    if not await self._post_image_files(task_id, files, len(batch)):
+                        return False
+            return True
         except Exception as e:
             logger.error("Error uploading image files to task %d: %s", task_id, e)
             return False
