@@ -137,7 +137,10 @@ class CVATClient:
         try:
             if self.client is None:
                 return False
-            files = [("client_files", (name, data, "image/png")) for name, data in images]
+            files = [
+                (f"client_files[{index}]", (name, data, "image/png"))
+                for index, (name, data) in enumerate(images)
+            ]
             return await self._post_image_files(task_id, files, len(images))
         except Exception as e:
             logger.error("Error uploading images to task %d: %s", task_id, e)
@@ -159,7 +162,7 @@ class CVATClient:
             with ExitStack() as stack:
                 files = [
                     (
-                        "client_files",
+                        f"client_files[{index}]",
                         (path.name, stack.enter_context(path.open("rb")), "image/png"),
                     )
                     for index, path in enumerate(image_paths)
