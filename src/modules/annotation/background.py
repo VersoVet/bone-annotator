@@ -6,7 +6,7 @@ Updates task status in PostgreSQL as it progresses.
 
 import asyncio
 import logging
-from typing import Any
+from pathlib import Path
 
 from src.config import get_cvat_config
 from src.modules.cvat.client import CVATClient
@@ -96,12 +96,9 @@ async def prepare_and_upload(
         # Upload images
 
         task_db.update_task(task_id, notes=f"Uploading {dataset.frame_count} frames to CVAT...")
-        images = await asyncio.to_thread(
-            _load_images,
-            dataset.path / "images",
-        )
-        if images:
-            await cvat.upload_images(cvat_task_id, images)
+        image_paths = await asyncio.to_thread(_list_images, dataset.path / "images")
+        if image_paths:
+            await cvat.upload_image_paths(cvat_task_id, image_paths)
 
         await cvat.close()
 
@@ -125,8 +122,6 @@ async def prepare_and_upload(
         task_db.update_task(task_id, status="failed", notes=str(e)[:500])
 
 
-def _load_images(images_dir: Any) -> list[tuple[str, bytes]]:
-    """Load PNG images from directory."""
-    from pathlib import Path
-
-    return [(p.name, p.read_bytes()) for p in sorted(Path(images_dir).glob("*.png"))]
+def _list_images(images_dir: Path) -> list[Path]:
+    """List prepared PNG images in deterministic order."""
+    return sorted(images_dir.glob("*.png"))

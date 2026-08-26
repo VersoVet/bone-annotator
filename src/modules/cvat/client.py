@@ -4,7 +4,9 @@ Handles authentication, request routing, and error handling for CVAT operations.
 """
 
 import logging
-from typing import Any
+from contextlib import ExitStack
+from pathlib import Path
+from typing import Any, BinaryIO
 
 import httpx
 
@@ -136,20 +138,57 @@ class CVATClient:
             if self.client is None:
                 return False
             files = [(f"client_files[{i}]", (name, data, "image/png")) for i, (name, data) in enumerate(images)]
-            response = await self.client.post(
-                f"{self.api_base}/tasks/{task_id}/data",
-                files=files,
-                data={"image_quality": 95},
-                timeout=120.0,
-            )
-            if response.status_code in (200, 201, 202):
-                logger.info("Uploaded %d images to task %d", len(images), task_id)
-                return True
-            logger.error("Upload failed: %s", response.status_code)
-            return False
+            return await self._post_image_files(task_id, files, len(images))
         except Exception as e:
             logger.error("Error uploading images to task %d: %s", task_id, e)
             return False
+
+    async def upload_image_paths(self, task_id: int, image_paths: list[Path]) -> bool:
+        """Upload images directly from disk without buffering them in memory.
+
+        Args:
+            task_id: CVAT task ID.
+            image_paths: PNG files to upload.
+
+        Returns:
+            True when CVAT accepts the upload.
+        """
+        if self.client is None:
+            return False
+        try:
+            with ExitStack() as stack:
+                files = [
+                    (
+                        f"client_files[{index}]",
+                        (path.name, stack.enter_context(path.open("rb")), "image/png"),
+                    )
+                    for index, path in enumerate(image_paths)
+                ]
+                return await self._post_image_files(task_id, files, len(image_paths))
+        except Exception as e:
+            logger.error("Error uploading image files to task %d: %s", task_id, e)
+            return False
+
+    async def _post_image_files(
+        self,
+        task_id: int,
+        files: list[tuple[str, tuple[str, bytes | BinaryIO, str]]],
+        image_count: int,
+    ) -> bool:
+        """Send a prepared multipart image request to CVAT."""
+        if self.client is None:
+            return False
+        response = await self.client.post(
+            f"{self.api_base}/tasks/{task_id}/data",
+            files=files,
+            data={"image_quality": 95},
+            timeout=300.0,
+        )
+        if response.status_code in (200, 201, 202):
+            logger.info("Uploaded %d images to task %d", image_count, task_id)
+            return True
+        logger.error("Upload failed: %s", response.status_code)
+        return False
 
     async def set_labels(self, task_id: int, labels: list[dict[str, Any]]) -> bool:
         """Set labels on a CVAT task."""
@@ -211,7 +250,9 @@ class CVATClient:
             return []
 
     async def get_or_create_project(
-        self, bone_type: str, labels: list[dict[str, Any]],
+        self,
+        bone_type: str,
+        labels: list[dict[str, Any]],
     ) -> int | None:
         """Get or create a CVAT project for a bone type.
 
@@ -248,7 +289,9 @@ class CVATClient:
             return None
 
     async def sync_project_labels(
-        self, project_id: int, labels: list[dict[str, Any]],
+        self,
+        project_id: int,
+        labels: list[dict[str, Any]],
     ) -> int:
         """Sync labels on a CVAT project (add-only, never delete).
 
