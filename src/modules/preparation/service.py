@@ -333,5 +333,9 @@ def get_service(storage_root: Path | None = None) -> DatasetPreparationService:
     """Get or create the preparation service singleton."""
     global _service
     if _service is None:
+        if storage_root is None:
+            from src.modules.sources.service import get_service as get_source_service
+
+            storage_root = get_source_service().get_dataset_storage_path()
         _service = DatasetPreparationService(storage_root)
     return _service

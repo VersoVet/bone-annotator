@@ -98,7 +98,8 @@ async def prepare_and_upload(
         task_db.update_task(task_id, notes=f"Uploading {dataset.frame_count} frames to CVAT...")
         image_paths = await asyncio.to_thread(_list_images, dataset.path / "images")
         if image_paths:
-            await cvat.upload_image_paths(cvat_task_id, image_paths)
+            if not await cvat.upload_image_paths(cvat_task_id, image_paths):
+                raise RuntimeError(f"CVAT image upload failed for task {cvat_task_id}")
 
         await cvat.close()
 
