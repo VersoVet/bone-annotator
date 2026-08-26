@@ -203,7 +203,10 @@ class AnnotationTaskDB:
             return
         conn = self._get_conn()
         set_clauses = ", ".join(f"{k}=%s" for k in updates)
-        values = list(updates.values()) + [task_id]
+        values = [
+            json.dumps(value) if key == "pipeline_config" and value is not None else value
+            for key, value in updates.items()
+        ] + [task_id]
         conn.execute(
             f"UPDATE {SCHEMA}.annotation_tasks SET {set_clauses}, updated_at=NOW() WHERE id=%s",
             values,
