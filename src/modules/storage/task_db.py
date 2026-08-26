@@ -193,7 +193,9 @@ class AnnotationTaskDB:
             "validated_by",
             "validated_at",
             "notes",
+            "frame_count",
             "dataset_path",
+            "pipeline_config",
             "parent_task_id",
         }
         updates = {k: v for k, v in kwargs.items() if k in allowed}
