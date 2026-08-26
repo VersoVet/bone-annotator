@@ -4,6 +4,7 @@ Forwards propagation requests to MedSAM2 GPU server on OnyxCortex.
 Used for bone annotation: annotate 1 frame, propagate to entire series.
 """
 
+import asyncio
 import logging
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,7 @@ def _load_medsam2_url() -> str:
 
 
 MEDSAM2_URL = _load_medsam2_url()
+_propagation_lock = asyncio.Lock()
 
 
 @router.get("/status")
@@ -52,15 +54,16 @@ async def propagate(request: Request) -> dict[str, Any]:
     Returns: {masks: [base64...], frame_count: int}
     """
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{MEDSAM2_URL}/propagate",
-                json=await request.json(),
-                timeout=300.0,  # Propagation can take minutes for large series
-            )
-            if resp.status_code != 200:
-                raise HTTPException(status_code=resp.status_code, detail=resp.text[:200])
-            return resp.json()
+        async with _propagation_lock:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    f"{MEDSAM2_URL}/propagate",
+                    json=await request.json(),
+                    timeout=300.0,  # Propagation can take minutes for large series
+                )
+                if resp.status_code != 200:
+                    raise HTTPException(status_code=resp.status_code, detail=resp.text[:200])
+                return resp.json()
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="MedSAM2 propagation timeout")
     except HTTPException:
@@ -84,6 +87,8 @@ async def segment(request: Request) -> dict[str, Any]:
                 json=await request.json(),
                 timeout=30.0,
             )
+            if resp.status_code != 200:
+                raise HTTPException(status_code=resp.status_code, detail=resp.text[:200])
             return resp.json()
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="MedSAM2 segment timeout")

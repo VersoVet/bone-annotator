@@ -1314,7 +1314,7 @@ Collections: bone_atlas, bone_annotations
 
 ---
 
-## SAM (Segment Anything Model)
+## SAM legacy / MedSAM ViT-B (CVAT interactor)
 
 ### `GET /api/sam/status`
 État du service SAM GPU (OnyxCortex).
@@ -1359,10 +1359,17 @@ curl -X POST http://10.0.0.59:9468/api/sam/switch-model \
 
 ---
 
+Le chemin CVAT/Nuclio interactor utilise exclusivement `sam-gpu:9470`
+(`/api/embed`) et le modèle `medsam`. MedSAM2 n'est pas compatible avec le
+décodeur ONNX SAM1 du navigateur CVAT.
+
 ## MedSAM2 (Propagation Temporelle)
 
+MedSAM2 est servi directement par OnyxCortex sur `10.0.0.26:9473`.
+Il est utilisé par bone-annotator, pas par l'interactor CVAT.
+
 ### `GET /api/medsam2/status`
-Statut du serveur MedSAM2 GPU.
+Vérifie la disponibilité et le contrat du serveur MedSAM2.
 
 ### `POST /api/medsam2/propagate`
 Propager un masque seed sur toute une série de frames.
@@ -1371,7 +1378,9 @@ Propager un masque seed sur toute une série de frames.
 Segmentation 2D single frame avec MedSAM2.
 
 ### `POST /api/annotation/propagate/{task_id}`
-Propagation MedSAM2 intégrée au workflow : pull seed mask CVAT, propage, push résultats.
+Propagation MedSAM2 intégrée au workflow : lecture du masque seed CVAT,
+traitement de toute la série par lots sûrs, puis écriture des masques avec
+leurs indices CVAT d'origine.
 
 ```bash
 curl -X POST http://10.0.0.59:9468/api/annotation/propagate/1?seed_frame=0

@@ -56,11 +56,17 @@ async def propagate(
     annotations = await cvat_client.get_annotations(cvat_task_id)
 
     seed_mask = None
+    image_size: tuple[int, int] | None = None
     if annotations and annotations.get("shapes"):
         for shape in annotations["shapes"]:
             if shape.get("frame") == seed_frame_idx:
                 if shape.get("type") == "mask":
-                    seed_mask = _cvat_mask_to_binary(shape)
+                    image_files = sorted(images_dir.glob("*.png"))
+                    if not image_files:
+                        raise ValueError(f"No images found in {images_dir}")
+                    with Image.open(image_files[0]) as image:
+                        image_size = image.size
+                    seed_mask = _cvat_mask_to_binary(shape, image_size)
                     break
                 elif shape.get("type") in ("polygon", "rectangle"):
                     seed_mask = _cvat_shape_to_binary(shape, images_dir)
@@ -73,14 +79,11 @@ async def propagate(
         )
         raise ValueError(msg)
 
-    # 2. Load and sample frames
+    # 2. Load every frame. MedSAM2 propagation is chunked below to avoid
+    # silently dropping frames while keeping the original CVAT indices.
     frame_files = sorted(images_dir.glob("*.png"))
-    max_frames = 100
-    step = max(1, len(frame_files) // max_frames)
-    sampled_files = frame_files[::step]
-    sampled_seed_idx = seed_frame_idx // step
-
-    frames_b64 = [base64.b64encode(fp.read_bytes()).decode() for fp in sampled_files]
+    if seed_frame_idx >= len(frame_files):
+        raise ValueError(f"Seed frame {seed_frame_idx} is outside the image series")
 
     mask_pil = Image.fromarray((seed_mask * 255).astype(np.uint8))
     buf = io.BytesIO()
@@ -89,37 +92,19 @@ async def propagate(
 
     # 3. Call MedSAM2
     medsam2_url = _load_medsam2_url()
-    logger.info(
-        "MedSAM2 propagate: %d frames (sampled %d), seed=%d",
-        len(frame_files),
-        len(sampled_files),
-        sampled_seed_idx,
+    propagated_masks = await _propagate_all_frames(
+        medsam2_url,
+        frame_files,
+        seed_frame_idx,
+        seed_mask_b64,
     )
-
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{medsam2_url}/propagate",
-            json={
-                "frames": frames_b64,
-                "seed_frame_idx": sampled_seed_idx,
-                "seed_mask": seed_mask_b64,
-                "score_threshold": 0.0,
-            },
-            timeout=300.0,
-        )
-
-    if resp.status_code != 200:
-        msg = f"MedSAM2 propagation failed: {resp.text[:200]}"
-        raise RuntimeError(msg)
-
-    propagated_masks = resp.json().get("masks", [])
     logger.info("MedSAM2 returned %d masks", len(propagated_masks))
 
     # 4. Convert to CVAT shapes and push
     label_id = _get_bone_label_id(annotations)
     cvat_shapes = []
 
-    for i, mask_b64 in enumerate(propagated_masks):
+    for frame_idx, mask_b64 in propagated_masks.items():
         mask_bytes = base64.b64decode(mask_b64)
         mask_arr = np.array(Image.open(io.BytesIO(mask_bytes)))
         if mask_arr.max() == 0:
@@ -130,7 +115,7 @@ async def propagate(
             cvat_shapes.append(
                 {
                     "type": "mask",
-                    "frame": i * step,
+                    "frame": frame_idx,
                     "label_id": label_id,
                     "points": rle,
                     "occluded": False,
@@ -148,7 +133,7 @@ async def propagate(
         "task_id": task["id"],
         "cvat_task_id": cvat_task_id,
         "total_frames": len(frame_files),
-        "sampled_frames": len(sampled_files),
+        "sampled_frames": len(frame_files),
         "propagated_masks": len(cvat_shapes),
         "seed_frame": seed_frame_idx,
     }
@@ -178,14 +163,27 @@ def _cvat_shape_to_binary(shape: dict[str, Any], images_dir: Path) -> np.ndarray
     return mask
 
 
-def _cvat_mask_to_binary(shape: dict[str, Any]) -> np.ndarray | None:
-    """Convert CVAT RLE mask to binary numpy array."""
+def _cvat_mask_to_binary(
+    shape: dict[str, Any],
+    image_size: tuple[int, int],
+) -> np.ndarray | None:
+    """Convert a CVAT crop RLE to a full-image binary mask.
+
+    Args:
+        shape: CVAT mask shape containing crop RLE and left/top bounds.
+        image_size: Full image size as ``(width, height)``.
+    """
     pts = shape.get("points", [])
     if len(pts) < 5:
         return None
     rle = pts[:-4]
     left, top, right, bottom = int(pts[-4]), int(pts[-3]), int(pts[-2]), int(pts[-1])
     w, h = right - left, bottom - top
+    image_width, image_height = image_size
+    if w <= 0 or h <= 0 or left < 0 or top < 0:
+        return None
+    if right > image_width or bottom > image_height:
+        raise ValueError("CVAT mask bounds exceed the source image")
 
     mask_crop = np.zeros(h * w, dtype=np.uint8)
     pos, val = 0, 0
@@ -196,7 +194,56 @@ def _cvat_mask_to_binary(shape: dict[str, Any]) -> np.ndarray | None:
         pos = end
         val = 1 - val
 
-    return mask_crop.reshape(h, w)
+    mask = np.zeros((image_height, image_width), dtype=np.uint8)
+    mask[top:bottom, left:right] = mask_crop.reshape(h, w)
+    return mask
+
+
+async def _propagate_all_frames(
+    medsam2_url: str,
+    frame_files: list[Path],
+    seed_frame_idx: int,
+    seed_mask_b64: str,
+    batch_size: int = 64,
+) -> dict[int, str]:
+    """Propagate forward and backward in bounded batches.
+
+    Each batch overlaps the previous batch at its seed frame. Returned masks
+    are mapped to their original CVAT frame indices, so no sampling occurs.
+    """
+    result: dict[int, str] = {seed_frame_idx: seed_mask_b64}
+    async with httpx.AsyncClient() as client:
+        for direction in (1, -1):
+            current_idx = seed_frame_idx
+            current_mask = seed_mask_b64
+            while 0 <= current_idx + direction < len(frame_files):
+                if direction == 1:
+                    end = min(len(frame_files) - 1, current_idx + batch_size - 1)
+                    indices = list(range(current_idx, end + 1))
+                else:
+                    end = max(0, current_idx - batch_size + 1)
+                    indices = list(range(current_idx, end - 1, -1))
+                frames = [frame_files[index] for index in indices]
+                response = await client.post(
+                    f"{medsam2_url}/propagate",
+                    json={
+                        "frames": [base64.b64encode(path.read_bytes()).decode() for path in frames],
+                        "seed_frame_idx": 0,
+                        "seed_mask": current_mask,
+                        "score_threshold": 0.0,
+                    },
+                    timeout=300.0,
+                )
+                if response.status_code != 200:
+                    raise RuntimeError(f"MedSAM2 propagation failed: {response.text[:200]}")
+                masks = response.json().get("masks", [])
+                if len(masks) != len(indices):
+                    raise RuntimeError("MedSAM2 returned an incomplete batch")
+                for index, mask in zip(indices, masks):
+                    result[index] = mask
+                current_idx = indices[-1]
+                current_mask = masks[-1]
+    return result
 
 
 def _binary_mask_to_rle(mask: np.ndarray) -> list[float]:

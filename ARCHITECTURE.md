@@ -230,6 +230,15 @@ CVAT:push_predictions()
 
 ---
 
+## Segmentation et propagation
+
+Le serveur SAM legacy sur OnyxCortex `:9470` fournit les embeddings `/api/embed`
+utilisés par les fonctions Nuclio interactor CVAT, y compris MedSAM ViT-B.
+MedSAM2 sur `:9473` expose un contrat différent (`/segment`, `/propagate`) et
+est appelé exclusivement par le module `annotation.medsam2_bridge`. Le bridge
+reconstruit les masques CVAT en pleine image et propage toutes les frames par
+lots chevauchants, sans rééchantillonnage ni perte d'indices.
+
 ## Dépendances Externes
 
 | Dépendance | Type | Usage | Criticité |

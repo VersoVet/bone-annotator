@@ -17,7 +17,7 @@ dataset_pacs:
 
 # Fallback stockage local si PACS indisponible
 dataset_storage_fallback:
-  root: /mnt/soma-shared/annotation-datasets
+  root: /mnt/cortex-bone-share/datasets
 
 # Imaging pipelines — vet-fluoro-studio sur Synapse
 imaging:
