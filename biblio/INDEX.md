@@ -1,6 +1,6 @@
 # Bibliographie
 
-*268 article(s) — généré le 2026-08-26 13:32 UTC*
+*278 article(s) — généré le 2026-08-26 14:35 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|
@@ -43,6 +43,7 @@
 | [BRIMA: low-overhead BRowser-only IMage Annotation tool (Prep](fiches/4PQRND76.md) | `4PQRND76` | 6k |
 | [Automatic annotation of hip anatomy in fluoroscopy for robus](fiches/4SRMEW8B.md) | `4SRMEW8B` | 7k |
 | [Dataset for autonomous agriculture using robots to inspect c](fiches/4TS292PX.md) | `4TS292PX` | 1k |
+| [Vision6D: 3D-to-2D Interactive Visualization and Annotation ](fiches/4U95MVDB.md) | `4U95MVDB` | 4k |
 | [Computer Vision in Lower Limb Orthopaedics: A Scoping Review](fiches/52TAPA8H.md) | `52TAPA8H` | 1k |
 | [Iterative Pseudo-Labeling with Deep Feature Annotation and C](fiches/56WIZBZT.md) | `56WIZBZT` | 12k |
 | [RIL-Contour: a Medical Imaging Dataset Annotation Tool for a](fiches/5FM6FFH2.md) | `5FM6FFH2` | 4k |
@@ -54,6 +55,7 @@
 | [The VIA Annotation Software for Images, Audio and Video](fiches/6PAWFK6P.md) | `6PAWFK6P` | 5k |
 | [YOLO (YOU ONLY LOOK ONCE) Making Object detection work in Me](fiches/6W9STQXW.md) | `6W9STQXW` | 2k |
 | [The caBIG annotation and image Markup project.](fiches/6XP9PAMI.md) | `6XP9PAMI` | 5k |
+| [Skeleton Ground Truth Extraction: Methodology, Annotation To](fiches/6ZNRRV5D.md) | `6ZNRRV5D` | 10k |
 | [Deep Learning for Video Fluoroscopic Swallowing Study Analys](fiches/73ZUHHSM.md) | `73ZUHHSM` | 9k |
 | [A Semi-Automatic Magnetic Resonance Imaging Annotation Algor](fiches/75SJQVGM.md) | `75SJQVGM` | 7k |
 | [Reducing manual workload in CT and MRI annotation with the S](fiches/7BB2RII9.md) | `7BB2RII9` | 10k |
@@ -69,9 +71,11 @@
 | [Deep learning can automate chicken tibia-breaking strength q](fiches/8NE8QTXN.md) | `8NE8QTXN` | 5k |
 | [Fracture detection in pediatric wrist trauma X-ray images us](fiches/8QSI5S3S.md) | `8QSI5S3S` | 14k |
 | [Zero-Shot Vertebral Instance Segmentation on DICOM Spine Rad](fiches/8R59BQ48.md) | `8R59BQ48` | 18k |
+| [TrackMe:A Simple and Effective Multiple Object Tracking Anno](fiches/8ZESWUBP.md) | `8ZESWUBP` | 3k |
 | [MedCLIP-SAMv2: Towards universal text-driven medical image s](fiches/8ZHVJMFR.md) | `8ZHVJMFR` | 14k |
 | [Fully automatic algorithm for detecting and tracking anatomi](fiches/966MUBP7.md) | `966MUBP7` | 5k |
 | [An annotated dataset of images of Chinese giant salamanders.](fiches/9DN86QDR.md) | `9DN86QDR` | 5k |
+| [Interactive user interface based on Convolutional Auto-encod](fiches/9HZ8ED29.md) | `9HZ8ED29` | 6k |
 | [An efficient segment anything model for the segmentation of ](fiches/9MW6C66A.md) | `9MW6C66A` | 13k |
 | [Capturing Requirements for a Data Annotation Tool for Intens](fiches/A7GGG9C6.md) | `A7GGG9C6` | 1k |
 | [Deep neural network improves fracture detection by clinician](fiches/A8VRJPWD.md) | `A8VRJPWD` | 9k |
@@ -130,12 +134,15 @@
 | [Application of transformer models in medical image segmentat](fiches/GRK5NMBI.md) | `GRK5NMBI` | 1k |
 | [Segment Anything Model for Medical Image Segmentation: Curre](fiches/GVRMEFK8.md) | `GVRMEFK8` | 3k |
 | [Cograph Regularized Collective Nonnegative Matrix Factorizat](fiches/H3Z2DTMQ.md) | `H3Z2DTMQ` | 8k |
+| [From Bounding Boxes to Visual Reasoning: An On-Policy Data A](fiches/H96H4NRF.md) | `H96H4NRF` | 10k |
 | [Detection and classification of mandibular fractures in pano](fiches/H9DWW59C.md) | `H9DWW59C` | 546b |
 | [Image Annotation Software for Artificial Intelligence Applic](fiches/HA5EHHKX.md) | `HA5EHHKX` | 5k |
+| [Block Annotation: Better Image Annotation for Semantic Segme](fiches/HC85TZNT.md) | `HC85TZNT` | 10k |
 | [Performance of a Convolutional Neural Network- Based Artific](fiches/HF2F35RF.md) | `HF2F35RF` | 4k |
 | [Review of applications of deep learning in veterinary diagno](fiches/HFXA8ARZ.md) | `HFXA8ARZ` | 1k |
 | [A Self Supervised StyleGAN for Image Annotation and Classifi](fiches/HN5FHDDS.md) | `HN5FHDDS` | 9k |
 | [Table 3: Image annotation process configuration.](fiches/HN9AHM9X.md) | `HN9AHM9X` | 8k |
+| [MCP-MedSAM: A Powerful Lightweight Medical Segment Anything ](fiches/HSGXIS3C.md) | `HSGXIS3C` | 8k |
 | [Accuracy of segment anything model for classification of vas](fiches/HTVQES56.md) | `HTVQES56` | 10k |
 | [A probabilistic segment anything model for ambiguity‑aware m](fiches/I7M9WVQA.md) | `I7M9WVQA` | 5k |
 | [Efficient Quantization-Aware Training on Segment Anything Mo](fiches/I8GG3UI6.md) | `I8GG3UI6` | 8k |
@@ -157,6 +164,7 @@
 | [Deep learning in fracture detection: a narrative review.](fiches/JNIE8GDM.md) | `JNIE8GDM` | 1k |
 | [2D–3D reconstruction of distal forearm bone from actual X-ra](fiches/JVQ6MFFN.md) | `JVQ6MFFN` | 1k |
 | [LabEquipVis: An annotated image dataset of computer laborato](fiches/JZE3TEHA.md) | `JZE3TEHA` | 4k |
+| [Automatic Ground Truths: Projected Image Annotations for Omn](fiches/K36IKKGK.md) | `K36IKKGK` | 4k |
 | [WCAY object detection of fractures for X-ray images of multi](fiches/K39R3WKJ.md) | `K39R3WKJ` | 1k |
 | [Open RGB imaging workflow for morphological and morphometric](fiches/K3R32RBI.md) | `K3R32RBI` | 2k |
 | [Transfer Learning from an Artificial Radiograph-landmark Dat](fiches/K72W3RHI.md) | `K72W3RHI` | 1k |
@@ -169,6 +177,7 @@
 | [Oil Palm Fruits Dataset in Plantations for Harvest Estimatio](fiches/KWWS8W86.md) | `KWWS8W86` | 3k |
 | [Interactive deep learning for myocardial scar segmentation u](fiches/KX5FQMRB.md) | `KX5FQMRB` | 880b |
 | [OneLabeler: A Flexible System for Building Data Labeling Too](fiches/M9ECTNF6.md) | `M9ECTNF6` | 14k |
+| [IAT - Image Annotation Tool: Manual](fiches/M9PGW8QA.md) | `M9PGW8QA` | 3k |
 | [Novel artificial intelligence-driven software significantly ](fiches/MAIS5HCJ.md) | `MAIS5HCJ` | 7k |
 | [Diffusion-Based Anonymization and Foundation Model-Powered S](fiches/MFHBIRSM.md) | `MFHBIRSM` | 12k |
 | [A wild fish image dataset for individual re-identification a](fiches/MGP5UA3Q.md) | `MGP5UA3Q` | 9k |
@@ -185,6 +194,7 @@
 | [FluoroSAM: A Language-promptable Foundation Model for Flexib](fiches/NJKIM2JT.md) | `NJKIM2JT` | 4k |
 | [Current Trends and Future Directions of Large Scale Image an](fiches/NQC843TS.md) | `NQC843TS` | 4k |
 | [An automatic congenital radio-ulnar synostosis deformity eva](fiches/NTSIGT7X.md) | `NTSIGT7X` | 8k |
+| [VisioFirm: Cross-Platform AI-assisted Annotation Tool for Co](fiches/NVQGT9SN.md) | `NVQGT9SN` | 7k |
 | [Language-Guided Segmentation of Medical Images: A Review of ](fiches/P4RUKWPW.md) | `P4RUKWPW` | 20k |
 | [Efficient musculoskeletal annotation using free-form deforma](fiches/P7D7ZR7A.md) | `P7D7ZR7A` | 10k |
 | [CervSpineNet: a hybrid deep learning-based approach for the ](fiches/P8WE6IPZ.md) | `P8WE6IPZ` | 8k |
