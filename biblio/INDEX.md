@@ -1,27 +1,31 @@
 # Bibliographie
 
-*254 article(s) — généré le 2026-08-26 04:43 UTC*
+*268 article(s) — généré le 2026-08-26 13:32 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|
 | [Detection and Localization of Spine Disorders from Plain Rad](fiches/2A5UGAZ5.md) | `2A5UGAZ5` | 8k |
 | [Quick Annotator: an open‐source digital pathology based rapi](fiches/2AEJ8SPK.md) | `2AEJ8SPK` | 6k |
+| [Segment anything model for medical image analysis: An experi](fiches/2C5HE2XU.md) | `2C5HE2XU` | 7k |
 | [Supervised Learning of Semantic Classes for Image Annotation](fiches/2FSUIFNN.md) | `2FSUIFNN` | 5k |
 | [A Comprehensive Systematic Review of YOLO for Medical Object](fiches/2JMPM6RK.md) | `2JMPM6RK` | 21k |
 | [Toward automatic C-arm positioning for standard projections ](fiches/2KW9VHPC.md) | `2KW9VHPC` | 2k |
 | [Marker-Less Lung Tumor Tracking from Real-Time Color X-Ray F](fiches/2MHV765Z.md) | `2MHV765Z` | 8k |
 | [A Comprehensive Survey on Segment Anything Model for Vision ](fiches/2PAV7PUR.md) | `2PAV7PUR` | 4k |
 | [A novel approach for automatic annotation of human actions i](fiches/2PKV8PPP.md) | `2PKV8PPP` | 11k |
+| [Keypoint-Augmented Self-Supervised Learning for Medical Imag](fiches/2SC4VVA8.md) | `2SC4VVA8` | 12k |
 | [A Comprehensive Systematic Review of YOLO for Medical Object](fiches/2TFSSGAE.md) | `2TFSSGAE` | 21k |
 | [TU-DAT: A Computer Vision Dataset on Road Traffic Anomalies.](fiches/2UMV4C64.md) | `2UMV4C64` | 1k |
 | [Active learning for accuracy enhancement of semantic segment](fiches/2X4U7Z6F.md) | `2X4U7Z6F` | 6k |
 | [Deep learning framework for vertebral heart size and cardiot](fiches/32QJFNQ8.md) | `32QJFNQ8` | 1k |
 | [Proximal femur fracture detection on plain radiography via f](fiches/33XXRKQF.md) | `33XXRKQF` | 5k |
 | [Detecting pediatric appendicular fractures using artificial ](fiches/397S4X7E.md) | `397S4X7E` | 8k |
+| [Invited 2 - Annotation-Efficient Deep Learning for Medical I](fiches/3D294B5D.md) | `3D294B5D` | 10k |
 | [Adapting SAM2 Model from Natural Images for Tooth Segmentati](fiches/3DTCV6RJ.md) | `3DTCV6RJ` | 9k |
 | [Cat Skin Disease Detection System Using You Only Look Once (](fiches/3IETZMUA.md) | `3IETZMUA` | 6k |
 | [Fracture detection in pediatric wrist trauma X-ray images us](fiches/3MI9BR5T.md) | `3MI9BR5T` | 15k |
 | [Labelling instructions matter in biomedical image analysis](fiches/3NQJNWI4.md) | `3NQJNWI4` | 1k |
+| [Efficient Deep-Learning-Assisted Annotation for Medical Imag](fiches/3SVFNWNF.md) | `3SVFNWNF` | 14k |
 | [A durian leaf image dataset of common diseases in Vietnam fo](fiches/3SXTNWFZ.md) | `3SXTNWFZ` | 2k |
 | [Training Strategies for Radiology Deep Learning Models in Da](fiches/3UHSG5TZ.md) | `3UHSG5TZ` | 1k |
 | [A novel open-source ultrasound dataset with deep learning be](fiches/3V7S7IVA.md) | `3V7S7IVA` | 12k |
@@ -82,6 +86,7 @@
 | [A survey on active learning and human-in-the-loop deep learn](fiches/CC63WSEZ.md) | `CC63WSEZ` | 2k |
 | [Artificial intelligence‐assisted analysis of musculoskeletal](fiches/CF35EEBH.md) | `CF35EEBH` | 9k |
 | [Active Learning Enabled Low-Cost Cell Image Segmentation Usi](fiches/CGQUWUQK.md) | `CGQUWUQK` | 8k |
+| [Affinity-Graph-Guided Contractive Learning for Pretext-Free ](fiches/CKCTA7IH.md) | `CKCTA7IH` | 19k |
 | [Automatic classification of canine thoracic radiographs usin](fiches/CNNWZ93P.md) | `CNNWZ93P` | 2k |
 | [Quick Annotator: an open-source digital pathology based rapi](fiches/CPUPST9P.md) | `CPUPST9P` | 6k |
 | [PatchSorter: a high throughput deep learning digital patholo](fiches/CPXBKRD3.md) | `CPXBKRD3` | 919b |
@@ -99,6 +104,7 @@
 | [Veterinary fracture diagnosis: a deep learning model for dog](fiches/DXSD2BN9.md) | `DXSD2BN9` | 12k |
 | [Enhancing lung segmentation in chest X-rays via SAM with ana](fiches/DZQQWHUW.md) | `DZQQWHUW` | 11k |
 | [Deep Learning-Based Automated Anatomical Landmark Detection ](fiches/E9KTS4V2.md) | `E9KTS4V2` | 10k |
+| [Combined expert-in-the-loop—random forest multiclass segment](fiches/EBCPFJW2.md) | `EBCPFJW2` | 11k |
 | [Embracing Imperfect Datasets: A Review of Deep Learning Solu](fiches/EDVHQBTV.md) | `EDVHQBTV` | 19k |
 | [X2P-Net: Context-Aware 2D/3D Vertebra Localization.](fiches/EEB6UB4M.md) | `EEB6UB4M` | 19k |
 | [Fully Automated Deep Learning System for Bone Age Assessment](fiches/EIJRIT7M.md) | `EIJRIT7M` | 3k |
@@ -126,6 +132,7 @@
 | [Cograph Regularized Collective Nonnegative Matrix Factorizat](fiches/H3Z2DTMQ.md) | `H3Z2DTMQ` | 8k |
 | [Detection and classification of mandibular fractures in pano](fiches/H9DWW59C.md) | `H9DWW59C` | 546b |
 | [Image Annotation Software for Artificial Intelligence Applic](fiches/HA5EHHKX.md) | `HA5EHHKX` | 5k |
+| [Performance of a Convolutional Neural Network- Based Artific](fiches/HF2F35RF.md) | `HF2F35RF` | 4k |
 | [Review of applications of deep learning in veterinary diagno](fiches/HFXA8ARZ.md) | `HFXA8ARZ` | 1k |
 | [A Self Supervised StyleGAN for Image Annotation and Classifi](fiches/HN5FHDDS.md) | `HN5FHDDS` | 9k |
 | [Table 3: Image annotation process configuration.](fiches/HN9AHM9X.md) | `HN9AHM9X` | 8k |
@@ -153,6 +160,7 @@
 | [WCAY object detection of fractures for X-ray images of multi](fiches/K39R3WKJ.md) | `K39R3WKJ` | 1k |
 | [Open RGB imaging workflow for morphological and morphometric](fiches/K3R32RBI.md) | `K3R32RBI` | 2k |
 | [Transfer Learning from an Artificial Radiograph-landmark Dat](fiches/K72W3RHI.md) | `K72W3RHI` | 1k |
+| [Vessel-CAPTCHA: An efficient learning framework for vessel a](fiches/K7DWNGMV.md) | `K7DWNGMV` | 16k |
 | [Deep Learning-Based Detection of Impacted Teeth on Panoramic](fiches/KG23857S.md) | `KG23857S` | 5k |
 | [Transductive Kernel Map Learning and Its Application Image A](fiches/KI3KPRC7.md) | `KI3KPRC7` | 7k |
 | [TreeJ: an ImageJ plugin for interactive cell lineage reconst](fiches/KIUJ7ASG.md) | `KIUJ7ASG` | 1k |
@@ -191,9 +199,11 @@
 | [Automatic image annotation for fluorescent cell nuclei segme](fiches/Q9QBTT9H.md) | `Q9QBTT9H` | 1k |
 | [PhenoImageShare: an image annotation and query infrastructur](fiches/QDZX9M3D.md) | `QDZX9M3D` | 5k |
 | [Detecting pediatric appendicular fractures using artificial ](fiches/QFCMUU57.md) | `QFCMUU57` | 8k |
+| [VR-based annotation assistance system for volumetric medical](fiches/QGHCUGHK.md) | `QGHCUGHK` | 7k |
 | [Image Analysis and Computer Vision Applications in Animal Sc](fiches/QJ3N3VZU.md) | `QJ3N3VZU` | 2k |
 | [Accelerating Volumetric Medical Image Annotation via Short-L](fiches/QKFJZ8JX.md) | `QKFJZ8JX` | 8k |
 | [A deep learning-based iterative digital pathology annotation](fiches/QNUTVUB8.md) | `QNUTVUB8` | 2k |
+| [A survey on active learning and human-in-the-loop deep learn](fiches/QW7DT8RF.md) | `QW7DT8RF` | 5k |
 | [Large-vocabulary segmentation for medical images with text p](fiches/QZD9N38V.md) | `QZD9N38V` | 11k |
 | [Veterinary fracture diagnosis: a deep learning model for dog](fiches/R5PSXHRJ.md) | `R5PSXHRJ` | 14k |
 | [Active learning for data efficient semantic segmentation of ](fiches/R8BTMCTU.md) | `R8BTMCTU` | 1k |
@@ -212,7 +222,9 @@
 | [BI-LAVA: Biocuration with Hierarchical Image Labeling throug](fiches/STE86RDS.md) | `STE86RDS` | 6k |
 | [What Are the Applications and Limitations of Artificial Inte](fiches/SUGJ6JQT.md) | `SUGJ6JQT` | 6k |
 | [Artificial intelligence in musculoskeletal imaging: realisti](fiches/SXR2BS4C.md) | `SXR2BS4C` | 1k |
+| [Active Learning Enabled Low-Cost Cell Image Segmentation Usi](fiches/T72VS4BN.md) | `T72VS4BN` | 8k |
 | [Efficient musculoskeletal annotation using free-form deforma](fiches/TBBFN946.md) | `TBBFN946` | 11k |
+| [Towards annotation-efficient segmentation via image-to-image](fiches/TDAUDZ2T.md) | `TDAUDZ2T` | 8k |
 | [Enhancing automatic landmark localization in X-ray images us](fiches/TGSRM6XZ.md) | `TGSRM6XZ` | 7k |
 | [Labelling point clouds in VR](fiches/TMA6WB52.md) | `TMA6WB52` | 4k |
 | [Deep learning pipeline for trapezium segmentation in thumb r](fiches/TN6NNHID.md) | `TN6NNHID` | 8k |
@@ -240,6 +252,7 @@
 | [MA-SAM: Modality-agnostic SAM adaptation for 3D medical imag](fiches/W4KGXUBC.md) | `W4KGXUBC` | 10k |
 | [Performance and Usability of Code-Free Deep Learning for Che](fiches/W6KW2JV4.md) | `W6KW2JV4` | 2k |
 | [Data annotation and its evaluation in artificial intelligenc](fiches/WEBFZV2K.md) | `WEBFZV2K` | 4k |
+| [Modeling annotator preference and stochastic annotation erro](fiches/WKBAADB5.md) | `WKBAADB5` | 15k |
 | [AnNoBrainer, An Automated Annotation of Mouse Brain Images u](fiches/WQRAJ4S5.md) | `WQRAJ4S5` | 6k |
 | [Segmentation methods for quantifying X-ray Computed Tomograp](fiches/WR3FEEXZ.md) | `WR3FEEXZ` | 38k |
 | [Automated identification of bones and joints in whole-body C](fiches/WT7EKDSP.md) | `WT7EKDSP` | 8k |
@@ -257,4 +270,5 @@
 | [BRIMA: low-overhead BRowser-only IMage Annotation tool (Prep](fiches/ZMW23MJX.md) | `ZMW23MJX` | 6k |
 | [Annotated image dataset of fire blight symptoms for object d](fiches/ZNJWFVJS.md) | `ZNJWFVJS` | 12k |
 | [Iterative Loop Method Combining Active and Semi-Supervised L](fiches/ZRSVUGB3.md) | `ZRSVUGB3` | 14k |
+| [Embracing Imperfect Datasets: A Review of Deep Learning Solu](fiches/ZRSWCZE4.md) | `ZRSWCZE4` | 19k |
 | [LVM-Med: Learning Large-Scale Self-Supervised Vision Models ](fiches/ZSISCZ9J.md) | `ZSISCZ9J` | 19k |
