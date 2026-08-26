@@ -3,6 +3,7 @@
 Handles authentication, request routing, and error handling for CVAT operations.
 """
 
+import asyncio
 import logging
 from contextlib import ExitStack
 from pathlib import Path
@@ -172,6 +173,8 @@ class CVATClient:
                     ]
                     if not await self._post_image_files(task_id, files, len(batch)):
                         return False
+                if not await self._wait_for_task_size(task_id, batch_start + len(batch)):
+                    return False
             return True
         except Exception as e:
             logger.error("Error uploading image files to task %d: %s", task_id, e)
@@ -196,6 +199,16 @@ class CVATClient:
             logger.info("Uploaded %d images to task %d", image_count, task_id)
             return True
         logger.error("Upload failed: %s", response.status_code)
+        return False
+
+    async def _wait_for_task_size(self, task_id: int, expected_size: int) -> bool:
+        """Wait until CVAT finishes processing an asynchronous upload batch."""
+        for _ in range(180):
+            task = await self.get_task(task_id)
+            if task and int(task.get("size") or 0) >= expected_size:
+                return True
+            await asyncio.sleep(2.0)
+        logger.error("Timed out waiting for CVAT task %d to reach size %d", task_id, expected_size)
         return False
 
     async def set_labels(self, task_id: int, labels: list[dict[str, Any]]) -> bool:
