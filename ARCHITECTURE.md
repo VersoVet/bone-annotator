@@ -40,14 +40,21 @@ Annotation des images osseuses fluoroscopie 360° avec pré-annotation YOLO auto
 
 ## Modules Fonctionnels
 
-### 1. **annotation** — Orchestration annotation
+### 1. **annotation** — Orchestration annotation ✅
 - **Responsabilité**: Interface principale pour l'annotation (CVAT + YOLO)
+- **Modules**:
+  - `service.py` — Orchestration workflow (create/sync/validate)
+  - `background.py` — Préparation dataset + upload CVAT async (`asyncio.create_task`)
+  - `cvat_sync.py` — Sync annotations CVAT → PostgreSQL
+  - `sam_proxy.py` — Proxy SAM embeddings pour interactor CVAT
+  - `medsam2_bridge.py` — Propagation temporelle MedSAM2
 - **Routes**: 
-  - `POST /api/annotation/task` — Créer une tâche CVAT
-  - `GET /api/annotation/task/{task_id}` — Statut d'une tâche
-  - `POST /api/annotation/export` — Exporter annotations YOLO
-- **Dépendances**: cvat, bonestore, predict
-- **État**: À migrer depuis bone-recognition
+  - `POST /api/annotation/task` — Créer tâche (retour immédiat, status=`preparing`)
+  - `GET /api/annotation/tasks/{task_id}` — Polling statut + `progress`
+  - `POST /api/annotation/sync/{task_id}` — Sync CVAT → PostgreSQL
+  - `POST /api/annotation/validate/{task_id}` — Validation tâche
+- **Flux async**: `preparing` → `uploading` → `created` (notes/progress via PostgreSQL)
+- **Dépendances**: cvat, preparation, sources, labels, storage
 
 ### 2. **bonestore** — Accès NFS acquisitions
 - **Responsabilité**: Traversée BoneStore, listing, chargement métadonnées
@@ -347,9 +354,9 @@ Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-08-26
-**Phase**: SAM multi-model CVAT integration
-**Version**: v0.1.40
-**Status**: SAM multi-model proxy + CVAT interactor integration
+**Dernière mise à jour**: 2026-08-28
+**Phase**: Async task creation + CVAT upload pipeline
+**Version**: v0.1.58
+**Status**: Async annotation tasks with background CVAT upload
 **Coverage**: All modules have REST API routes (62+ endpoints)
 **Test Coverage**: 85 passing

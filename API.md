@@ -181,44 +181,63 @@ Statistiques globales du BoneStore.
 ## Annotation
 
 ### `POST /api/annotation/task`
-Créer une tâche CVAT pour une acquisition.
+Créer une tâche CVAT pour une acquisition (asynchrone — retour immédiat).
+
+La préparation du dataset et l'upload CVAT s'exécutent en arrière-plan.
+Poller `GET /api/annotation/tasks/{task_id}` jusqu'à `status=created` ou `failed`.
 
 **Request**:
 ```json
 {
+  "source_name": "bonestore",
   "acquisition_id": "acq_001_humerus",
   "bone_type": "humerus",
-  "frames_sample": 10,
-  "assignee": "radiologist@hospital.fr"
+  "region": "entire",
+  "assignee": "radiologist@hospital.fr",
+  "pipeline_preset": "replay_membre",
+  "pre_annotate": false
 }
 ```
 
-**Response** (201):
+**Response** (201, < 1s):
 ```json
 {
-  "task_id": "cvat_task_42",
+  "id": 12,
   "acquisition_id": "acq_001_humerus",
-  "status": "created",
-  "frame_count": 120,
-  "url": "http://cvat.synapse:8080/tasks/42"
+  "status": "preparing",
+  "bone_type": "humerus",
+  "region": "entire",
+  "author": "radiologist@hospital.fr",
+  "assignee": "radiologist@hospital.fr",
+  "pipeline_preset": "replay_membre",
+  "cvat_task_id": null,
+  "cvat_url": null,
+  "frame_count": 0,
+  "progress": null
 }
 ```
+
+**Statuts possibles**: `preparing` → `uploading` → `created` (ou `failed`).
 
 ---
 
-### `GET /api/annotation/task/{task_id}`
-Récupérer le statut d'une tâche CVAT.
+### `GET /api/annotation/tasks/{task_id}`
+Récupérer le statut d'une tâche (polling async).
 
 **Response** (200):
 ```json
 {
-  "task_id": "cvat_task_42",
-  "status": "in_progress",
-  "progress_percent": 45,
-  "annotated_frames": 54,
-  "total_frames": 120,
-  "assignee": "radiologist@hospital.fr",
-  "created_at": "2026-08-05T14:20:00Z"
+  "id": 12,
+  "acquisition_id": "acq_001_humerus",
+  "status": "uploading",
+  "bone_type": "humerus",
+  "frame_count": 120,
+  "cvat_task_id": 42,
+  "cvat_url": "http://10.0.0.59:8080/tasks/42",
+  "progress": {
+    "step": "uploading",
+    "detail": "Uploading 120 frames to CVAT..."
+  }
 }
 ```
 

@@ -42,19 +42,30 @@ class TestAnnotationModels:
 
     def test_task_response_serialization(self) -> None:
         """Test TaskResponse model_dump."""
-        from src.modules.annotation.models import TaskResponse
+        from src.modules.annotation.models import TaskProgress, TaskResponse
 
         resp = TaskResponse(
             id=1,
             acquisition_id="acq_001",
-            status="created",
+            status="preparing",
             bone_type="humerus",
             frame_count=120,
+            progress=TaskProgress(step="preparing", detail="Preparing dataset..."),
         )
         d = resp.model_dump()
         assert d["id"] == 1
-        assert d["status"] == "created"
+        assert d["status"] == "preparing"
+        assert d["progress"]["step"] == "preparing"
         assert d["cvat_task_id"] is None
+
+    def test_build_task_progress(self) -> None:
+        """Test status/notes mapping for async task polling."""
+        from src.modules.annotation.service import _build_task_progress
+
+        assert _build_task_progress("preparing", "Preparing dataset...").step == "preparing"
+        assert _build_task_progress("uploading", "Uploading 120 frames").detail == "Uploading 120 frames"
+        assert _build_task_progress("created", "Ready") is None
+        assert _build_task_progress("failed", "CVAT timeout").step == "failed"
 
     def test_sync_result(self) -> None:
         """Test SyncResult model."""
@@ -89,7 +100,7 @@ class TestCvatFormatLabels:
         labels = labels_to_cvat_format(anatomy)
         assert len(labels) == 2
         assert labels[0]["name"] == "metaphysis"
-        assert labels[0]["type"] == "rectangle"
+        assert labels[0]["type"] == "any"
 
     def test_landmarks_to_cvat(self) -> None:
         """Test landmark labels conversion."""

@@ -10,9 +10,47 @@ from src.modules.labels.service import get_labels_for_bone
 from src.modules.sources.service import get_service as get_source_service
 from src.modules.storage.task_db import AnnotationTaskDB, create_task_db
 
-from .models import CreateTaskRequest, PreAnnotateResponse, SyncResult, TaskListResponse, TaskResponse, ValidateRequest
+from .models import (
+    CreateTaskRequest,
+    PreAnnotateResponse,
+    SyncResult,
+    TaskListResponse,
+    TaskProgress,
+    TaskResponse,
+    ValidateRequest,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _build_task_progress(status: str, notes: str | None) -> TaskProgress | None:
+    """Map DB status/notes to a TaskProgress for polling clients."""
+    if status in ("created", "annotating", "validated", "rejected"):
+        return None
+    step = status if status in ("preparing", "uploading", "failed") else "preparing"
+    return TaskProgress(step=step, detail=notes or "")
+
+
+def _task_row_to_response(row: dict[str, Any]) -> TaskResponse:
+    """Convert a DB task row to TaskResponse."""
+    status = row.get("status", "unknown")
+    return TaskResponse(
+        id=row["id"],
+        acquisition_id=row["acquisition_id"],
+        cvat_task_id=row.get("cvat_task_id"),
+        cvat_url=row.get("cvat_url"),
+        status=status,
+        bone_type=row["bone_type"],
+        region=row.get("region", "entire"),
+        frame_count=row.get("frame_count", 0),
+        annotated_frames=row.get("annotated_frames", 0),
+        author=row.get("author", "unknown"),
+        assignee=row.get("assignee"),
+        has_pre_annotations=row.get("has_pre_annotations", False),
+        pipeline_preset=row.get("pipeline_preset"),
+        dataset_path=row.get("dataset_path"),
+        progress=_build_task_progress(status, row.get("notes")),
+    )
 
 
 class AnnotationWorkflowService:
@@ -88,22 +126,7 @@ class AnnotationWorkflowService:
         t = self.task_db.get_task(task_id)
         if not t:
             return None
-        return TaskResponse(
-            id=t["id"],
-            acquisition_id=t["acquisition_id"],
-            cvat_task_id=t.get("cvat_task_id"),
-            cvat_url=t.get("cvat_url"),
-            status=t.get("status", "unknown"),
-            bone_type=t["bone_type"],
-            region=t.get("region", "entire"),
-            frame_count=t.get("frame_count", 0),
-            annotated_frames=t.get("annotated_frames", 0),
-            author=t.get("author", "unknown"),
-            assignee=t.get("assignee"),
-            has_pre_annotations=t.get("has_pre_annotations", False),
-            pipeline_preset=t.get("pipeline_preset"),
-            dataset_path=t.get("dataset_path"),
-        )
+        return _task_row_to_response(t)
 
     async def list_tasks(
         self,
@@ -118,6 +141,9 @@ class AnnotationWorkflowService:
             for key in ("created_at", "updated_at", "validated_at"):
                 if t.get(key):
                     t[key] = str(t[key])
+            progress = _build_task_progress(t.get("status", ""), t.get("notes"))
+            if progress:
+                t["progress"] = progress.model_dump()
         return TaskListResponse(tasks=tasks, total=total, limit=limit, offset=offset)
 
     async def sync_task(self, task_id: int) -> SyncResult:

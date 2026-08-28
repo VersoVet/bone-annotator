@@ -72,14 +72,23 @@ sequenceDiagram
     participant PG as PostgreSQL
 
     User->>BA: POST /api/annotation/task
-    BA->>BA: sources.get_acquisition_path()
-    BA->>SDK: prepare_dataset (pipeline)
-    SDK-->>BA: PNG 16-bit images
-    BA->>LG: get_labels_for_bone(type)
-    LG-->>BA: zones + landmarks
-    BA->>CVAT: create_task + set_labels
-    BA->>CVAT: upload_images (PNG)
-    BA->>PG: save annotation_task
+    BA->>PG: save task (status=preparing)
+    BA-->>User: 201 {id, status=preparing} (< 1s)
+
+    par Background preparation
+        BA->>BA: sources.get_acquisition_path()
+        BA->>SDK: prepare_dataset (pipeline)
+        SDK-->>BA: PNG 16-bit images
+        BA->>PG: update (status=uploading, frame_count)
+        BA->>LG: get_labels_for_bone(type)
+        LG-->>BA: zones + landmarks
+        BA->>CVAT: create_task + set_labels
+        BA->>CVAT: upload_image_paths (PNG)
+        BA->>PG: update (status=created, cvat_task_id)
+    end
+
+    User->>BA: GET /api/annotation/tasks/{id} (poll)
+    BA-->>User: progress + status
 
     opt Pre-annotation ML
         BA->>BML: POST /api/cvat/annotate

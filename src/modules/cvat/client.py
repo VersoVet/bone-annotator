@@ -165,7 +165,9 @@ class CVATClient:
                     )
                     for index, path in enumerate(image_paths)
                 ]
-                return await self._post_image_files(task_id, files, len(image_paths))
+                if not await self._post_image_files(task_id, files, len(image_paths)):
+                    return False
+                return await self._wait_for_task_size(task_id, len(image_paths))
         except Exception as e:
             logger.error("Error uploading image files to task %d: %s", task_id, e)
             return False
