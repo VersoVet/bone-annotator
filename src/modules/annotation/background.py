@@ -114,10 +114,12 @@ async def prepare_and_upload(
 
         # ML pre-annotations if requested
         if request.pre_annotate and cvat_task_id:
+            from .catalog_notify import notify_catalog_task_status
             from .ml_bridge import call_bone_ml_annotate
 
             await call_bone_ml_annotate(cvat_task_id, request.bone_type)
             task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
+            await notify_catalog_task_status(request.acquisition_id, task_id, "annotating")
 
     except Exception as e:
         logger.error("Task %d preparation failed: %s", task_id, e, exc_info=True)

@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 SCHEMA = "bone_annotations"
 
+ACTIVE_TASK_STATUSES = ("preparing", "created", "annotating", "reviewing")
+
 _MIGRATIONS = [
     # Add author/validation columns to frame_annotations
     f"""ALTER TABLE {SCHEMA}.frame_annotations
@@ -341,6 +343,39 @@ class AnnotationTaskDB:
         tasks = [dict(zip(cols, row, strict=False)) for row in rows]
         return tasks, total
 
+    def find_active_task(self, acquisition_id: str, bone_type: str) -> dict[str, Any] | None:
+        """Find an active annotation task for acquisition+bone_type.
+
+        Active statuses block duplicate task creation. Terminal statuses
+        (validated, rejected, failed) allow re-creation.
+
+        Args:
+            acquisition_id: Acquisition identifier.
+            bone_type: Bone type partition.
+
+        Returns:
+            Task row dict or None if no active task exists.
+        """
+        conn = self._get_conn()
+        placeholders = ", ".join(["%s"] * len(ACTIVE_TASK_STATUSES))
+        row = conn.execute(
+            f"""SELECT id, status, cvat_task_id, acquisition_id, bone_type
+                FROM {SCHEMA}.annotation_tasks
+                WHERE acquisition_id=%s AND bone_type=%s
+                AND status IN ({placeholders})
+                ORDER BY id DESC LIMIT 1""",
+            (acquisition_id, bone_type, *ACTIVE_TASK_STATUSES),
+        ).fetchone()
+        if not row:
+            return None
+        return {
+            "id": row[0],
+            "status": row[1],
+            "cvat_task_id": row[2],
+            "acquisition_id": row[3],
+            "bone_type": row[4],
+        }
+
     def validate_task(self, task_id: int, validated_by: str, decision: str) -> None:
         """Validate or reject a task and its annotations.
 
@@ -367,8 +402,8 @@ class AnnotationTaskDB:
                             WHEN source IN ('corrected_ml', 'import') THEN 'silver'
                             ELSE quality_tier
                         END
-                    WHERE acquisition_id=%s AND validated_by IS NULL""",
-                    (validated_by, task["acquisition_id"]),
+                    WHERE acquisition_id=%s AND task_id=%s AND validated_by IS NULL""",
+                    (validated_by, task["acquisition_id"], task_id),
                 )
 
     def save_project_mapping(self, bone_type: str, project_id: int) -> None:

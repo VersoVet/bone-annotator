@@ -59,6 +59,11 @@ async def sync_from_cvat(
     synced_frames = 0
 
     if raw_annotations and "shapes" in raw_annotations:
+        internal_task_id = task.get("id")
+        if not internal_task_id:
+            msg = "Task missing id — cannot sync annotations without task_id traceability"
+            raise ValueError(msg)
+
         from src.modules.storage.pg_db import AnnotationPgDB
 
         pg_config = get_postgres_config()
@@ -120,7 +125,7 @@ async def sync_from_cvat(
                 task["acquisition_id"],
                 frame_fn,
                 anns,
-                task_id=task.get("id"),
+                task_id=internal_task_id,
                 author=author,
                 source=first.get("source", "manual"),
                 confidence=first.get("confidence"),

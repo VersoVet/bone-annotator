@@ -10,6 +10,7 @@ from src.modules.labels.service import get_labels_for_bone
 from src.modules.sources.service import get_service as get_source_service
 from src.modules.storage.task_db import AnnotationTaskDB, create_task_db
 
+from .exceptions import ActiveTaskExistsError
 from .models import (
     CreateTaskRequest,
     PreAnnotateResponse,
@@ -90,6 +91,14 @@ class AnnotationWorkflowService:
         anatomy = get_labels_for_bone(request.bone_type)
         if not anatomy:
             raise ValueError(f"No labels for bone_type '{request.bone_type}' in label-generator")
+
+        existing = await asyncio.to_thread(
+            self.task_db.find_active_task,
+            request.acquisition_id,
+            request.bone_type,
+        )
+        if existing:
+            raise ActiveTaskExistsError(existing)
 
         pipeline = request.pipeline_preset or get_imaging_config()["default_treatment"]
         # Create DB entry immediately (status="preparing")
@@ -209,7 +218,10 @@ class AnnotationWorkflowService:
             from .ml_bridge import call_bone_ml_annotate
 
             await call_bone_ml_annotate(result.cvat_task_id, parent.get("bone_type"))
-            self.task_db.update_task(result.id, has_pre_annotations=True)
+            self.task_db.update_task(result.id, has_pre_annotations=True, status="annotating")
+            from .catalog_notify import notify_catalog_task_status
+
+            await notify_catalog_task_status(parent["acquisition_id"], result.id, "annotating")
 
         return result
 
@@ -232,6 +244,9 @@ class AnnotationWorkflowService:
             raise ValueError(f"Task {task_id} not found or no CVAT task")
         ml_status = await call_bone_ml_annotate(task["cvat_task_id"], task.get("bone_type"))
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
+        from .catalog_notify import notify_catalog_task_status
+
+        await notify_catalog_task_status(task["acquisition_id"], task_id, "annotating")
         return PreAnnotateResponse(
             task_id=task_id,
             cvat_task_id=task["cvat_task_id"],
@@ -257,6 +272,9 @@ class AnnotationWorkflowService:
         await self.cvat.authenticate()
         result = await propagate(self.cvat, task, seed_frame_idx)
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
+        from .catalog_notify import notify_catalog_task_status
+
+        await notify_catalog_task_status(task["acquisition_id"], task_id, "annotating")
         return result
 
 

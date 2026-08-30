@@ -6,6 +6,7 @@ from typing import Any
 import httpx
 
 from src.config import get_bone_ml_config, get_imaging_config, get_postgres_config
+from src.modules.annotation.exceptions import ActiveTaskExistsError
 from src.modules.annotation.models import CreateTaskRequest
 from src.modules.annotation.service import get_service as get_annotation_service
 from src.modules.storage.learning_db import create_learning_db
@@ -79,7 +80,10 @@ async def run_active_learning(
                     )
                 )
                 result.tasks_created.append({"task_id": task.id, "acquisition_id": acq_id, "bone_type": item_bone})
-                await mark_catalog_status(client, acq_id, "annotating")
+                await mark_catalog_status(client, acq_id, "annotating", task_id=task.id)
+            except ActiveTaskExistsError as e:
+                existing_id = e.existing.get("id")
+                result.skipped.append(f"{acq_id}:active_task_{existing_id}")
             except Exception as e:
                 logger.warning("Failed to create AL task for %s: %s", acq_id, e)
                 result.skipped.append(f"{acq_id}:{e}")

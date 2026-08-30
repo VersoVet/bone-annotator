@@ -1,6 +1,6 @@
 # Bibliographie
 
-*386 article(s) — généré le 2026-08-30 14:18 UTC*
+*387 article(s) — généré le 2026-08-30 21:21 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|
@@ -330,6 +330,7 @@
 | [Labelling point clouds in VR](fiches/TMA6WB52.md) | `TMA6WB52` | 4k |
 | [Deep learning pipeline for trapezium segmentation in thumb r](fiches/TN6NNHID.md) | `TN6NNHID` | 8k |
 | [SVRDA: A Web-based Dataset Annotation Tool for Slice-to-Volu](fiches/TNJSBAAC.md) | `TNJSBAAC` | 3k |
+| [Article](fiches/TP7DXPAA.md) | `TP7DXPAA` | 11b |
 | [Image annotation](fiches/TQCJZQKM.md) | `TQCJZQKM` | 5k |
 | [LVIS: A Dataset for Large Vocabulary Instance Segmentation](fiches/TR2JSS94.md) | `TR2JSS94` | 10k |
 | [Multistep Automated Data Labelling Procedure (MADLaP) for Th](fiches/U2EZKCR6.md) | `U2EZKCR6` | 12k |

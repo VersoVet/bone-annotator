@@ -140,25 +140,21 @@ class AnnotationPgDB:
 
         Returns:
             Number of annotations inserted.
+
+        Raises:
+            ValueError: If task_id is missing (breaks training traceability).
         """
+        if task_id is None:
+            raise ValueError("task_id is required when saving frame_annotations")
         conn = self._get_conn()
-        # Soft-replace: mark existing as superseded (scoped by task_id if provided)
-        if task_id:
-            conn.execute(
-                """UPDATE bone_annotations.frame_annotations
-                SET source = source || '_superseded'
-                WHERE acquisition_id=%s AND frame_filename=%s AND task_id=%s
-                AND source NOT LIKE '%%_superseded'""",
-                (acq_id, frame_filename, task_id),
-            )
-        else:
-            conn.execute(
-                """UPDATE bone_annotations.frame_annotations
-                SET source = source || '_superseded'
-                WHERE acquisition_id=%s AND frame_filename=%s
-                AND source NOT LIKE '%%_superseded'""",
-                (acq_id, frame_filename),
-            )
+        # Soft-replace: mark existing as superseded (always scoped by task_id)
+        conn.execute(
+            """UPDATE bone_annotations.frame_annotations
+            SET source = source || '_superseded'
+            WHERE acquisition_id=%s AND frame_filename=%s AND task_id=%s
+            AND source NOT LIKE '%%_superseded'""",
+            (acq_id, frame_filename, task_id),
+        )
         count = 0
         for ann_type in ("zones", "landmarks", "measurements", "lesions"):
             for item in annotations.get(ann_type, []):

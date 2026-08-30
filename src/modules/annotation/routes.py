@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
+from .exceptions import ActiveTaskExistsError
 from .models import CreateTaskRequest, ValidateRequest
 from .service import get_service
 
@@ -35,6 +36,17 @@ async def create_annotation_task(request: CreateTaskRequest) -> dict[str, Any]:
         service = get_service()
         result = await service.create_task(request)
         return {"status": "created", "task": result.model_dump()}
+    except ActiveTaskExistsError as e:
+        existing = e.existing
+        existing_task = await service.get_task(existing["id"])
+        return {
+            "status": "active_task_exists",
+            "error": "active_task_exists",
+            "existing_task_id": existing["id"],
+            "task_status": existing.get("status"),
+            "hint": f"Utilisez POST /api/annotation/re-annotate/{existing['id']} pour re-annoter",
+            "task": existing_task.model_dump() if existing_task else existing,
+        }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

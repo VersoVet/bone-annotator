@@ -69,16 +69,31 @@ async def fetch_al_suggest(
     return {}
 
 
-async def mark_catalog_status(client: httpx.AsyncClient, acquisition_id: str, status: str) -> None:
-    """Mark catalog entry status on bone-ml if endpoint exists."""
+async def mark_catalog_status(
+    client: httpx.AsyncClient,
+    acquisition_id: str,
+    status: str,
+    *,
+    task_id: int | None = None,
+) -> None:
+    """Update bonestore_catalog status and current_task_id on bone-ml."""
+    body: dict[str, Any] = {
+        "acquisition_ids": [acquisition_id],
+        "status": status,
+    }
+    if task_id is not None:
+        body["task_id"] = task_id
     try:
         resp = await client.post(
-            f"{get_bone_ml_config()['base_url']}/api/boneseg/catalog/mark_status",
-            json={"acquisition_id": acquisition_id, "status": status},
+            f"{get_bone_ml_config()['base_url']}/api/boneseg/catalog/mark-status",
+            json=body,
             timeout=15.0,
         )
-        if resp.status_code == 404:
-            return
-        resp.raise_for_status()
+        if resp.status_code in (404, 405):
+            await client.post(
+                f"{get_bone_ml_config()['base_url']}/api/boneseg/catalog/mark_status",
+                json={"acquisition_id": acquisition_id, "status": status, "task_id": task_id},
+                timeout=15.0,
+            )
     except Exception as e:
         logger.debug("mark_status skipped for %s: %s", acquisition_id, e)
