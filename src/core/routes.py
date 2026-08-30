@@ -250,6 +250,19 @@ async def annotate_page() -> HTMLResponse:
         return HTMLResponse(content="<html><body>Dashboard not available</body></html>")
 
 
+@router.get("/annotate/learning")
+async def learning_page() -> HTMLResponse:
+    """Learning progress dashboard (BoneSeg suivi)."""
+    try:
+        from pathlib import Path
+
+        path = Path(__file__).resolve().parent.parent.parent / "static" / "learning.html"
+        return HTMLResponse(content=path.read_text())
+    except Exception as e:
+        logger.error("Failed to load learning.html: %s", e)
+        return HTMLResponse(content="<html><body>Learning dashboard unavailable</body></html>")
+
+
 @router.get("/annotate/settings")
 async def settings_page() -> HTMLResponse:
     """Settings page for imaging treatment and dashboard config."""

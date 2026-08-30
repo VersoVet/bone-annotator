@@ -38,6 +38,26 @@ def test_boneseg_module_imports() -> None:
     assert router.prefix == "/api/boneseg"
 
 
+def test_next_milestone() -> None:
+    """Milestone helper returns next target."""
+    from src.modules.boneseg.milestones import next_milestone
+
+    target, label = next_milestone(487)
+    assert target == 500
+    assert "Calibration" in label
+
+    target2, label2 = next_milestone(1500)
+    assert target2 == 2000
+    assert "Premier modèle" in label2
+
+
+def test_learning_dashboard_import() -> None:
+    """Learning dashboard module imports."""
+    from src.modules.boneseg.learning_dashboard import get_learning_dashboard  # noqa: F401
+
+    assert True
+
+
 def test_migrations_include_boneseg() -> None:
     """BoneSeg migrations are registered."""
     from src.modules.storage.task_db import _MIGRATIONS

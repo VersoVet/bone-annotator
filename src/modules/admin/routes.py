@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from src.config import get_bone_ml_config, get_dashboard_config, get_imaging_config, get_postgres_config
 from src.core import __version__
-from src.modules.storage.task_db import create_task_db
+from src.modules.storage.learning_db import create_learning_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -36,8 +36,8 @@ async def get_settings() -> dict[str, Any]:
 @router.get("/tracking")
 async def tracking_overview() -> dict[str, Any]:
     """Annotation tracking stats (local PG + bone-ml catalog when available)."""
-    task_db = create_task_db(**get_postgres_config())
-    local = task_db.get_tracking_stats()
+    learning_db = create_learning_db(**get_postgres_config())
+    local = learning_db.get_tracking_stats()
     catalog: dict[str, Any] = {}
     try:
         ml_config = get_bone_ml_config()
@@ -60,6 +60,6 @@ async def reset_annotations(request: ResetRequest) -> dict[str, Any]:
     """Reset annotation tasks and optionally stored annotations."""
     if request.confirm != "RESET":
         raise HTTPException(status_code=400, detail="confirm must be 'RESET'")
-    task_db = create_task_db(**get_postgres_config())
-    deleted = task_db.reset_annotation_data(include_annotations=request.include_annotations)
+    learning_db = create_learning_db(**get_postgres_config())
+    deleted = learning_db.reset_annotation_data(include_annotations=request.include_annotations)
     return {"status": "ok", **deleted}

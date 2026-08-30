@@ -8,11 +8,25 @@ from fastapi import APIRouter, HTTPException, Query
 from src.config import get_bone_ml_config
 
 from .gpu import check_gpu_available
+from .learning_dashboard import get_learning_dashboard
 from .models import ActiveLearningRequest, GpuStatus, TestSetRequest
 from .service import add_test_set, list_test_set, run_active_learning
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/boneseg", tags=["boneseg"])
+
+
+@router.get("/learning-dashboard")
+async def learning_dashboard(
+    bone_type: str | None = Query(None, description="Filter by bone type"),
+) -> dict[str, Any]:
+    """Full learning progress dashboard (sections 1-7)."""
+    try:
+        data = await get_learning_dashboard(bone_type)
+        return {"status": "ok", **data}
+    except Exception as e:
+        logger.error("Learning dashboard failed: %s", e)
+        raise HTTPException(status_code=500, detail="Learning dashboard unavailable")
 
 
 @router.get("/gpu-status")
@@ -58,6 +72,27 @@ async def get_test_set(
     """List frozen test set acquisitions."""
     entries = list_test_set(bone_type)
     return {"status": "ok", "entries": entries, "total": len(entries)}
+
+
+@router.post("/catalog/sync")
+async def catalog_sync(bone_type: str | None = None) -> dict[str, Any]:
+    """Proxy BoneStore catalog sync to bone-ml."""
+    import httpx
+
+    ml_config = get_bone_ml_config()
+    try:
+        async with httpx.AsyncClient() as client:
+            url = f"{ml_config['base_url']}/api/boneseg/catalog/sync"
+            params = {"bone_type": bone_type} if bone_type else None
+            resp = await client.post(url, params=params, timeout=120.0)
+            if resp.status_code != 200:
+                raise HTTPException(status_code=502, detail="bone-ml catalog sync failed")
+            return {"status": "ok", **resp.json()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Catalog sync failed: %s", e)
+        raise HTTPException(status_code=502, detail="Catalog sync failed")
 
 
 @router.get("/catalog/stats")

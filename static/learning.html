@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bone-annotator — Suivi apprentissage</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            background:#0f1117; color:#e1e4e8; padding:20px; min-height:100vh; }
+        a { color:#58a6ff; text-decoration:none; }
+        .wrap { max-width:1200px; margin:0 auto; }
+        header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+            gap:12px; margin-bottom:24px; }
+        h1 { font-size:1.4em; color:#e67e22; }
+        .sub { color:#8b949e; font-size:0.85em; margin-top:4px; }
+        .nav { display:flex; gap:8px; flex-wrap:wrap; }
+        .btn { padding:8px 14px; border-radius:6px; border:1px solid #30363d; background:#21262d;
+            color:#e1e4e8; cursor:pointer; font-size:0.85em; }
+        .btn:hover { background:#30363d; }
+        .btn-primary { background:#238636; border-color:#238636; }
+        .btn-primary:hover { background:#2ea043; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-bottom:20px; }
+        .card { background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; }
+        .card h2 { font-size:0.75em; text-transform:uppercase; letter-spacing:0.08em;
+            color:#8b949e; margin-bottom:12px; font-weight:600; }
+        .card-wide { grid-column:1/-1; }
+        .bar-row { margin-bottom:14px; }
+        .bar-head { display:flex; justify-content:space-between; font-size:0.9em; margin-bottom:4px; }
+        .bar-bg { background:#21262d; border-radius:4px; height:10px; overflow:hidden; }
+        .bar-fill { height:10px; background:linear-gradient(90deg,#e67e22,#f0883e); border-radius:4px; }
+        .tier-row { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:0.9em; }
+        .tier-bar { flex:1; height:8px; background:#21262d; border-radius:4px; overflow:hidden; }
+        .tier-fill-gold { background:#d29922; height:8px; }
+        .tier-fill-silver { background:#58a6ff; height:8px; }
+        .tier-fill-pseudo { background:#8b949e; height:8px; }
+        table { width:100%; border-collapse:collapse; font-size:0.85em; }
+        th,td { padding:8px; text-align:left; border-bottom:1px solid #21262d; }
+        th { color:#8b949e; font-weight:500; }
+        .metric { font-size:1.8em; font-weight:700; color:#e67e22; }
+        .metric-sub { font-size:0.85em; color:#8b949e; margin-top:4px; }
+        .gpu-ok { color:#3fb950; }
+        .gpu-busy { color:#f85149; }
+        .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+        #updated { color:#484f58; font-size:0.8em; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div>
+            <h1>Suivi apprentissage osseux</h1>
+            <div class="sub">BoneSeg · Active Learning · GPU · <span id="version">v…</span></div>
+            <div id="updated"></div>
+        </div>
+        <div class="nav">
+            <a class="btn" href="/annotate/annotations">Annotations</a>
+            <a class="btn" href="/annotate/settings">Paramètres</a>
+            <button class="btn" onclick="loadDashboard()">Rafraichir</button>
+        </div>
+    </header>
+
+    <div class="grid">
+        <div class="card card-wide" id="progressSection">
+            <h2>1 · Progression par type d'os (GOLD)</h2>
+            <div id="progressBars">Chargement…</div>
+        </div>
+
+        <div class="card">
+            <h2>2 · Répartition des tiers</h2>
+            <div id="tiersSection">—</div>
+        </div>
+
+        <div class="card">
+            <h2>7 · Vélocité d'annotation</h2>
+            <div id="velocitySection">—</div>
+        </div>
+
+        <div class="card card-wide">
+            <h2>3 · Historique training (Dice)</h2>
+            <div id="trainingSection"><table><tbody id="trainingBody"></tbody></table></div>
+        </div>
+
+        <div class="card">
+            <h2>4 · Active Learning</h2>
+            <div id="alSection">—</div>
+            <div class="actions">
+                <button class="btn" onclick="catalogSync()">Scanner BoneStore</button>
+                <button class="btn btn-primary" onclick="runAL()">Créer tâches CVAT (AL)</button>
+            </div>
+            <div id="alStatus" style="margin-top:8px;font-size:0.8em;color:#8b949e;"></div>
+        </div>
+
+        <div class="card">
+            <h2>5 · GPU & jobs</h2>
+            <div id="gpuSection">—</div>
+        </div>
+
+        <div class="card">
+            <h2>6 · Test set gelé</h2>
+            <div id="testSetSection">—</div>
+        </div>
+    </div>
+</div>
+<script>
+const API = '';
+let refreshTimer = null;
+
+function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    const h = Math.round((Date.now() - d) / 3600000);
+    if (h < 48) return `il y a ${h}h`;
+    return d.toLocaleDateString('fr-FR');
+}
+
+function renderProgress(items) {
+    const el = document.getElementById('progressBars');
+    if (!items.length) { el.innerHTML = '<p style="color:#8b949e">Aucune annotation GOLD encore.</p>'; return; }
+    el.innerHTML = items.map(p => `
+        <div class="bar-row">
+            <div class="bar-head">
+                <strong>${p.bone_type}</strong>
+                <span>${p.gold_count} / ${p.milestone_target} GOLD (${p.percent}%)</span>
+            </div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${p.percent}%"></div></div>
+            <div style="font-size:0.8em;color:#8b949e;margin-top:4px">
+                Jalon: ${p.milestone_label} · Dernière: ${fmtDate(p.last_annotation)}
+            </div>
+        </div>`).join('');
+}
+
+function renderTiers(t) {
+    const total = t.total_annotated || 0;
+    const max = Math.max(t.gold||0, t.silver||0, t.pseudo||0, 1);
+    document.getElementById('tiersSection').innerHTML = `
+        <div class="tier-row"><span style="width:50px">GOLD</span>
+            <div class="tier-bar"><div class="tier-fill-gold" style="width:${(t.gold/max*100)}%"></div></div>
+            <span>${t.gold||0}</span></div>
+        <div class="tier-row"><span style="width:50px">SILVER</span>
+            <div class="tier-bar"><div class="tier-fill-silver" style="width:${(t.silver/max*100)}%"></div></div>
+            <span>${t.silver||0}</span></div>
+        <div class="tier-row"><span style="width:50px">PSEUDO</span>
+            <div class="tier-bar"><div class="tier-fill-pseudo" style="width:${(t.pseudo/max*100)}%"></div></div>
+            <span>${t.pseudo||0}</span></div>
+        <p class="metric-sub" style="margin-top:12px">Total annoté: ${total} / ${t.total_acquisitions||'?'} acquisitions</p>`;
+}
+
+function renderVelocity(v) {
+    const delta = v.week_delta_pct != null ? ` (${v.week_delta_pct > 0 ? '↑' : '↓'} ${Math.abs(v.week_delta_pct)}%)` : '';
+    document.getElementById('velocitySection').innerHTML = `
+        <div class="metric">${v.week||0}</div>
+        <div class="metric-sub">frames validées cette semaine${delta}</div>
+        <p style="margin-top:12px;font-size:0.9em">Ce mois: <strong>${v.month||0}</strong> · ~${v.per_day||0} frames/jour</p>
+        ${v.estimated_days_to_milestone ? `<p style="font-size:0.85em;color:#8b949e;margin-top:8px">
+            Estimation ${v.milestone_target} GOLD (${v.primary_bone}): ~${v.estimated_days_to_milestone} jours</p>` : ''}`;
+}
+
+function renderTraining(runs) {
+    const body = document.getElementById('trainingBody');
+    if (!runs.length) {
+        body.innerHTML = '<tr><td colspan="5" style="color:#8b949e">Aucun run (bone-ml ou PG local)</td></tr>';
+        return;
+    }
+    body.innerHTML = runs.slice(0,10).map(r => `
+        <tr>
+            <td>Gen ${r.generation ?? '?'}</td>
+            <td>${r.bone_type || '—'}</td>
+            <td>${r.best_dice != null ? r.best_dice.toFixed(3) : (r.test_dice != null ? r.test_dice.toFixed(3) : '—')}</td>
+            <td><span style="color:${r.status==='running'?'#d29922':'#8b949e'}">${r.status||'—'}</span></td>
+            <td>${r.run_name || r.id || ''}</td>
+        </tr>`).join('');
+}
+
+function renderAL(al) {
+    const st = al.catalog_by_status || {};
+    const statusTxt = Object.entries(st).map(([k,v]) => `${k}: ${v}`).join(' · ') || 'catalogue vide';
+    document.getElementById('alSection').innerHTML = `
+        <p>🆕 <strong>${al.new_acquisitions||0}</strong> acquisitions (nouvelles / catalogue)</p>
+        <p class="metric-sub" style="margin-top:8px">${statusTxt}</p>`;
+}
+
+function renderGPU(g) {
+    const cls = g.available ? 'gpu-ok' : 'gpu-busy';
+    const jobs = (g.running_jobs||[]).length;
+    document.getElementById('gpuSection').innerHTML = `
+        <p class="${cls}">${g.available ? '● GPU disponible' : '● GPU occupé'}</p>
+        <p class="metric-sub">${g.reason || ''}</p>
+        <p style="margin-top:8px;font-size:0.9em">Jobs ml-compute: ${jobs} · BoneSeg training: ${g.boneseg_running?'oui':'non'}</p>`;
+}
+
+function renderTestSets(ts) {
+    const bones = ['humerus','femur','radius','tibia'];
+    document.getElementById('testSetSection').innerHTML = bones.map(b => {
+        const e = ts[b];
+        if (!e) return `<p>Test set <strong>${b}</strong>: 0 <span style="color:#d29922">⚠ non défini</span></p>`;
+        return `<p>Test set <strong>${b}</strong>: ${e.count} (depuis ${fmtDate(e.since)})</p>`;
+    }).join('');
+}
+
+async function loadDashboard() {
+    try {
+        const r = await fetch(`${API}/api/boneseg/learning-dashboard`);
+        const d = await r.json();
+        document.getElementById('updated').textContent = 'MAJ: ' + new Date(d.generated_at).toLocaleTimeString('fr-FR');
+        renderProgress(d.progress||[]);
+        renderTiers(d.tiers||{});
+        renderVelocity(d.velocity||{});
+        renderTraining(d.training_history||[]);
+        renderAL(d.active_learning||{});
+        renderGPU(d.gpu||{});
+        renderTestSets(d.test_sets||{});
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+async function catalogSync() {
+    const el = document.getElementById('alStatus');
+    el.textContent = 'Scan BoneStore…';
+    try {
+        const r = await fetch(`${API}/api/boneseg/catalog/sync`, { method:'POST' });
+        const d = await r.json();
+        el.textContent = r.ok ? `Sync OK — ${JSON.stringify(d).slice(0,120)}` : (d.detail||'Erreur');
+        loadDashboard();
+    } catch(e) { el.textContent = String(e); }
+}
+
+async function runAL() {
+    const el = document.getElementById('alStatus');
+    el.textContent = 'Création tâches AL…';
+    try {
+        const r = await fetch(`${API}/api/boneseg/active-learning/run`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({limit:5, pre_annotate:true})
+        });
+        const d = await r.json();
+        el.textContent = r.ok
+            ? `${(d.tasks_created||[]).length} tâches créées, ${(d.skipped||[]).length} ignorées`
+            : (d.detail||'Erreur');
+        loadDashboard();
+    } catch(e) { el.textContent = String(e); }
+}
+
+fetch('/health').then(r=>r.json()).then(h=>{
+    document.getElementById('version').textContent = 'v'+h.version;
+});
+loadDashboard();
+refreshTimer = setInterval(loadDashboard, 30000);
+</script>
+</body>
+</html>

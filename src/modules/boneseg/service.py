@@ -8,7 +8,7 @@ import httpx
 from src.config import get_bone_ml_config, get_imaging_config, get_postgres_config
 from src.modules.annotation.models import CreateTaskRequest
 from src.modules.annotation.service import get_service as get_annotation_service
-from src.modules.storage.task_db import create_task_db
+from src.modules.storage.learning_db import create_learning_db
 
 from .gpu import check_gpu_available
 from .models import ActiveLearningResult
@@ -39,7 +39,7 @@ async def run_active_learning(
     if pipeline_preset is None:
         pipeline_preset = get_imaging_config()["default_treatment"]
     ml_config = get_bone_ml_config()
-    task_db = create_task_db(**get_postgres_config())
+    learning_db = create_learning_db(**get_postgres_config())
     annotation_svc = get_annotation_service()
     result = ActiveLearningResult()
 
@@ -75,7 +75,7 @@ async def run_active_learning(
             item_bone = item.get("bone_type") or bone_type or "unknown"
             if not acq_id:
                 continue
-            if task_db.is_in_test_set(item_bone, acq_id):
+            if learning_db.is_in_test_set(item_bone, acq_id):
                 result.skipped.append(f"{acq_id}:in_test_set")
                 continue
 
@@ -90,9 +90,7 @@ async def run_active_learning(
                         pre_annotate=pre_annotate,
                     )
                 )
-                result.tasks_created.append(
-                    {"task_id": task.id, "acquisition_id": acq_id, "bone_type": item_bone}
-                )
+                result.tasks_created.append({"task_id": task.id, "acquisition_id": acq_id, "bone_type": item_bone})
                 await client.post(
                     f"{ml_config['base_url']}/api/boneseg/catalog/mark_status",
                     json={"acquisition_id": acq_id, "status": "annotating"},
@@ -115,13 +113,13 @@ def add_test_set(bone_type: str, acquisition_ids: list[str]) -> dict[str, Any]:
     Returns:
         Dict with inserted count and total entries for the bone type.
     """
-    task_db = create_task_db(**get_postgres_config())
-    inserted = task_db.add_test_set_entries(bone_type, acquisition_ids)
-    entries = task_db.list_test_set(bone_type)
+    learning_db = create_learning_db(**get_postgres_config())
+    inserted = learning_db.add_test_set_entries(bone_type, acquisition_ids)
+    entries = learning_db.list_test_set(bone_type)
     return {"inserted": inserted, "bone_type": bone_type, "total": len(entries)}
 
 
 def list_test_set(bone_type: str | None = None) -> list[dict[str, Any]]:
     """List frozen test set acquisitions."""
-    task_db = create_task_db(**get_postgres_config())
-    return task_db.list_test_set(bone_type)
+    learning_db = create_learning_db(**get_postgres_config())
+    return learning_db.list_test_set(bone_type)
