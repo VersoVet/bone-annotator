@@ -12,6 +12,7 @@ from src.modules.storage.learning_db import create_learning_db
 
 from .decisions import log_learning_decision
 from .gpu import check_gpu_available
+from .ml_client import DEFAULT_AL_BONE, fetch_al_suggest, mark_catalog_status
 from .models import ActiveLearningResult
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ async def run_active_learning(
     """
     if pipeline_preset is None:
         pipeline_preset = get_imaging_config()["default_treatment"]
+    target_bone = bone_type or DEFAULT_AL_BONE
     ml_config = get_bone_ml_config()
     learning_db = create_learning_db(**get_postgres_config())
     annotation_svc = get_annotation_service()
@@ -52,28 +54,13 @@ async def run_active_learning(
         if sync_resp.status_code == 200:
             result.synced = sync_resp.json()
 
-        suggest_body: dict[str, Any] = {"limit": limit}
-        if bone_type:
-            suggest_body["bone_type"] = bone_type
-        suggest_resp = await client.post(
-            f"{ml_config['base_url']}/api/boneseg/active-learning/suggest",
-            json=suggest_body,
-            timeout=60.0,
-        )
-        if suggest_resp.status_code != 200:
-            logger.warning("Active learning suggest failed: %s", suggest_resp.text[:200])
-            return result
-
-        suggestions = suggest_resp.json()
-        if isinstance(suggestions, dict):
-            items = suggestions.get("suggestions", suggestions.get("acquisitions", []))
-        else:
-            items = suggestions
+        suggest_data = await fetch_al_suggest(client, bone_type=target_bone, n_suggest=limit)
+        items = suggest_data.get("suggestions", suggest_data.get("acquisitions", []))
         result.suggestions = items if isinstance(items, list) else []
 
         for item in result.suggestions[:limit]:
             acq_id = item.get("acquisition_id") or item.get("id", "")
-            item_bone = item.get("bone_type") or bone_type or "unknown"
+            item_bone = item.get("bone_type") or target_bone
             if not acq_id:
                 continue
             if learning_db.is_in_test_set(item_bone, acq_id):
@@ -92,18 +79,14 @@ async def run_active_learning(
                     )
                 )
                 result.tasks_created.append({"task_id": task.id, "acquisition_id": acq_id, "bone_type": item_bone})
-                await client.post(
-                    f"{ml_config['base_url']}/api/boneseg/catalog/mark_status",
-                    json={"acquisition_id": acq_id, "status": "annotating"},
-                    timeout=15.0,
-                )
+                await mark_catalog_status(client, acq_id, "annotating")
             except Exception as e:
                 logger.warning("Failed to create AL task for %s: %s", acq_id, e)
                 result.skipped.append(f"{acq_id}:{e}")
 
     log_learning_decision(
         "active_learning_run",
-        bone_type=bone_type,
+        bone_type=target_bone,
         trigger_source="api",
         payload={
             "tasks_created": len(result.tasks_created),

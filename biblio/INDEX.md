@@ -1,6 +1,6 @@
 # Bibliographie
 
-*384 article(s) — généré le 2026-08-30 11:42 UTC*
+*386 article(s) — généré le 2026-08-30 14:18 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|
@@ -8,6 +8,7 @@
 | [Article](fiches/279JKXEW.md) | `279JKXEW` | 11b |
 | [Detection and Localization of Spine Disorders from Plain Rad](fiches/2A5UGAZ5.md) | `2A5UGAZ5` | 8k |
 | [Quick Annotator: an open‐source digital pathology based rapi](fiches/2AEJ8SPK.md) | `2AEJ8SPK` | 6k |
+| [Article](fiches/2AVSHDK9.md) | `2AVSHDK9` | 11b |
 | [Segment anything model for medical image analysis: An experi](fiches/2C5HE2XU.md) | `2C5HE2XU` | 7k |
 | [Supervised Learning of Semantic Classes for Image Annotation](fiches/2FSUIFNN.md) | `2FSUIFNN` | 5k |
 | [Article](fiches/2GVXGD6F.md) | `2GVXGD6F` | 11b |
@@ -187,6 +188,7 @@
 | [Towards a general computed tomography image segmentation mod](fiches/GQHXFASU.md) | `GQHXFASU` | 9k |
 | [Application of transformer models in medical image segmentat](fiches/GRK5NMBI.md) | `GRK5NMBI` | 1k |
 | [Segment Anything Model for Medical Image Segmentation: Curre](fiches/GVRMEFK8.md) | `GVRMEFK8` | 3k |
+| [Article](fiches/GZRUPSV3.md) | `GZRUPSV3` | 11b |
 | [Cograph Regularized Collective Nonnegative Matrix Factorizat](fiches/H3Z2DTMQ.md) | `H3Z2DTMQ` | 8k |
 | [Article](fiches/H4SX2MW6.md) | `H4SX2MW6` | 11b |
 | [From Bounding Boxes to Visual Reasoning: An On-Policy Data A](fiches/H96H4NRF.md) | `H96H4NRF` | 10k |

@@ -14,6 +14,7 @@ from src.modules.storage.learning_db import create_learning_db
 from .alerts import build_alerts, recommend_next_bone
 from .gpu import check_gpu_available
 from .milestones import DEFAULT_BONE_TYPES, next_milestone
+from .ml_client import DEFAULT_AL_BONE, fetch_al_suggest, fetch_catalog_stats
 from .model_comparison import get_model_comparison
 
 logger = logging.getLogger(__name__)
@@ -93,16 +94,12 @@ async def get_learning_dashboard(bone_type: str | None = None) -> dict[str, Any]
     catalog_stats: dict[str, Any] = {}
     train_history: list[dict[str, Any]] = []
     catalog_new_count = 0
+    al_suggest: dict[str, Any] = {}
     ml_dashboard: dict[str, Any] = {}
     ml_jobs: list[Any] = []
 
     async with httpx.AsyncClient() as client:
-        stats_url = f"{ml_config['base_url']}/api/boneseg/catalog/stats"
-        if bone_type:
-            stats_url += f"?bone_type={bone_type}"
-        raw_stats = await _fetch_json(client, stats_url)
-        if isinstance(raw_stats, dict):
-            catalog_stats = raw_stats
+        catalog_stats = await fetch_catalog_stats(client, bone_type)
 
         hist_url = f"{ml_config['base_url']}/api/boneseg/train/history"
         if bone_type:
@@ -113,12 +110,16 @@ async def get_learning_dashboard(bone_type: str | None = None) -> dict[str, Any]
         elif isinstance(raw_hist, dict):
             train_history = raw_hist.get("runs", raw_hist.get("history", []))
 
-        new_url = f"{ml_config['base_url']}/api/boneseg/catalog/new?limit=200"
+        new_url = f"{ml_config['base_url']}/api/boneseg/catalog/new?limit=1"
         raw_new = await _fetch_json(client, new_url)
-        if isinstance(raw_new, list):
+        by_status = catalog_stats.get("by_status", {})
+        catalog_new_count = catalog_stats.get("total", 0) or by_status.get("new", 0)
+        if isinstance(raw_new, list) and not catalog_new_count:
             catalog_new_count = len(raw_new)
-        elif isinstance(raw_new, dict):
+        elif isinstance(raw_new, dict) and not catalog_new_count:
             catalog_new_count = raw_new.get("count", raw_new.get("total", 0))
+
+        al_suggest = await fetch_al_suggest(client, bone_type=bone_type or DEFAULT_AL_BONE, n_suggest=50)
 
         raw_ml = await _fetch_json(client, f"{ml_config['base_url']}/api/dashboard/stats")
         if isinstance(raw_ml, dict):
@@ -177,8 +178,12 @@ async def get_learning_dashboard(bone_type: str | None = None) -> dict[str, Any]
         },
         "training_history": training,
         "active_learning": {
-            "new_acquisitions": catalog_new_count or catalog_stats.get("total", 0),
+            "new_acquisitions": catalog_new_count,
             "catalog_by_status": catalog_stats.get("by_status", {}),
+            "suggestions_count": len(al_suggest.get("suggestions", [])),
+            "strategy": al_suggest.get("strategy", "hybrid"),
+            "pool_stats": al_suggest.get("pool_stats", {}),
+            "model_version": al_suggest.get("model_version"),
         },
         "gpu": {
             "available": gpu.available,

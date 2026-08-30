@@ -213,8 +213,12 @@ function renderTraining(runs) {
 function renderAL(al) {
     const st = al.catalog_by_status || {};
     const statusTxt = Object.entries(st).map(([k,v]) => `${k}: ${v}`).join(' · ') || 'catalogue vide';
+    const pool = al.pool_stats || {};
+    const poolTotal = pool.total != null ? pool.total : '—';
     document.getElementById('alSection').innerHTML = `
-        <p>🆕 <strong>${al.new_acquisitions||0}</strong> acquisitions (nouvelles / catalogue)</p>
+        <p>📋 <strong>${al.suggestions_count||0}</strong> suggestions AL
+           · stratégie ${al.strategy||'hybrid'} · pool ${poolTotal}</p>
+        <p>🆕 <strong>${al.new_acquisitions||0}</strong> acquisitions catalogue</p>
         <p class="metric-sub" style="margin-top:8px">${statusTxt}</p>`;
 }
 
