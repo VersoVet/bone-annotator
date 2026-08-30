@@ -5,12 +5,16 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from src.config import get_bone_ml_config
+from src.config import get_bone_ml_config, get_postgres_config
+from src.modules.storage.decisions_db import create_decisions_db
 
+from .decisions import log_learning_decision
 from .gpu import check_gpu_available
 from .learning_dashboard import get_learning_dashboard
-from .models import ActiveLearningRequest, GpuStatus, TestSetRequest
+from .model_comparison import get_model_comparison
+from .models import ActiveLearningRequest, DecisionLogRequest, GpuStatus, TestSetRequest, WeeklyReportRequest
 from .service import add_test_set, list_test_set, run_active_learning
+from .weekly_report import generate_weekly_report
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/boneseg", tags=["boneseg"])
@@ -20,13 +24,62 @@ router = APIRouter(prefix="/api/boneseg", tags=["boneseg"])
 async def learning_dashboard(
     bone_type: str | None = Query(None, description="Filter by bone type"),
 ) -> dict[str, Any]:
-    """Full learning progress dashboard (sections 1-7)."""
+    """Full learning progress dashboard (sections 1-12)."""
     try:
         data = await get_learning_dashboard(bone_type)
         return {"status": "ok", **data}
     except Exception as e:
         logger.error("Learning dashboard failed: %s", e)
         raise HTTPException(status_code=500, detail="Learning dashboard unavailable")
+
+
+@router.get("/model-comparison")
+async def model_comparison(
+    bone_type: str | None = Query(None),
+    limit: int = Query(12, ge=1, le=48),
+) -> dict[str, Any]:
+    """Model vs human comparison grid (section 11)."""
+    try:
+        data = await get_model_comparison(bone_type, limit)
+        return {"status": "ok", **data}
+    except Exception as e:
+        logger.error("Model comparison failed: %s", e)
+        raise HTTPException(status_code=500, detail="Model comparison unavailable")
+
+
+@router.get("/decisions")
+async def list_decisions(
+    bone_type: str | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+) -> dict[str, Any]:
+    """Learning decision history (section 10)."""
+    db = create_decisions_db(**get_postgres_config())
+    entries = db.list_decisions(limit=limit, bone_type=bone_type)
+    return {"status": "ok", "entries": entries, "total": len(entries)}
+
+
+@router.post("/decisions")
+async def create_decision(request: DecisionLogRequest) -> dict[str, Any]:
+    """Log a manual learning decision."""
+    row_id = log_learning_decision(
+        request.action,
+        bone_type=request.bone_type,
+        generation=request.generation,
+        trigger_source="manual",
+        payload=request.payload,
+        notes=request.notes,
+    )
+    return {"status": "ok", "id": row_id}
+
+
+@router.post("/weekly-report")
+async def weekly_report(request: WeeklyReportRequest) -> dict[str, Any]:
+    """Generate weekly Markdown report; optionally email (section 12)."""
+    try:
+        return await generate_weekly_report(send_email=request.send_email)
+    except Exception as e:
+        logger.error("Weekly report failed: %s", e)
+        raise HTTPException(status_code=500, detail="Weekly report failed")
 
 
 @router.get("/gpu-status")
@@ -114,4 +167,4 @@ async def catalog_stats() -> dict[str, Any]:
         raise
     except Exception as e:
         logger.error("Catalog stats proxy failed: %s", e)
-        raise HTTPException(status_code=502, detail="Failed to fetch catalog stats")
+        raise HTTPException(status_code=500, detail="Failed to fetch catalog stats")

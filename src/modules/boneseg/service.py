@@ -10,6 +10,7 @@ from src.modules.annotation.models import CreateTaskRequest
 from src.modules.annotation.service import get_service as get_annotation_service
 from src.modules.storage.learning_db import create_learning_db
 
+from .decisions import log_learning_decision
 from .gpu import check_gpu_available
 from .models import ActiveLearningResult
 
@@ -100,6 +101,17 @@ async def run_active_learning(
                 logger.warning("Failed to create AL task for %s: %s", acq_id, e)
                 result.skipped.append(f"{acq_id}:{e}")
 
+    log_learning_decision(
+        "active_learning_run",
+        bone_type=bone_type,
+        trigger_source="api",
+        payload={
+            "tasks_created": len(result.tasks_created),
+            "skipped": len(result.skipped),
+            "limit": limit,
+        },
+        notes=f"AL cycle — {len(result.tasks_created)} tâches créées",
+    )
     return result
 
 
@@ -116,6 +128,13 @@ def add_test_set(bone_type: str, acquisition_ids: list[str]) -> dict[str, Any]:
     learning_db = create_learning_db(**get_postgres_config())
     inserted = learning_db.add_test_set_entries(bone_type, acquisition_ids)
     entries = learning_db.list_test_set(bone_type)
+    log_learning_decision(
+        "test_set_added",
+        bone_type=bone_type,
+        trigger_source="api",
+        payload={"inserted": inserted, "acquisition_ids": acquisition_ids},
+        notes=f"{inserted} acquisitions ajoutées au test set gelé",
+    )
     return {"inserted": inserted, "bone_type": bone_type, "total": len(entries)}
 
 

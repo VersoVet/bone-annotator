@@ -41,8 +41,16 @@
         .metric-sub { font-size:0.85em; color:#8b949e; margin-top:4px; }
         .gpu-ok { color:#3fb950; }
         .gpu-busy { color:#f85149; }
+        .alert-critical { border-left:3px solid #f85149; padding-left:10px; margin:8px 0; }
+        .alert-warning { border-left:3px solid #d29922; padding-left:10px; margin:8px 0; }
+        .alert-info { border-left:3px solid #58a6ff; padding-left:10px; margin:8px 0; }
+        .compare-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
+        .compare-cell { background:#21262d; border-radius:6px; padding:8px; font-size:0.8em; }
+        .compare-cell strong { display:block; color:#e67e22; }
+        .decision-row { font-size:0.85em; padding:6px 0; border-bottom:1px solid #21262d; }
         .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
         #updated { color:#484f58; font-size:0.8em; }
+        .rec-box { background:#21262d; border-radius:6px; padding:10px; margin-top:8px; font-size:0.9em; }
     </style>
 </head>
 <body>
@@ -99,6 +107,36 @@
         <div class="card">
             <h2>6 · Test set gelé</h2>
             <div id="testSetSection">—</div>
+        </div>
+
+        <div class="card card-wide">
+            <h2>8 · Alertes</h2>
+            <div id="alertsSection">—</div>
+        </div>
+
+        <div class="card">
+            <h2>9 · Qualité annotations</h2>
+            <div id="qualitySection">—</div>
+        </div>
+
+        <div class="card card-wide">
+            <h2>10 · Historique décisions</h2>
+            <div id="decisionsSection">—</div>
+        </div>
+
+        <div class="card card-wide">
+            <h2>11 · Comparaison modèle / humain</h2>
+            <div id="comparisonSection">—</div>
+        </div>
+
+        <div class="card">
+            <h2>12 · Rapport hebdomadaire</h2>
+            <div id="reportSection">—</div>
+            <div class="actions">
+                <button class="btn" onclick="genReport(false)">Générer Markdown</button>
+                <button class="btn btn-primary" onclick="genReport(true)">Envoyer par email</button>
+            </div>
+            <div id="reportStatus" style="margin-top:8px;font-size:0.8em;color:#8b949e;"></div>
         </div>
     </div>
 </div>
@@ -198,6 +236,63 @@ function renderTestSets(ts) {
     }).join('');
 }
 
+function renderAlerts(alerts) {
+    const el = document.getElementById('alertsSection');
+    if (!alerts || !alerts.length) {
+        el.innerHTML = '<p style="color:#8b949e">Aucune alerte active.</p>';
+        return;
+    }
+    el.innerHTML = alerts.map(a => {
+        const cls = 'alert-' + (a.severity || 'info');
+        return `<div class="${cls}">${a.message || a.type}</div>`;
+    }).join('');
+}
+
+function renderQuality(q) {
+    const rate = q.ml_correction_rate;
+    const rateTxt = rate != null ? `${(rate*100).toFixed(1)}%` : '—';
+    const ready = q.ready_for_pseudo_labeling ? '<span class="gpu-ok">✓ prêt pseudo-labeling</span>' : '';
+    const proj = Object.entries(q.by_projection||{}).map(([k,v]) => `${k}: ${v}`).join(' · ') || '—';
+    document.getElementById('qualitySection').innerHTML = `
+        <p>Taux correction ML: <strong>${rateTxt}</strong> ${ready}</p>
+        <p class="metric-sub">${q.ml_corrected_count||0} / ${q.ml_validated_total||0} annotations ML corrigées</p>
+        <p style="margin-top:8px;font-size:0.9em">Temps moyen validation: ${q.avg_validation_minutes!=null?q.avg_validation_minutes+' min':'—'}</p>
+        <p style="font-size:0.85em;color:#8b949e;margin-top:6px">Frames multi-annotateurs: ${q.multi_annotator_frames||0}</p>
+        <p style="font-size:0.85em;color:#8b949e;margin-top:6px">Par projection: ${proj}</p>`;
+}
+
+function renderDecisions(entries) {
+    const el = document.getElementById('decisionsSection');
+    if (!entries || !entries.length) {
+        el.innerHTML = '<p style="color:#8b949e">Aucune décision enregistrée.</p>';
+        return;
+    }
+    el.innerHTML = entries.slice(0,15).map(d => `
+        <div class="decision-row">
+            <strong>${d.action}</strong> · ${d.bone_type||'—'}
+            <span style="color:#8b949e"> — ${fmtDate(d.decided_at)} (${d.trigger_source})</span>
+            ${d.notes ? `<div style="color:#8b949e">${d.notes}</div>` : ''}
+        </div>`).join('');
+}
+
+function renderComparison(comp) {
+    const items = comp.items || [];
+    const el = document.getElementById('comparisonSection');
+    if (!items.length) { el.innerHTML = '<p style="color:#8b949e">Pas de cas incertains.</p>'; return; }
+    el.innerHTML = `<div class="compare-grid">${items.map(c => `
+        <div class="compare-cell">
+            <strong>${c.acquisition_id}</strong>
+            ${c.bone_type||''}<br>
+            incert. ${c.uncertainty!=null?c.uncertainty.toFixed(3):'—'}
+            ${c.dice_gap!=null?`<br>Δ ${c.dice_gap.toFixed?c.dice_gap.toFixed(3):c.dice_gap}`:''}
+        </div>`).join('')}</div>`;
+}
+
+function renderRecommendation(rec) {
+    document.getElementById('reportSection').innerHTML =
+        `<div class="rec-box">Os à prioriser: <strong>${rec||'humerus'}</strong></div>`;
+}
+
 async function loadDashboard() {
     try {
         const r = await fetch(`${API}/api/boneseg/learning-dashboard`);
@@ -210,9 +305,30 @@ async function loadDashboard() {
         renderAL(d.active_learning||{});
         renderGPU(d.gpu||{});
         renderTestSets(d.test_sets||{});
+        renderAlerts(d.alerts||[]);
+        renderQuality(d.quality||{});
+        renderDecisions(d.decisions||[]);
+        renderComparison(d.model_comparison||{});
+        renderRecommendation(d.recommendation);
     } catch(e) {
         console.error(e);
     }
+}
+
+async function genReport(sendEmail) {
+    const el = document.getElementById('reportStatus');
+    el.textContent = sendEmail ? 'Envoi email…' : 'Génération…';
+    try {
+        const r = await fetch(`${API}/api/boneseg/weekly-report`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({send_email: sendEmail})
+        });
+        const d = await r.json();
+        if (!r.ok) { el.textContent = d.detail || 'Erreur'; return; }
+        el.textContent = sendEmail
+            ? (d.email_sent ? 'Email envoyé ✓' : ('Email non envoyé: ' + (d.email_error||'')))
+            : 'Rapport généré (' + (d.markdown||'').length + ' chars)';
+    } catch(e) { el.textContent = String(e); }
 }
 
 async function catalogSync() {

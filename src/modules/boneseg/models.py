@@ -21,6 +21,22 @@ class ActiveLearningRequest(BaseModel):
     pre_annotate: bool = Field(default=True, description="Run ML pre-annotation on new tasks")
 
 
+class WeeklyReportRequest(BaseModel):
+    """Request weekly report generation."""
+
+    send_email: bool = Field(default=False, description="Send report via email skill")
+
+
+class DecisionLogRequest(BaseModel):
+    """Manual learning decision log entry."""
+
+    action: str = Field(..., description="Decision action type")
+    bone_type: str | None = None
+    generation: int | None = None
+    notes: str | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
 class ActiveLearningResult(BaseModel):
     """Result of an active learning orchestration run."""
 

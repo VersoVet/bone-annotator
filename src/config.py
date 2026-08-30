@@ -97,6 +97,18 @@ IMAGING_DEFAULT_PRE_ANNOTATE = bool(
 DASHBOARD_TITLE = _get("dashboard", "title", "DASHBOARD_TITLE", "Gestion des Annotations")
 DASHBOARD_POLL_MS = int(_get("dashboard", "poll_interval_ms", "DASHBOARD_POLL_MS", 5000))
 
+LEARNING_REPORT_EMAIL = _get("learning", "report_email_to", "LEARNING_REPORT_EMAIL", "")
+LEARNING_REGRESSION_THRESHOLD = float(
+    _CFG.get("learning", {}).get("regression_threshold", 0.02)
+)
+LEARNING_NEW_ACQ_THRESHOLD = int(
+    _CFG.get("learning", {}).get("new_acquisitions_alert_threshold", 100)
+)
+LEARNING_ML_READY_THRESHOLD = float(
+    _CFG.get("learning", {}).get("ml_correction_ready_threshold", 0.10)
+)
+EMAIL_BASE_URL = _get("endpoints", "email", "EMAIL_BASE_URL", "http://10.0.0.44:8054")
+
 
 # ===== CHECK FUNCTIONS =====
 
@@ -272,6 +284,21 @@ def get_dashboard_config() -> dict[str, Any]:
         "title": DASHBOARD_TITLE,
         "poll_interval_ms": DASHBOARD_POLL_MS,
     }
+
+
+def get_learning_config() -> dict[str, Any]:
+    """Obtenir la configuration du dashboard learning."""
+    return {
+        "report_email_to": LEARNING_REPORT_EMAIL,
+        "regression_threshold": LEARNING_REGRESSION_THRESHOLD,
+        "new_acquisitions_alert_threshold": LEARNING_NEW_ACQ_THRESHOLD,
+        "ml_correction_ready_threshold": LEARNING_ML_READY_THRESHOLD,
+    }
+
+
+def get_email_config() -> dict[str, Any]:
+    """Obtenir la configuration du service email."""
+    return {"base_url": EMAIL_BASE_URL, "default_to": LEARNING_REPORT_EMAIL}
 
 
 def get_dataset_pacs_config() -> dict[str, Any]:

@@ -41,6 +41,21 @@
       "timeout_seconds": 600,
       "enabled": true,
       "notify_on_failure": true
+    },
+    {
+      "id": "weekly-learning-report",
+      "name": "Weekly BoneSeg Learning Report",
+      "description": "Rapport hebdomadaire Markdown + email (annotations, Dice, recommandation os)",
+      "schedule": "0 8 * * 1",
+      "command": {
+        "type": "endpoint",
+        "endpoint": "/api/boneseg/weekly-report",
+        "method": "POST",
+        "body": {"send_email": true}
+      },
+      "timeout_seconds": 120,
+      "enabled": true,
+      "notify_on_failure": true
     }
   ]
 }

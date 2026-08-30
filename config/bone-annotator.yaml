@@ -69,3 +69,14 @@ imaging:
 dashboard:
   title: "Gestion des Annotations"
   poll_interval_ms: 5000
+
+# Learning dashboard — alertes, rapports, email
+learning:
+  report_email_to: hpc.verso@gmail.com
+  regression_threshold: 0.02
+  new_acquisitions_alert_threshold: 100
+  ml_correction_ready_threshold: 0.10
+
+# Endpoints services externes
+endpoints:
+  email: http://10.0.0.44:8054

@@ -67,3 +67,4 @@ def test_migrations_include_boneseg() -> None:
     assert "test_sets" in sql
     assert "bonestore_catalog" in sql
     assert "boneseg_training_runs" in sql
+    assert "learning_decisions" in sql

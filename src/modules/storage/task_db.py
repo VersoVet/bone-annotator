@@ -155,6 +155,20 @@ _MIGRATIONS = [
         started_at TIMESTAMP DEFAULT NOW(),
         completed_at TIMESTAMP
     )""",
+    f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.learning_decisions (
+        id SERIAL PRIMARY KEY,
+        decided_at TIMESTAMPTZ DEFAULT NOW(),
+        action VARCHAR(50) NOT NULL,
+        bone_type VARCHAR(50),
+        generation INT,
+        gold_count INT,
+        silver_count INT,
+        trigger_source VARCHAR(50) DEFAULT 'system',
+        payload JSONB,
+        notes TEXT
+    )""",
+    f"""CREATE INDEX IF NOT EXISTS idx_learning_decisions_at
+        ON {SCHEMA}.learning_decisions(decided_at DESC)""",
 ]
 
 
