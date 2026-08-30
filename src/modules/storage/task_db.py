@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 SCHEMA = "bone_annotations"
 
-ACTIVE_TASK_STATUSES = ("preparing", "created", "annotating", "reviewing")
+ACTIVE_TASK_STATUSES = ("preparing", "uploading", "created", "annotating", "reviewing")
 
 _MIGRATIONS = [
     # Add author/validation columns to frame_annotations
