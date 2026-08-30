@@ -11,7 +11,7 @@ class TestAnnotationModels:
         req = CreateTaskRequest(acquisition_id="acq_001", bone_type="humerus")
         assert req.source_name == "bonestore"
         assert req.region == "entire"
-        assert req.pipeline_preset == "replay_membre"
+        assert req.pipeline_preset is None
         assert req.pre_annotate is False
         assert req.assignee is None
 

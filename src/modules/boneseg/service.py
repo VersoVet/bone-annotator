@@ -5,7 +5,7 @@ from typing import Any
 
 import httpx
 
-from src.config import get_bone_ml_config, get_postgres_config
+from src.config import get_bone_ml_config, get_imaging_config, get_postgres_config
 from src.modules.annotation.models import CreateTaskRequest
 from src.modules.annotation.service import get_service as get_annotation_service
 from src.modules.storage.task_db import create_task_db
@@ -22,7 +22,7 @@ async def run_active_learning(
     *,
     bone_type: str | None = None,
     limit: int = 5,
-    pipeline_preset: str = "os_nu_medsam_user",
+    pipeline_preset: str | None = None,
     pre_annotate: bool = True,
 ) -> ActiveLearningResult:
     """Run one active learning cycle: sync catalog, suggest, create CVAT tasks.
@@ -36,6 +36,8 @@ async def run_active_learning(
     Returns:
         ActiveLearningResult with sync stats and created tasks.
     """
+    if pipeline_preset is None:
+        pipeline_preset = get_imaging_config()["default_treatment"]
     ml_config = get_bone_ml_config()
     task_db = create_task_db(**get_postgres_config())
     annotation_svc = get_annotation_service()

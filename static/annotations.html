@@ -58,8 +58,25 @@
         .badge-reviewing { background: #fefcbf; color: #975a16; }
         .badge-validated { background: #c6f6d5; color: #276749; }
         .badge-rejected { background: #fed7d7; color: #9b2c2c; }
+        .badge-uploading { background: #bee3f8; color: #2c5282; }
+        .badge-failed { background: #fed7d7; color: #c53030; }
 
-        .actions { display: flex; gap: 4px; flex-wrap: wrap; }
+        .header-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .version-badge { font-size: 0.75em; background: #edf2f7; color: #4a5568; padding: 4px 10px;
+            border-radius: 12px; text-decoration: none; font-weight: 600; }
+        .version-badge:hover { background: #e2e8f0; }
+        .icon-btn { background: transparent; border: 1px solid #cbd5e0; border-radius: 6px;
+            width: 36px; height: 36px; cursor: pointer; font-size: 1.1em; display: inline-flex;
+            align-items: center; justify-content: center; text-decoration: none; color: #4a5568; }
+        .icon-btn:hover { background: #edf2f7; }
+        .tracking-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px; margin-bottom: 15px; }
+        .track-card { background: white; border-radius: 8px; padding: 12px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .track-card h4 { font-size: 0.7em; text-transform: uppercase; color: #718096; margin-bottom: 6px; }
+        .track-val { font-size: 1.3em; font-weight: 700; color: #2d3748; }
+        .track-sub { font-size: 0.75em; color: #a0aec0; margin-top: 4px; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
         .empty-state { text-align: center; padding: 60px 20px; color: #a0aec0; }
         .stats-bar { display: flex; gap: 20px; margin-bottom: 15px; }
         .stat { background: white; border-radius: 8px; padding: 12px 20px; flex: 1;
@@ -71,12 +88,18 @@
 <body>
 <div class="container">
     <header>
-        <h1>Gestion des Annotations</h1>
-        <div>
+        <div class="header-left">
+            <h1 id="pageTitle">Gestion des Annotations</h1>
+            <a class="version-badge" id="versionBadge" href="/health" target="_blank" title="Version manifest">v…</a>
+        </div>
+        <div class="header-actions">
+            <a class="icon-btn" href="/annotate/settings" title="Paramètres imaging treatment">⚙</a>
             <button class="btn btn-outline" onclick="loadTasks()">Rafraichir</button>
             <button class="btn btn-primary" onclick="toggleForm()">+ Nouvelle Tache</button>
         </div>
     </header>
+
+    <div class="tracking-bar" id="trackingBar"></div>
 
     <div class="stats-bar" id="stats"></div>
 
@@ -108,7 +131,7 @@
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Pipeline imaging</label>
+                <label>Imaging treatment</label>
                 <select id="presetSelect">
                     <option value="">Chargement...</option>
                 </select>
@@ -135,11 +158,14 @@
         <label style="font-size:0.85em; font-weight:600; color:#4a5568;">Filtres:</label>
         <select id="filterStatus" onchange="loadTasks()">
             <option value="">Tous les statuts</option>
+            <option value="preparing">Preparing</option>
+            <option value="uploading">Uploading</option>
             <option value="created">Created</option>
             <option value="annotating">Annotating</option>
             <option value="reviewing">Reviewing</option>
             <option value="validated">Validated</option>
             <option value="rejected">Rejected</option>
+            <option value="failed">Failed</option>
         </select>
         <select id="filterBone" onchange="loadTasks()">
             <option value="">Tous les os</option>
@@ -153,7 +179,7 @@
     <div class="task-table">
         <table>
             <thead><tr>
-                <th>ID</th><th>Acquisition</th><th>Os</th><th>Pipeline</th>
+                <th>ID</th><th>Acquisition</th><th>Os</th><th>Imaging treatment</th>
                 <th>Status</th><th>Assignee</th><th>Frames</th><th>Actions</th>
             </tr></thead>
             <tbody id="taskBody">
@@ -165,6 +191,10 @@
 
 <script>
 const API = '';
+let pipelineLabels = {};
+let pollTimer = null;
+let pollIntervalMs = 5000;
+let defaultTreatment = 'os_nu_medsam_user';
 
 function toggleForm() {
     document.getElementById('createForm').classList.toggle('show');
@@ -265,14 +295,55 @@ async function loadTasks() {
 }
 
 function renderStats(tasks, total) {
-    const counts = { created:0, annotating:0, reviewing:0, validated:0, rejected:0 };
+    const counts = { preparing:0, uploading:0, created:0, annotating:0, reviewing:0, validated:0, rejected:0, failed:0 };
     tasks.forEach(t => { if (counts[t.status] !== undefined) counts[t.status]++; });
+    const inProgress = counts.preparing + counts.uploading + counts.annotating;
     document.getElementById('stats').innerHTML = `
         <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Total</div></div>
-        <div class="stat"><div class="stat-value">${counts.annotating}</div><div class="stat-label">En cours</div></div>
+        <div class="stat"><div class="stat-value">${inProgress}</div><div class="stat-label">En cours</div></div>
         <div class="stat"><div class="stat-value">${counts.reviewing}</div><div class="stat-label">Review</div></div>
         <div class="stat"><div class="stat-value">${counts.validated}</div><div class="stat-label">Validees</div></div>
-    `;
+        <div class="stat"><div class="stat-value">${counts.failed}</div><div class="stat-label">Echecs</div></div>`;
+    schedulePoll(tasks);
+}
+
+function schedulePoll(tasks) {
+    const needsPoll = tasks.some(t => ['preparing','uploading'].includes(t.status));
+    if (needsPoll && !pollTimer) {
+        pollTimer = setInterval(loadTasks, pollIntervalMs);
+    } else if (!needsPoll && pollTimer) {
+        clearInterval(pollTimer); pollTimer = null;
+    }
+}
+
+async function loadTracking() {
+    const bar = document.getElementById('trackingBar');
+    try {
+        const r = await fetch(`${API}/api/admin/tracking`);
+        const d = await r.json();
+        const local = d.local || {};
+        const cat = d.catalog || {};
+        const byStatus = local.tasks_by_status || {};
+        const byTier = local.annotations_by_tier || {};
+        const catStatus = cat.by_status || {};
+        bar.innerHTML = `
+            <div class="track-card"><h4>Catalogue BoneStore</h4>
+                <div class="track-val">${cat.total ?? local.catalog_total ?? 0}</div>
+                <div class="track-sub">${Object.entries(catStatus).map(([k,v])=>k+': '+v).join(' · ') || 'bone-ml sync pending'}</div></div>
+            <div class="track-card"><h4>Quality tiers</h4>
+                <div class="track-val">${Object.values(byTier).reduce((a,b)=>a+b,0)}</div>
+                <div class="track-sub">gold ${byTier.gold||0} · silver ${byTier.silver||0} · pseudo ${byTier.pseudo||0}</div></div>
+            <div class="track-card"><h4>Test set gelé</h4>
+                <div class="track-val">${local.test_set_total||0}</div>
+                <div class="track-sub">acquisitions</div></div>
+            <div class="track-card"><h4>Tâches actives</h4>
+                <div class="track-val">${(byStatus.preparing||0)+(byStatus.uploading||0)+(byStatus.annotating||0)}</div>
+                <div class="track-sub">preparing ${byStatus.preparing||0} · uploading ${byStatus.uploading||0}</div></div>`;
+    } catch(e) { bar.innerHTML = ''; }
+}
+
+function treatmentLabel(preset) {
+    return pipelineLabels[preset] || preset || '-';
 }
 
 function renderTasks(tasks) {
@@ -285,8 +356,9 @@ function renderTasks(tasks) {
         <td><strong>#${t.id}</strong></td>
         <td>${t.acquisition_id}</td>
         <td>${t.bone_type}${t.region !== 'entire' ? ' ('+t.region+')' : ''}</td>
-        <td>${t.pipeline_preset || '-'}</td>
+        <td>${treatmentLabel(t.pipeline_preset)}</td>
         <td><span class="badge badge-${t.status}">${t.status}</span>
+            ${t.progress ? `<div style="font-size:0.75em;color:#718096;margin-top:2px">${t.progress.step}: ${t.progress.detail||''}</div>` : ''}
             ${t.has_pre_annotations ? '<span class="badge" style="background:#e9d8fd;color:#6b46c1;margin-left:4px">ML</span>' : ''}</td>
         <td>${t.assignee || '-'}</td>
         <td>${t.annotated_frames || 0}/${t.frame_count || 0}</td>
@@ -362,60 +434,62 @@ async function validateTask(id, decision) {
 async function loadPipelines() {
     const sel = document.getElementById('presetSelect');
     try {
-        const r = await fetch(`${API}/api/preparation/pipelines`);
-        const d = await r.json();
+        const [pipeR, cfgR] = await Promise.all([
+            fetch(`${API}/api/preparation/pipelines`),
+            fetch(`${API}/api/admin/settings`),
+        ]);
+        const d = await pipeR.json();
+        const cfg = await cfgR.json();
+        defaultTreatment = cfg.imaging?.default_treatment || defaultTreatment;
         sel.innerHTML = '';
-        const groups = {replay: [], export: [], other: []};
+        pipelineLabels = {};
+        const groups = { user: [], bundled: [], clinical: [], custom: [] };
         (d.pipelines || []).forEach(p => {
-            if (p.name.startsWith('replay')) groups.replay.push(p);
-            else if (p.name.startsWith('export')) groups.export.push(p);
-            else groups.other.push(p);
+            pipelineLabels[p.name] = p.display_name || p.name;
+            const src = p.source || 'custom';
+            (groups[src] || groups.custom).push(p);
         });
-        if (groups.replay.length) {
+        const labels = { user: 'Utilisateur [USER]', bundled: 'Bundled (imaging-sdk)', clinical: 'Clinical', custom: 'Autre' };
+        for (const [key, items] of Object.entries(groups)) {
+            if (!items.length) continue;
             const og = document.createElement('optgroup');
-            og.label = 'Replay (annotation)';
-            groups.replay.forEach(p => {
+            og.label = labels[key] || key;
+            items.forEach(p => {
                 const opt = document.createElement('option');
                 opt.value = p.name;
-                opt.textContent = `${p.name} - ${p.description || p.display_name || ''}`;
-                if (p.name === 'replay_membre') opt.selected = true;
-                og.appendChild(opt);
-            });
-            sel.appendChild(og);
-        }
-        if (groups.other.length) {
-            const og = document.createElement('optgroup');
-            og.label = 'Live / Autre';
-            groups.other.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.name;
-                opt.textContent = `${p.name} - ${p.description || p.display_name || ''}`;
-                og.appendChild(opt);
-            });
-            sel.appendChild(og);
-        }
-        if (groups.export.length) {
-            const og = document.createElement('optgroup');
-            og.label = 'Export';
-            groups.export.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.name;
-                opt.textContent = `${p.name} - ${p.description || ''}`;
+                opt.textContent = `${p.display_name || p.name} (${p.filters} filtres)`;
+                if (p.name === defaultTreatment || p.is_default) opt.selected = true;
                 og.appendChild(opt);
             });
             sel.appendChild(og);
         }
     } catch(e) {
-        sel.innerHTML = '<option value="replay_membre">replay_membre (fallback)</option>';
+        sel.innerHTML = `<option value="${defaultTreatment}">${defaultTreatment} (fallback)</option>`;
         console.error('Pipelines:', e);
     }
 }
 
+async function loadPageConfig() {
+    try {
+        const [healthR, cfgR] = await Promise.all([
+            fetch(`${API}/health`), fetch(`${API}/api/admin/settings`)]);
+        const health = await healthR.json();
+        const cfg = await cfgR.json();
+        document.getElementById('versionBadge').textContent = `v${health.version}`;
+        document.getElementById('pageTitle').textContent = cfg.dashboard?.title || 'Gestion des Annotations';
+        pollIntervalMs = cfg.dashboard?.poll_interval_ms || 5000;
+        defaultTreatment = cfg.imaging?.default_treatment || defaultTreatment;
+    } catch(e) { console.error('Config:', e); }
+}
+
 // Init
+loadPageConfig();
 loadSources();
 loadCvatUsers();
 loadPipelines();
+loadTracking();
 loadTasks();
+setInterval(loadTracking, 30000);
 </script>
 </body>
 </html>

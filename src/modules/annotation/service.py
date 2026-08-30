@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Any
 
-from src.config import get_cvat_config, get_postgres_config
+from src.config import get_cvat_config, get_imaging_config, get_postgres_config
 from src.modules.cvat.client import CVATClient
 from src.modules.labels.service import get_labels_for_bone
 from src.modules.sources.service import get_service as get_source_service
@@ -91,6 +91,7 @@ class AnnotationWorkflowService:
         if not anatomy:
             raise ValueError(f"No labels for bone_type '{request.bone_type}' in label-generator")
 
+        pipeline = request.pipeline_preset or get_imaging_config()["default_treatment"]
         # Create DB entry immediately (status="preparing")
         task_id = await asyncio.to_thread(
             self.task_db.save_task,
@@ -100,7 +101,7 @@ class AnnotationWorkflowService:
             source_name=request.source_name,
             region=request.region,
             assignee=request.assignee,
-            pipeline_preset=request.pipeline_preset,
+            pipeline_preset=pipeline,
             status="preparing",
         )
 
@@ -118,7 +119,7 @@ class AnnotationWorkflowService:
             region=request.region,
             author=request.assignee or "system",
             assignee=request.assignee,
-            pipeline_preset=request.pipeline_preset,
+            pipeline_preset=pipeline,
         )
 
     async def get_task(self, task_id: int) -> TaskResponse | None:
@@ -193,7 +194,7 @@ class AnnotationWorkflowService:
             acquisition_id=parent["acquisition_id"],
             bone_type=parent["bone_type"],
             region=parent.get("region", "entire"),
-            pipeline_preset=parent.get("pipeline_preset", "replay_membre"),
+            pipeline_preset=parent.get("pipeline_preset") or get_imaging_config()["default_treatment"],
             pre_annotate=False,
         )
         result = await self.create_task(request)

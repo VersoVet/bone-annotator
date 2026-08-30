@@ -25,7 +25,7 @@ class PrepareRequest(BaseModel):
     source_name: str = Field(default="bonestore", description="Image source name")
     acquisition_id: str = Field(..., description="Acquisition ID")
     bone_type: str = Field(..., description="Bone type")
-    pipeline_preset: str = Field(default="replay_membre", description="Imaging-sdk preset")
+    pipeline_preset: str | None = Field(default=None, description="Imaging treatment preset")
     custom_pipeline: list[dict[str, Any]] | None = Field(None, description="Custom pipeline config")
     image_size: int | None = Field(None, ge=64, le=4096, description="Optional resize")
 

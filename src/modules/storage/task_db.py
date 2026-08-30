@@ -421,6 +421,48 @@ class AnnotationTaskDB:
         ).fetchone()
         return row is not None
 
+    def get_tracking_stats(self) -> dict[str, Any]:
+        """Aggregate annotation tracking stats for dashboard."""
+        conn = self._get_conn()
+        task_rows = conn.execute(
+            f"""SELECT status, COUNT(*) FROM {SCHEMA}.annotation_tasks GROUP BY status"""
+        ).fetchall()
+        tier_rows = conn.execute(
+            f"""SELECT quality_tier, COUNT(*) FROM {SCHEMA}.frame_annotations
+            WHERE source NOT LIKE '%%_superseded' GROUP BY quality_tier"""
+        ).fetchall()
+        catalog_total = conn.execute(
+            f"SELECT COUNT(*) FROM {SCHEMA}.bonestore_catalog"
+        ).fetchone()
+        test_total = conn.execute(f"SELECT COUNT(*) FROM {SCHEMA}.test_sets").fetchone()
+        training_rows = conn.execute(
+            f"""SELECT status, COUNT(*) FROM {SCHEMA}.boneseg_training_runs GROUP BY status"""
+        ).fetchall()
+        return {
+            "tasks_by_status": {r[0]: r[1] for r in task_rows},
+            "annotations_by_tier": {r[0] or "unknown": r[1] for r in tier_rows},
+            "catalog_total": catalog_total[0] if catalog_total else 0,
+            "test_set_total": test_total[0] if test_total else 0,
+            "training_by_status": {r[0]: r[1] for r in training_rows},
+        }
+
+    def reset_annotation_data(self, *, include_annotations: bool = True) -> dict[str, int]:
+        """Clear all annotation tasks and optionally frame annotations.
+
+        Args:
+            include_annotations: Also delete frame_annotations rows.
+
+        Returns:
+            Dict with deleted row counts.
+        """
+        conn = self._get_conn()
+        tasks = conn.execute(f"DELETE FROM {SCHEMA}.annotation_tasks").rowcount or 0
+        frames = 0
+        if include_annotations:
+            frames = conn.execute(f"DELETE FROM {SCHEMA}.frame_annotations").rowcount or 0
+        conn.execute(f"ALTER SEQUENCE {SCHEMA}.annotation_tasks_id_seq RESTART WITH 1")
+        return {"tasks_deleted": tasks, "annotations_deleted": frames}
+
     def save_project_mapping(self, bone_type: str, project_id: int) -> None:
         """Cache bone_type → CVAT project_id in PostgreSQL."""
         try:

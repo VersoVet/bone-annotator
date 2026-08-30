@@ -76,6 +76,27 @@ REDIS_DB = int(_get("redis", "db", "REDIS_DB", 0))
 VAULT_URL = _get("vault", "url", "ONYX_VAULT_URL", "http://10.0.0.44:8050")
 VAULT_TOKEN = os.getenv("ONYX_VAULT_TOKEN", "")
 
+IMAGING_BUNDLED_DIR = _get(
+    "imaging", "bundled_dir", "IMAGING_BUNDLED_DIR", "/opt/onyx/imaging-sdk/pipelines"
+)
+IMAGING_USER_DIR = _get(
+    "imaging", "user_dir", "IMAGING_USER_DIR", "/opt/onyx/imaging-sdk/pipelines/users"
+)
+IMAGING_DEFAULT_TREATMENT = _get(
+    "imaging", "default_treatment", "IMAGING_DEFAULT_TREATMENT", "os_nu_medsam_user"
+)
+IMAGING_DEFAULT_TREATMENT_LABEL = _get(
+    "imaging",
+    "default_treatment_label",
+    "IMAGING_DEFAULT_TREATMENT_LABEL",
+    "Os nu — MedSAM [USER]",
+)
+IMAGING_DEFAULT_PRE_ANNOTATE = bool(
+    _CFG.get("imaging", {}).get("default_pre_annotate", False)
+)
+DASHBOARD_TITLE = _get("dashboard", "title", "DASHBOARD_TITLE", "Gestion des Annotations")
+DASHBOARD_POLL_MS = int(_get("dashboard", "poll_interval_ms", "DASHBOARD_POLL_MS", 5000))
+
 
 # ===== CHECK FUNCTIONS =====
 
@@ -232,6 +253,25 @@ def get_redis_config() -> dict[str, Any]:
 def get_bone_ml_config() -> dict[str, Any]:
     """Obtenir la configuration bone-ml."""
     return {"host": BONE_ML_HOST, "port": BONE_ML_PORT, "base_url": f"http://{BONE_ML_HOST}:{BONE_ML_PORT}"}
+
+
+def get_imaging_config() -> dict[str, Any]:
+    """Obtenir la configuration imaging treatment (imaging-sdk)."""
+    return {
+        "bundled_dir": IMAGING_BUNDLED_DIR,
+        "user_dir": IMAGING_USER_DIR,
+        "default_treatment": IMAGING_DEFAULT_TREATMENT,
+        "default_treatment_label": IMAGING_DEFAULT_TREATMENT_LABEL,
+        "default_pre_annotate": IMAGING_DEFAULT_PRE_ANNOTATE,
+    }
+
+
+def get_dashboard_config() -> dict[str, Any]:
+    """Obtenir la configuration dashboard UI."""
+    return {
+        "title": DASHBOARD_TITLE,
+        "poll_interval_ms": DASHBOARD_POLL_MS,
+    }
 
 
 def get_dataset_pacs_config() -> dict[str, Any]:

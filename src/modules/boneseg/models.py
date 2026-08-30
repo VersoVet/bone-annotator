@@ -17,7 +17,7 @@ class ActiveLearningRequest(BaseModel):
 
     bone_type: str | None = Field(None, description="Limit suggestions to one bone type")
     limit: int = Field(default=5, ge=1, le=50, description="Max tasks to create")
-    pipeline_preset: str = Field(default="os_nu_medsam_user", description="Imaging pipeline preset")
+    pipeline_preset: str | None = Field(default=None, description="Imaging treatment preset")
     pre_annotate: bool = Field(default=True, description="Run ML pre-annotation on new tasks")
 
 

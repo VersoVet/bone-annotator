@@ -55,3 +55,17 @@ dataset_pacs:
 vault:
   url: http://10.0.0.44:8050
   # token depuis env var ONYX_VAULT_TOKEN
+
+# Imaging treatment pipelines (imaging-sdk sur Synapse)
+imaging:
+  bundled_dir: /opt/onyx/imaging-sdk/pipelines
+  user_dir: /opt/onyx/imaging-sdk/pipelines/users
+  default_treatment: os_nu_medsam_user
+  default_treatment_label: "Os nu — MedSAM [USER]"
+  default_pre_annotate: false
+  default_active_learning_pipeline: os_nu_medsam_user
+
+# Dashboard — valeurs par défaut UI
+dashboard:
+  title: "Gestion des Annotations"
+  poll_interval_ms: 5000

@@ -189,5 +189,5 @@ graph LR
 ---
 
 **Dernière mise à jour**: 2026-08-30
-**Phase**: Intégration BoneSeg + active learning
-**Version**: v0.1.59
+**Phase**: Dashboard admin + imaging-sdk pipelines
+**Version**: v0.1.61

@@ -375,7 +375,7 @@ Validation Forge: VALID (0E/4W)
 
 **Dernière mise à jour**: 2026-08-30
 **Phase**: Intégration BoneSeg (active learning, quality tiers, test set)
-**Version**: v0.1.59
-**Status**: BoneSeg orchestration + tier-aware annotations
+**Version**: v0.1.61
+**Status**: Dashboard admin, imaging treatment config, tracking BoneSeg
 **Coverage**: All modules have REST API routes (67+ endpoints)
 **Test Coverage**: 90+ passing

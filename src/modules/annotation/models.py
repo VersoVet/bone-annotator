@@ -16,7 +16,7 @@ class CreateTaskRequest(BaseModel):
     bone_type: str = Field(..., description="Bone type (humerus, radius, etc.)")
     region: str = Field(default="entire", description="Anatomical region")
     assignee: str | None = Field(None, description="CVAT user to assign")
-    pipeline_preset: str = Field(default="replay_membre", description="Imaging-sdk preset")
+    pipeline_preset: str | None = Field(default=None, description="Imaging treatment preset")
     pre_annotate: bool = Field(default=False, description="Request ML pre-annotations")
 
 

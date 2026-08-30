@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bone-annotator — Paramètres</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa; min-height: 100vh; padding: 24px; color: #2d3748; }
+        .wrap { max-width: 900px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        h1 { font-size: 1.4em; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        h2 { font-size: 1em; margin-bottom: 12px; color: #4a5568; }
+        dl { display: grid; grid-template-columns: 220px 1fr; gap: 8px 16px; font-size: 0.9em; }
+        dt { color: #718096; font-weight: 600; }
+        dd code { background: #edf2f7; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+        .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em; }
+        .btn-outline { background: white; border: 1px solid #cbd5e0; color: #4a5568; text-decoration: none; display: inline-block; }
+        .btn-danger { background: #fc8181; color: white; }
+        .warn { background: #fffaf0; border: 1px solid #fbd38d; border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 0.85em; }
+        .version { color: #718096; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div>
+            <h1>Paramètres — bone-annotator</h1>
+            <div class="version" id="version">Chargement...</div>
+        </div>
+        <a class="btn btn-outline" href="/annotate/annotations">← Annotations</a>
+    </header>
+
+    <div class="card">
+        <h2>Imaging treatment (imaging-sdk)</h2>
+        <dl id="imagingConfig"></dl>
+        <p style="margin-top:12px;font-size:0.85em;color:#718096;">
+            Fichier: <code>config/bone-annotator.yaml</code> — section <code>imaging</code><br>
+            Bundled: <code>/opt/onyx/imaging-sdk/pipelines/</code><br>
+            Utilisateurs: <code>/opt/onyx/imaging-sdk/pipelines/users/</code>
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Dashboard</h2>
+        <dl id="dashboardConfig"></dl>
+    </div>
+
+    <div class="card">
+        <h2>Administration</h2>
+        <p style="font-size:0.9em;margin-bottom:12px;">Réinitialise les tâches d'annotation et les essais de test.</p>
+        <button class="btn btn-danger" onclick="resetData()">Réinitialiser annotations</button>
+        <div class="warn">Supprime toutes les tâches <code>annotation_tasks</code> et les annotations <code>frame_annotations</code>. Les tâches CVAT ne sont pas supprimées.</div>
+        <div id="resetStatus" style="margin-top:8px;font-size:0.85em;"></div>
+    </div>
+</div>
+<script>
+async function loadSettings() {
+    const r = await fetch('/api/admin/settings');
+    const d = await r.json();
+    document.getElementById('version').textContent = `v${d.version}`;
+    const img = d.imaging || {};
+    document.getElementById('imagingConfig').innerHTML = `
+        <dt>Traitement par défaut</dt><dd><code>${img.default_treatment}</code> — ${img.default_treatment_label || ''}</dd>
+        <dt>Bundled dir</dt><dd><code>${img.bundled_dir}</code></dd>
+        <dt>Users dir</dt><dd><code>${img.user_dir}</code></dd>
+        <dt>Pre-annotate défaut</dt><dd>${img.default_pre_annotate ? 'oui' : 'non'}</dd>`;
+    const dash = d.dashboard || {};
+    document.getElementById('dashboardConfig').innerHTML = `
+        <dt>Titre</dt><dd>${dash.title}</dd>
+        <dt>Polling (ms)</dt><dd>${dash.poll_interval_ms}</dd>`;
+}
+
+async function resetData() {
+    if (!confirm('Réinitialiser TOUTES les tâches et annotations ?')) return;
+    const confirm = prompt('Tapez RESET pour confirmer:');
+    if (confirm !== 'RESET') return;
+    const el = document.getElementById('resetStatus');
+    el.textContent = 'Réinitialisation...';
+    try {
+        const r = await fetch('/api/admin/reset', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({confirm: 'RESET', include_annotations: true})
+        });
+        const d = await r.json();
+        el.innerHTML = r.ok
+            ? `<span style="color:green">OK — ${d.tasks_deleted} tâches, ${d.annotations_deleted} annotations supprimées</span>`
+            : `<span style="color:red">${d.detail || 'Erreur'}</span>`;
+    } catch(e) { el.innerHTML = `<span style="color:red">${e}</span>`; }
+}
+
+loadSettings();
+</script>
+</body>
+</html>

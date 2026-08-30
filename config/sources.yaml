@@ -19,9 +19,9 @@ dataset_pacs:
 dataset_storage_fallback:
   root: /mnt/cortex-bone-share/datasets
 
-# Imaging pipelines — vet-fluoro-studio sur Synapse
+# Imaging pipelines — imaging-sdk sur Synapse (voir bone-annotator.yaml)
 imaging:
-  pipeline_dir: /opt/onyx/skills/vet-fluoro-studio/pipelines
+  pipeline_dir: /opt/onyx/imaging-sdk/pipelines/users
 
 # MedSAM2 — propagation temporelle sur OnyxCortex
 medsam2:

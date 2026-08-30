@@ -182,6 +182,8 @@ async def config_endpoint() -> dict:
     from src.config import (
         BONESTORE_ROOT,
         get_cvat_config,
+        get_dashboard_config,
+        get_imaging_config,
         get_ml_compute_config,
         get_postgres_config,
         get_qdrant_config,
@@ -199,6 +201,8 @@ async def config_endpoint() -> dict:
         "cvat": {**get_cvat_config(), "password": "***"},
         "ml_compute": get_ml_compute_config(),
         "redis": get_redis_config(),
+        "imaging": get_imaging_config(),
+        "dashboard": get_dashboard_config(),
     }
 
 
@@ -244,6 +248,19 @@ async def annotate_page() -> HTMLResponse:
     except Exception as e:
         logger.error("Failed to load index.html: %s", e)
         return HTMLResponse(content="<html><body>Dashboard not available</body></html>")
+
+
+@router.get("/annotate/settings")
+async def settings_page() -> HTMLResponse:
+    """Settings page for imaging treatment and dashboard config."""
+    try:
+        from pathlib import Path
+
+        path = Path(__file__).resolve().parent.parent.parent / "static" / "settings.html"
+        return HTMLResponse(content=path.read_text())
+    except Exception as e:
+        logger.error("Failed to load settings.html: %s", e)
+        return HTMLResponse(content="<html><body>Settings not available</body></html>")
 
 
 @router.get("/annotate/annotations")

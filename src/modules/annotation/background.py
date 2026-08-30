@@ -8,7 +8,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from src.config import get_cvat_config
+from src.config import get_cvat_config, get_imaging_config
 from src.modules.cvat.client import CVATClient
 from src.modules.cvat.format import labels_to_cvat_format
 from src.modules.labels.service import get_labels_for_bone
@@ -47,11 +47,12 @@ async def prepare_and_upload(
             task_db.update_task(task_id, status="failed", notes="Acquisition not found")
             return
 
+        pipeline = request.pipeline_preset or get_imaging_config()["default_treatment"]
         dataset = await prep_svc.prepare_dataset(
             acquisition_path=acq_path,
             acquisition_id=request.acquisition_id,
             bone_type=request.bone_type,
-            pipeline_preset=request.pipeline_preset,
+            pipeline_preset=pipeline,
         )
         task_db.update_task(
             task_id,
