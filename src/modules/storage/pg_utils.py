@@ -1,11 +1,31 @@
 """PostgreSQL utility functions for annotation queries.
 
-Helper functions for label studio table operations.
+Helper functions for label studio table operations and quality tiers.
 """
 
 from typing import Any
 
 SCHEMA = "bone_annotations"
+
+
+def compute_quality_tier(source: str, validated_by: str | None = None) -> str:
+    """Derive annotation quality tier from source and validation state.
+
+    Args:
+        source: Annotation origin (manual, ml, corrected_ml, import, ...).
+        validated_by: Validator identifier if the annotation was reviewed.
+
+    Returns:
+        Tier string: gold, silver, or pseudo.
+    """
+    base_source = source.removesuffix("_superseded")
+    if base_source == "manual" and validated_by is not None:
+        return "gold"
+    if base_source in ("corrected_ml", "import") and validated_by is not None:
+        return "silver"
+    if base_source == "ml":
+        return "pseudo"
+    return "silver"
 
 
 def ensure_ls_tables_sql() -> str:

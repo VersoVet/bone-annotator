@@ -9,7 +9,8 @@ graph TB
         PG["PostgreSQL<br/>10.0.0.44:5432<br/>bone_annotations"]
         QD["Qdrant<br/>10.0.0.59:6333<br/>bone_atlas"]
         CVAT["CVAT v2.72<br/>10.0.0.59:8080<br/>Annotation UI"]
-        BONEML["bone-ml<br/>10.0.0.86:9463<br/>YOLO Pre-annotation"]
+        BONEML["bone-ml<br/>10.0.0.59:9463<br/>BoneSeg + YOLO"]
+        MC["ml-compute<br/>10.0.0.44:9469<br/>GPU Jobs"]
         LG["label-generator<br/>10.0.0.59:9466<br/>Labels anatomiques"]
         PACS["OnyxBoneDatasetTraining<br/>10.0.0.90:8042<br/>PNG 16-bit datasets"]
     end
@@ -30,6 +31,7 @@ graph TB
             DashboardM["dashboard<br/>SSE Events"]
             LabelsM["labels<br/>label-generator Cache"]
             AnalysisM["analysis<br/>Morphometrics"]
+            BoneSegM["boneseg<br/>Active Learning<br/>Test Set + GPU"]
         end
     end
 
@@ -41,6 +43,9 @@ graph TB
     AnnotationM -->|Labels| LabelsM
     AnnotationM -->|Create task| CVATModuleM
     AnnotationM -->|Pre-annotate| BONEML
+    BoneSegM -->|AL cycle| BONEML
+    BoneSegM -->|GPU check| MC
+    BoneSegM -->|Create tasks| AnnotationM
     AnnotationM -->|Store tasks| StorageM
     CVATModuleM -->|Sync annotations| StorageM
 
@@ -91,8 +96,11 @@ sequenceDiagram
     BA-->>User: progress + status
 
     opt Pre-annotation ML
-        BA->>BML: POST /api/cvat/annotate
-        BML->>CVAT: Fetch frames + YOLO predict
+        BA->>BML: POST /api/boneseg/annotate (preferred)
+        alt BoneSeg unavailable
+            BA->>BML: POST /api/cvat/annotate (YOLO fallback)
+        end
+        BML->>CVAT: Fetch frames + predict
         BML->>CVAT: Push pre-annotations
     end
 
@@ -147,6 +155,7 @@ graph LR
 
     subgraph Workflow["Workflow Layer"]
         AM["annotation<br/>(Orchestration)"]
+        BSM["boneseg<br/>(Active Learning)"]
         CM["cvat<br/>(REST v2)"]
         LM["labels<br/>(label-generator)"]
     end
@@ -164,6 +173,7 @@ graph LR
     SM --> BM --> IM --> PM
     PM --> AM
     LM --> AM
+    BSM --> AM
     AM --> CM
     AM --> TD
     CM --> DB
@@ -178,6 +188,6 @@ graph LR
 
 ---
 
-**Dernière mise à jour**: 2026-08-26
-**Phase**: SAM multi-model CVAT integration
-**Version**: v0.1.40
+**Dernière mise à jour**: 2026-08-30
+**Phase**: Intégration BoneSeg + active learning
+**Version**: v0.1.59

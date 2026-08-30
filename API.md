@@ -178,6 +178,76 @@ Statistiques globales du BoneStore.
 
 ---
 
+## BoneSeg (intégration bone-ml)
+
+Orchestration BoneSegNet, active learning et test set gelé.
+
+### `GET /api/boneseg/gpu-status`
+Vérifie si le GPU partagé (OnyxCortex) est disponible avant training ou scoring.
+
+**Response** (200):
+```json
+{
+  "available": true,
+  "boneseg_running": false,
+  "ml_compute_jobs": 0,
+  "reason": ""
+}
+```
+
+---
+
+### `POST /api/boneseg/active-learning/run`
+Sync catalogue BoneStore, suggère acquisitions informatives, crée tâches CVAT.
+
+**Request**:
+```json
+{
+  "bone_type": "humerus",
+  "limit": 5,
+  "pipeline_preset": "os_nu_medsam_user",
+  "pre_annotate": true
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "ok",
+  "synced": {"new_acquisitions": 12},
+  "suggestions": [{"acquisition_id": "HUMERUS_L_...", "bone_type": "humerus"}],
+  "tasks_created": [{"task_id": 18, "acquisition_id": "HUMERUS_L_...", "bone_type": "humerus"}],
+  "skipped": []
+}
+```
+
+Cron quotidien : `daily-active-learning` à 6h.
+
+---
+
+### `POST /api/boneseg/test-set`
+Ajoute des acquisitions au test set gelé (jamais utilisées pour le training).
+
+**Request**:
+```json
+{
+  "bone_type": "humerus",
+  "acquisition_ids": ["HUMERUS_L_20260409_162149_8d606a"]
+}
+```
+
+---
+
+### `GET /api/boneseg/test-set`
+Liste le test set gelé (`?bone_type=humerus` optionnel).
+
+---
+
+### `GET /api/boneseg/catalog/stats`
+Proxy vers `bone-ml /api/boneseg/catalog/stats`.
+
+---
+
 ## Annotation
 
 ### `POST /api/annotation/task`

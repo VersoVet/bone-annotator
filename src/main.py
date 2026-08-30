@@ -199,6 +199,7 @@ _module_routers = [
     ("sam", "src.modules.annotation.sam_proxy"),
     ("medsam2", "src.modules.annotation.medsam2_proxy"),
     ("labels", "src.modules.labels.routes"),
+    ("boneseg", "src.modules.boneseg.routes"),
 ]
 
 for module_name, module_path in _module_routers:

@@ -41,11 +41,12 @@ Annotation des images osseuses fluoroscopie 360° avec pré-annotation YOLO auto
 ## Modules Fonctionnels
 
 ### 1. **annotation** — Orchestration annotation ✅
-- **Responsabilité**: Interface principale pour l'annotation (CVAT + YOLO)
+- **Responsabilité**: Interface principale pour l'annotation (CVAT + BoneSeg/YOLO)
 - **Modules**:
   - `service.py` — Orchestration workflow (create/sync/validate)
   - `background.py` — Préparation dataset + upload CVAT async (`asyncio.create_task`)
   - `cvat_sync.py` — Sync annotations CVAT → PostgreSQL
+  - `ml_bridge.py` — Pré-annotation : BoneSeg → multitask → YOLO (avec check GPU)
   - `sam_proxy.py` — Proxy SAM embeddings pour interactor CVAT
   - `medsam2_bridge.py` — Propagation temporelle MedSAM2
 - **Routes**: 
@@ -54,7 +55,22 @@ Annotation des images osseuses fluoroscopie 360° avec pré-annotation YOLO auto
   - `POST /api/annotation/sync/{task_id}` — Sync CVAT → PostgreSQL
   - `POST /api/annotation/validate/{task_id}` — Validation tâche
 - **Flux async**: `preparing` → `uploading` → `created` (notes/progress via PostgreSQL)
-- **Dépendances**: cvat, preparation, sources, labels, storage
+- **Dépendances**: cvat, preparation, sources, labels, storage, boneseg
+
+### 1b. **boneseg** — Orchestration BoneSeg ✅
+- **Responsabilité**: Active learning, test set gelé, coordination GPU
+- **Modules**:
+  - `gpu.py` — Vérification GPU (boneseg train + ml-compute jobs)
+  - `service.py` — Cycle AL : catalog/sync → suggest → create tasks
+  - `routes.py` — Endpoints `/api/boneseg/*`
+- **Routes**:
+  - `GET /api/boneseg/gpu-status` — Disponibilité GPU
+  - `POST /api/boneseg/active-learning/run` — Cycle active learning
+  - `POST /api/boneseg/test-set` — Ajouter au test set gelé
+  - `GET /api/boneseg/test-set` — Lister test set
+  - `GET /api/boneseg/catalog/stats` — Stats catalogue (proxy bone-ml)
+- **Cron**: `daily-active-learning` (6h)
+- **Dépendances**: annotation, storage, bone-ml
 
 ### 2. **bonestore** — Accès NFS acquisitions
 - **Responsabilité**: Traversée BoneStore, listing, chargement métadonnées
@@ -88,10 +104,13 @@ Annotation des images osseuses fluoroscopie 360° avec pré-annotation YOLO auto
 ### 4. **storage** — Persistance annotations
 - **Responsabilité**: PostgreSQL + Qdrant pour annotations
 - **Modules**:
-  - `pg_db.py` — Client PostgreSQL (acquisitions, annotations, measurements, lesions)
+  - `pg_db.py` — Client PostgreSQL (acquisitions, frame_annotations, quality_tier)
+  - `task_db.py` — Tâches annotation, migrations (test_sets, bonestore_catalog, boneseg_training_runs)
+  - `pg_utils.py` — Helpers (`compute_quality_tier`)
   - `qdrant_store.py` — Stockage embeddings bone_atlas + bone_annotations
 - **Fonctions**:
-  - CRUD annotations (zones, landmarks, measurements)
+  - CRUD annotations (zones, landmarks, measurements) avec tiers gold/silver/pseudo
+  - Test set gelé par acquisition
   - Recherche sémantique Qdrant
 - **Source**: Migrer depuis `bone-recognition/src/annotation/pg_db.py`
 - **État**: À migrer
@@ -354,9 +373,9 @@ Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-08-28
-**Phase**: Async task creation + CVAT upload pipeline
-**Version**: v0.1.58
-**Status**: Async annotation tasks with background CVAT upload
-**Coverage**: All modules have REST API routes (62+ endpoints)
-**Test Coverage**: 85 passing
+**Dernière mise à jour**: 2026-08-30
+**Phase**: Intégration BoneSeg (active learning, quality tiers, test set)
+**Version**: v0.1.59
+**Status**: BoneSeg orchestration + tier-aware annotations
+**Coverage**: All modules have REST API routes (67+ endpoints)
+**Test Coverage**: 90+ passing

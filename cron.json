@@ -27,6 +27,20 @@
       "timeout_seconds": 300,
       "enabled": true,
       "notify_on_failure": true
+    },
+    {
+      "id": "daily-active-learning",
+      "name": "Daily BoneSeg Active Learning",
+      "description": "Sync catalogue BoneStore et crée des tâches CVAT pour les acquisitions les plus informatives",
+      "schedule": "0 6 * * *",
+      "command": {
+        "type": "endpoint",
+        "endpoint": "/api/boneseg/active-learning/run",
+        "method": "POST"
+      },
+      "timeout_seconds": 600,
+      "enabled": true,
+      "notify_on_failure": true
     }
   ]
 }

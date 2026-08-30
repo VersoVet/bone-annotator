@@ -95,6 +95,66 @@ _MIGRATIONS = [
         cvat_project_id INTEGER NOT NULL,
         created_at TIMESTAMPTZ DEFAULT NOW()
     )""",
+    # --- BoneSeg integration ---
+    f"""ALTER TABLE {SCHEMA}.frame_annotations
+        ADD COLUMN IF NOT EXISTS quality_tier VARCHAR(10) DEFAULT 'silver'""",
+    f"""UPDATE {SCHEMA}.frame_annotations
+        SET quality_tier = 'gold'
+        WHERE source = 'manual' AND validated_by IS NOT NULL""",
+    f"""UPDATE {SCHEMA}.frame_annotations
+        SET quality_tier = 'silver'
+        WHERE source = 'corrected_ml' AND validated_by IS NOT NULL""",
+    f"""UPDATE {SCHEMA}.frame_annotations
+        SET quality_tier = 'pseudo'
+        WHERE source = 'ml' AND validated_by IS NULL""",
+    f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.test_sets (
+        id SERIAL PRIMARY KEY,
+        bone_type VARCHAR(50) NOT NULL,
+        acquisition_id VARCHAR(100) NOT NULL,
+        added_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(bone_type, acquisition_id)
+    )""",
+    f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.bonestore_catalog (
+        id SERIAL PRIMARY KEY,
+        acquisition_id VARCHAR(100) NOT NULL UNIQUE,
+        bone_type VARCHAR(50),
+        category VARCHAR(100),
+        frame_count INT DEFAULT 0,
+        source_path VARCHAR(500),
+        first_seen TIMESTAMP DEFAULT NOW(),
+        ml_status VARCHAR(20) DEFAULT 'new',
+        uncertainty_score FLOAT,
+        uncertainty_model VARCHAR(200),
+        scored_at TIMESTAMP,
+        annotation_tier VARCHAR(10),
+        in_test_set BOOLEAN DEFAULT FALSE,
+        last_trained_gen INT,
+        notes VARCHAR(500)
+    )""",
+    f"""CREATE INDEX IF NOT EXISTS idx_catalog_status
+        ON {SCHEMA}.bonestore_catalog(ml_status)""",
+    f"""CREATE INDEX IF NOT EXISTS idx_catalog_bone
+        ON {SCHEMA}.bonestore_catalog(bone_type)""",
+    f"""CREATE INDEX IF NOT EXISTS idx_catalog_score
+        ON {SCHEMA}.bonestore_catalog(uncertainty_score DESC)""",
+    f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.boneseg_training_runs (
+        id SERIAL PRIMARY KEY,
+        run_name VARCHAR(200) NOT NULL,
+        bone_type VARCHAR(50) NOT NULL,
+        generation INT DEFAULT 1,
+        parent_run_id INT REFERENCES {SCHEMA}.boneseg_training_runs(id),
+        model_backend VARCHAR(50) DEFAULT 'smp_unet',
+        bone_classes JSONB NOT NULL,
+        tiers_used JSONB NOT NULL,
+        train_count INT, val_count INT, test_count INT,
+        epochs INT, best_dice FLOAT,
+        per_class_dice JSONB,
+        test_dice FLOAT,
+        model_output_path VARCHAR(500),
+        status VARCHAR(20) DEFAULT 'running',
+        started_at TIMESTAMP DEFAULT NOW(),
+        completed_at TIMESTAMP
+    )""",
 ]
 
 
@@ -287,10 +347,79 @@ class AnnotationTaskDB:
             if task:
                 conn.execute(
                     f"""UPDATE {SCHEMA}.frame_annotations
-                    SET validated_by=%s, validated_at=NOW()
+                    SET validated_by=%s, validated_at=NOW(),
+                        quality_tier = CASE
+                            WHEN source = 'manual' THEN 'gold'
+                            WHEN source IN ('corrected_ml', 'import') THEN 'silver'
+                            ELSE quality_tier
+                        END
                     WHERE acquisition_id=%s AND validated_by IS NULL""",
                     (validated_by, task["acquisition_id"]),
                 )
+
+    def add_test_set_entries(self, bone_type: str, acquisition_ids: list[str]) -> int:
+        """Add acquisitions to the frozen test set.
+
+        Args:
+            bone_type: Bone type for the test set partition.
+            acquisition_ids: Acquisition IDs to freeze (never used for training).
+
+        Returns:
+            Number of new entries inserted.
+        """
+        conn = self._get_conn()
+        inserted = 0
+        for acq_id in acquisition_ids:
+            row = conn.execute(
+                f"""INSERT INTO {SCHEMA}.test_sets (bone_type, acquisition_id)
+                VALUES (%s, %s) ON CONFLICT (bone_type, acquisition_id) DO NOTHING
+                RETURNING id""",
+                (bone_type, acq_id),
+            ).fetchone()
+            if row:
+                inserted += 1
+                conn.execute(
+                    f"""UPDATE {SCHEMA}.bonestore_catalog
+                    SET in_test_set=TRUE WHERE acquisition_id=%s""",
+                    (acq_id,),
+                )
+        return inserted
+
+    def list_test_set(self, bone_type: str | None = None) -> list[dict[str, Any]]:
+        """List frozen test set acquisitions.
+
+        Args:
+            bone_type: Optional filter by bone type.
+
+        Returns:
+            List of test set entry dicts.
+        """
+        conn = self._get_conn()
+        if bone_type:
+            rows = conn.execute(
+                f"""SELECT id, bone_type, acquisition_id, added_at
+                FROM {SCHEMA}.test_sets WHERE bone_type=%s ORDER BY added_at""",
+                (bone_type,),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                f"""SELECT id, bone_type, acquisition_id, added_at
+                FROM {SCHEMA}.test_sets ORDER BY bone_type, added_at"""
+            ).fetchall()
+        return [
+            {"id": r[0], "bone_type": r[1], "acquisition_id": r[2], "added_at": r[3].isoformat() if r[3] else None}
+            for r in rows
+        ]
+
+    def is_in_test_set(self, bone_type: str, acquisition_id: str) -> bool:
+        """Check whether an acquisition belongs to the frozen test set."""
+        conn = self._get_conn()
+        row = conn.execute(
+            f"""SELECT 1 FROM {SCHEMA}.test_sets
+            WHERE bone_type=%s AND acquisition_id=%s""",
+            (bone_type, acquisition_id),
+        ).fetchone()
+        return row is not None
 
     def save_project_mapping(self, bone_type: str, project_id: int) -> None:
         """Cache bone_type → CVAT project_id in PostgreSQL."""

@@ -6,16 +6,44 @@ from typing import Any
 import httpx
 
 from src.config import get_bone_ml_config
+from src.modules.boneseg.gpu import check_gpu_available
 
 logger = logging.getLogger(__name__)
 
 
 async def call_bone_ml_annotate(cvat_task_id: int, bone_type: str | None = None) -> str:
-    """Call bone-ml to pre-annotate. Routes to multitask if available."""
+    """Call bone-ml to pre-annotate a CVAT task.
+
+    Tries BoneSeg first, then multitask, then YOLO fallback.
+
+    Args:
+        cvat_task_id: CVAT task identifier.
+        bone_type: Optional bone type for model routing.
+
+    Returns:
+        Status string from bone-ml or error descriptor.
+    """
     ml_config = get_bone_ml_config()
     try:
         async with httpx.AsyncClient() as client:
-            # Try multitask endpoint first if bone_type is provided
+            # 1. BoneSeg segmentation (preferred when model exists)
+            try:
+                boneseg_body: dict[str, Any] = {"cvat_task_id": cvat_task_id}
+                if bone_type:
+                    boneseg_body["bone_type"] = bone_type
+                resp = await client.post(
+                    f"{ml_config['base_url']}/api/boneseg/annotate",
+                    json=boneseg_body,
+                    timeout=120.0,
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if "error" not in data:
+                        return data.get("status", "ok_boneseg")
+            except Exception:
+                pass
+
+            # 2. Multitask endpoint if bone_type is provided
             if bone_type:
                 try:
                     resp = await client.post(
@@ -26,9 +54,13 @@ async def call_bone_ml_annotate(cvat_task_id: int, bone_type: str | None = None)
                     if resp.status_code == 200:
                         return resp.json().get("status", "multitask_ok")
                 except Exception:
-                    pass  # Fall through to YOLO
+                    pass
 
-            # Check training status before YOLO fallback
+            # 3. YOLO fallback — defer if GPU is busy with training
+            gpu = await check_gpu_available()
+            if not gpu.available:
+                return f"deferred:{gpu.reason}"
+
             status_resp = await client.get(
                 f"{ml_config['base_url']}/api/training/status",
                 timeout=5.0,
@@ -54,6 +86,11 @@ async def maybe_trigger_training(
     threshold: int = 10,
 ) -> None:
     """Trigger fine-tuning if enough validated tasks since last training run."""
+    gpu = await check_gpu_available()
+    if not gpu.available:
+        logger.info("Training deferred for %s: %s", bone_type, gpu.reason)
+        return
+
     try:
         last_run = conn.execute(
             """SELECT MAX(completed_at) FROM bone_annotations.training_runs

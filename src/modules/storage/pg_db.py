@@ -15,6 +15,8 @@ from typing import Any
 
 import psycopg
 
+from src.modules.storage.pg_utils import compute_quality_tier
+
 logger = logging.getLogger(__name__)
 
 SCHEMA = "bone_annotations"
@@ -118,6 +120,7 @@ class AnnotationPgDB:
         source: str = "manual",
         confidence: float | None = None,
         model_version: str | None = None,
+        validated_by: str | None = None,
     ) -> int:
         """Save annotations for a frame using soft-replace.
 
@@ -133,6 +136,7 @@ class AnnotationPgDB:
             source: Origin ('manual', 'ml', 'import').
             confidence: ML confidence score (None for manual).
             model_version: ML model version (None for manual).
+            validated_by: Validator if annotation was reviewed.
 
         Returns:
             Number of annotations inserted.
@@ -163,12 +167,13 @@ class AnnotationPgDB:
                 item_conf = item.get("confidence", confidence)
                 item_source = item.get("source", source)
                 item_model = item.get("model_version", model_version)
+                tier = compute_quality_tier(item_source, validated_by)
                 conn.execute(
                     """INSERT INTO bone_annotations.frame_annotations
                     (acquisition_id, frame_filename, annotation_type,
                      annotation_id, label, data, author, source,
-                     confidence, model_version, task_id)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                     confidence, model_version, task_id, quality_tier)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         acq_id,
                         frame_filename,
@@ -181,6 +186,7 @@ class AnnotationPgDB:
                         item_conf,
                         item_model,
                         task_id,
+                        tier,
                     ),
                 )
                 count += 1
