@@ -58,12 +58,18 @@ def list_imaging_treatments() -> list[dict[str, Any]]:
             }
         ]
 
+    # Collect all pipeline names, then deduplicate: if X_user exists, skip X
+    user_overrides = {f.stem.removesuffix("_user") for f in user_dir.glob("*_user.json")}
+
     seen: set[str] = set()
     pipelines: list[dict[str, Any]] = []
 
     for item in manager.list_pipelines_with_description():
         name = item["name"]
         if name in seen:
+            continue
+        # Skip base pipeline when a _user override exists
+        if not name.endswith("_user") and name in user_overrides:
             continue
         seen.add(name)
         info = manager.load_pipeline(name)
@@ -84,7 +90,7 @@ def list_imaging_treatments() -> list[dict[str, Any]]:
             }
         )
 
-    # User-only files like os_nu_medsam_user.json (stem ends with _user)
+    # User-only files not yet discovered by the manager
     for json_file in sorted(user_dir.glob("*_user.json")):
         name = json_file.stem
         if name in seen:
