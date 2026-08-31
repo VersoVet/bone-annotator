@@ -102,6 +102,30 @@ class CVATClient:
             logger.error("Error creating task: %s", e)
             return None
 
+    async def delete_task(self, task_id: int) -> bool:
+        """Delete a CVAT task. Returns True if deleted or already gone."""
+        try:
+            if self.client is None:
+                return False
+            response = await self.client.delete(f"{self.api_base}/tasks/{task_id}")
+            if response.status_code in (204, 404):
+                return True
+            logger.error("Error deleting CVAT task %d: %s", task_id, response.status_code)
+            return False
+        except Exception as e:
+            logger.error("Error deleting CVAT task %d: %s", task_id, e)
+            return False
+
+    async def task_exists(self, task_id: int) -> bool:
+        """Check if a CVAT task still exists."""
+        try:
+            if self.client is None:
+                return False
+            response = await self.client.get(f"{self.api_base}/tasks/{task_id}")
+            return response.status_code == 200
+        except Exception:
+            return False
+
     async def get_annotations(self, task_id: int) -> dict[str, Any] | None:
         """Get task annotations."""
         try:

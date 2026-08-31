@@ -399,7 +399,8 @@ function renderTasks(tasks) {
         <td>${treatmentLabel(t.pipeline_preset)}</td>
         <td><span class="badge badge-${t.status}">${t.status}</span>
             ${t.progress ? `<div style="font-size:0.75em;color:#718096;margin-top:2px">${t.progress.step}: ${t.progress.detail||''}</div>` : ''}
-            ${t.has_pre_annotations ? '<span class="badge" style="background:#e9d8fd;color:#6b46c1;margin-left:4px">ML</span>' : ''}</td>
+            ${t.has_pre_annotations ? '<span class="badge" style="background:#e9d8fd;color:#6b46c1;margin-left:4px">ML</span>' : ''}
+            <span class="cvat-check" id="cvat-check-${t.id}"></span></td>
         <td>${t.assignee || '-'}</td>
         <td>${t.annotated_frames || 0}/${t.frame_count || 0}</td>
         <td class="actions">
@@ -409,8 +410,40 @@ function renderTasks(tasks) {
             ${!t.has_pre_annotations ? `<button class="btn btn-sm btn-outline" onclick="preAnnotate(${t.id})">ML</button>` : ''}
             ${t.status === 'reviewing' ? `<button class="btn btn-sm btn-success" onclick="validateTask(${t.id},'validated')">Valider</button>
                 <button class="btn btn-sm btn-danger" onclick="validateTask(${t.id},'rejected')">Rejeter</button>` : ''}
+            <button class="btn btn-sm btn-danger" onclick="deleteTask(${t.id})" title="Supprimer la tache et la tache CVAT">Suppr</button>
         </td>
     </tr>`).join('');
+    // Check CVAT existence for tasks with cvat_task_id
+    tasks.filter(t => t.cvat_task_id).forEach(t => checkCvatExists(t.id));
+}
+
+async function deleteTask(id) {
+    if (!confirm(`Supprimer la tache #${id} ?\nCela supprimera aussi la tache CVAT associee.`)) return;
+    try {
+        const r = await fetch(`${API}/api/annotation/task/${id}`, {method:'DELETE'});
+        const d = await r.json();
+        if (r.ok) {
+            let msg = `Tache #${id} supprimee.`;
+            if (d.cvat_task_id) msg += ` CVAT #${d.cvat_task_id}: ${d.cvat_deleted ? 'supprimee' : 'echec suppression'}`;
+            if (d.warning) msg += `\nWarning: ${d.warning}`;
+            alert(msg);
+        } else {
+            alert(`Erreur: ${d.detail || 'Inconnu'}`);
+        }
+        loadTasks();
+    } catch(e) { alert('Erreur: '+e); }
+}
+
+async function checkCvatExists(id) {
+    try {
+        const r = await fetch(`${API}/api/annotation/task/${id}/cvat-exists`);
+        if (!r.ok) return;
+        const d = await r.json();
+        const el = document.getElementById(`cvat-check-${id}`);
+        if (el && !d.cvat_exists) {
+            el.innerHTML = '<span style="background:#fed7d7;color:#c53030;padding:2px 6px;border-radius:8px;font-size:0.7em;margin-left:4px;">CVAT manquant</span>';
+        }
+    } catch(e) { /* ignore */ }
 }
 
 async function syncTask(id) {

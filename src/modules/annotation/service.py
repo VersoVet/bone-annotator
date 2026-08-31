@@ -150,6 +150,52 @@ class AnnotationWorkflowService:
             return None
         return _task_row_to_response(t)
 
+    async def delete_task(self, task_id: int) -> dict[str, Any]:
+        """Delete a task and its CVAT counterpart.
+
+        Returns:
+            Dict with deletion status and warnings.
+        """
+        task = self.task_db.get_task(task_id)
+        if not task:
+            raise ValueError(f"Task {task_id} not found")
+
+        cvat_deleted = False
+        cvat_warning = None
+        cvat_task_id = task.get("cvat_task_id")
+
+        if cvat_task_id:
+            try:
+                await self.cvat.authenticate()
+                cvat_deleted = await self.cvat.delete_task(cvat_task_id)
+            except Exception as e:
+                cvat_warning = f"CVAT delete failed: {e}"
+                logger.warning("Failed to delete CVAT task %d: %s", cvat_task_id, e)
+
+        self.task_db.delete_task(task_id)
+        logger.info("Deleted task %d (CVAT %s)", task_id, cvat_task_id)
+
+        result: dict[str, Any] = {
+            "task_id": task_id,
+            "cvat_task_id": cvat_task_id,
+            "cvat_deleted": cvat_deleted,
+        }
+        if cvat_warning:
+            result["warning"] = cvat_warning
+        return result
+
+    async def check_cvat_exists(self, task_id: int) -> bool | None:
+        """Check if the CVAT task for a given task still exists.
+
+        Returns:
+            True/False, or None if task not found.
+        """
+        task = self.task_db.get_task(task_id)
+        if not task or not task.get("cvat_task_id"):
+            return None
+        await self.cvat.authenticate()
+        return await self.cvat.task_exists(task["cvat_task_id"])
+
     async def list_tasks(
         self,
         limit: int = 50,

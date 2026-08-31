@@ -304,6 +304,19 @@ class AnnotationTaskDB:
         cols = [d[0] for d in conn.execute(f"SELECT * FROM {SCHEMA}.annotation_tasks LIMIT 0").description]
         return dict(zip(cols, row, strict=False))
 
+    def delete_task(self, task_id: int) -> bool:
+        """Delete a task from the database.
+
+        Args:
+            task_id: Task ID.
+
+        Returns:
+            True if deleted.
+        """
+        conn = self._get_conn()
+        conn.execute(f"DELETE FROM {SCHEMA}.annotation_tasks WHERE id=%s", (task_id,))
+        return True
+
     def list_tasks(
         self,
         limit: int = 50,

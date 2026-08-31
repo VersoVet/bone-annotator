@@ -77,6 +77,47 @@ async def get_annotation_task(task_id: int) -> dict[str, Any]:
     return {"status": "ok", "task": result.model_dump()}
 
 
+@router.delete("/task/{task_id}")
+async def delete_annotation_task(task_id: int) -> dict[str, Any]:
+    """Delete an annotation task and its CVAT counterpart.
+
+    Args:
+        task_id: Internal task ID.
+
+    Returns:
+        Deletion status.
+
+    Raises:
+        HTTPException: If task not found.
+    """
+    try:
+        service = get_service()
+        result = await service.delete_task(task_id)
+        return {"status": "deleted", **result}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Error deleting task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Failed to delete task")
+
+
+@router.get("/task/{task_id}/cvat-exists")
+async def check_cvat_exists(task_id: int) -> dict[str, Any]:
+    """Check if the CVAT task still exists for a given task.
+
+    Args:
+        task_id: Internal task ID.
+
+    Returns:
+        CVAT existence status.
+    """
+    service = get_service()
+    exists = await service.check_cvat_exists(task_id)
+    if exists is None:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found or no CVAT task")
+    return {"task_id": task_id, "cvat_exists": exists}
+
+
 @router.get("/tasks")
 async def list_annotation_tasks(
     limit: int = Query(50, ge=1, le=500),
