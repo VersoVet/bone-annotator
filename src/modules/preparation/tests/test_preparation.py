@@ -11,23 +11,23 @@ class TestPngSave:
 
     def test_save_uint16_png(self) -> None:
         """Test saving uint16 array as PNG."""
-        from src.modules.preparation.service import _save_png_16bit
+        from src.modules.preparation.service import _save_png
 
         with TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "test.png"
             image = np.random.randint(0, 65535, (64, 64), dtype=np.uint16)
-            _save_png_16bit(image, path)
+            _save_png(image, path)
             assert path.exists()
             assert path.stat().st_size > 0
 
     def test_save_float_png(self) -> None:
         """Test saving float32 array as PNG (converted to uint16)."""
-        from src.modules.preparation.service import _save_png_16bit
+        from src.modules.preparation.service import _save_png
 
         with TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "test.png"
             image = np.random.rand(64, 64).astype(np.float32)
-            _save_png_16bit(image, path)
+            _save_png(image, path)
             assert path.exists()
 
 

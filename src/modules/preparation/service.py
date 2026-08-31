@@ -27,21 +27,27 @@ def _get_pipeline_manager() -> Any:
     return get_pipeline_manager()
 
 
-def _save_png_16bit(image: np.ndarray, output_path: Path) -> None:
-    """Save numpy array as 16-bit PNG.
+def _save_png(image: np.ndarray, output_path: Path) -> None:
+    """Save numpy array as 8-bit grayscale PNG (CVAT-compatible).
 
     Args:
-        image: Image array (uint16 or float).
+        image: Image array (uint16, float, or uint8).
         output_path: Output file path.
     """
     from PIL import Image
 
     if image.dtype in (np.float32, np.float64):
-        image = (np.clip(image, 0, 1) * 65535).astype(np.uint16)
-    elif image.dtype != np.uint16:
-        image = image.astype(np.uint16)
+        image = (np.clip(image, 0, 1) * 255).astype(np.uint8)
+    elif image.dtype == np.uint16:
+        mn, mx = float(image.min()), float(image.max())
+        if mx > mn:
+            image = ((image.astype(np.float32) - mn) / (mx - mn) * 255).astype(np.uint8)
+        else:
+            image = np.zeros_like(image, dtype=np.uint8)
+    elif image.dtype != np.uint8:
+        image = image.astype(np.uint8)
 
-    pil_img = Image.fromarray(image)
+    pil_img = Image.fromarray(image, mode="L")
     pil_img.save(str(output_path), format="PNG")
 
 
@@ -283,7 +289,7 @@ class DatasetPreparationService:
                 if image_size:
                     processed = self._resize(processed, image_size)
                 out_path = output_dir / f"{frame_path.stem}.png"
-                _save_png_16bit(processed, out_path)
+                _save_png(processed, out_path)
                 count += 1
             except Exception as e:
                 logger.warning("Failed to process %s: %s", frame_path.name, e)

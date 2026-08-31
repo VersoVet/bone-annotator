@@ -32,14 +32,19 @@ def _read_b2nd_frame(path: Path) -> np.ndarray:
     return np.asarray(data)
 
 
-def _save_png_16bit(image: np.ndarray, output_path: Path) -> None:
-    """Save numpy array as 16-bit PNG."""
+def _save_png(image: np.ndarray, output_path: Path) -> None:
+    """Save numpy array as 8-bit PNG (CVAT-compatible)."""
     if image.dtype in (np.float32, np.float64):
-        image = (np.clip(image, 0, 1) * 65535).astype(np.uint16)
-    elif image.dtype != np.uint16:
-        image = image.astype(np.uint16)
-    pil_img = Image.fromarray(image)
-    pil_img.save(str(output_path), format="PNG")
+        image = (np.clip(image, 0, 1) * 255).astype(np.uint8)
+    elif image.dtype == np.uint16:
+        mn, mx = float(image.min()), float(image.max())
+        if mx > mn:
+            image = ((image.astype(np.float32) - mn) / (mx - mn) * 255).astype(np.uint8)
+        else:
+            image = np.zeros_like(image, dtype=np.uint8)
+    elif image.dtype != np.uint8:
+        image = image.astype(np.uint8)
+    Image.fromarray(image, mode="L").save(str(output_path), format="PNG")
 
 
 def _process_single_frame(
@@ -76,7 +81,7 @@ def _process_single_frame(
                 logger.warning("Filter %s failed on %s: %s", fname, frame_path.name, e)
 
         out_path = output_dir / f"{frame_path.stem}.png"
-        _save_png_16bit(result, out_path)
+        _save_png(result, out_path)
         return True
     except Exception as e:
         logger.error("Failed to process %s: %s", frame_path.name, e)
