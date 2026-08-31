@@ -17,6 +17,53 @@ router = APIRouter()
 # This will be injected by the app initialization
 _app_state: Any = None
 
+# Preprocessing status cache (avoid spamming Glia on every poll)
+_preproc_cache: dict[str, Any] = {"data": None, "ts": 0.0}
+_PREPROC_CACHE_TTL = 15.0  # seconds
+
+
+async def _get_preprocessing_status() -> dict[str, Any]:
+    """Probe Glia preprocessor health with short cache."""
+    import time
+
+    now = time.monotonic()
+    if _preproc_cache["data"] and (now - _preproc_cache["ts"]) < _PREPROC_CACHE_TTL:
+        return _preproc_cache["data"]
+
+    from src.config import get_preprocessing_config
+
+    config = get_preprocessing_config()
+    result: dict[str, Any] = {
+        "mode": config["mode"],
+        "host": config["remote_host"],
+        "port": config["remote_port"],
+        "reachable": False,
+        "workers": config["n_workers"],
+    }
+
+    if config["mode"] != "remote":
+        result["status"] = "local"
+        _preproc_cache.update(data=result, ts=now)
+        return result
+
+    try:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=httpx.Timeout(3.0)) as client:
+            resp = await client.get(f"http://{config['remote_host']}:{config['remote_port']}/health")
+            if resp.status_code == 200:
+                glia = resp.json()
+                result["reachable"] = True
+                result["status"] = "ready"
+                result["hostname"] = glia.get("hostname", "")
+                result["pipelines_ok"] = glia.get("pipelines_accessible", False)
+                result["bonestore_ok"] = glia.get("bonestore_accessible", False)
+    except Exception:
+        result["status"] = "unreachable"
+
+    _preproc_cache.update(data=result, ts=now)
+    return result
+
 
 def set_app_state(app_state: Any) -> None:
     """Set the app state reference for use in routes.
@@ -50,6 +97,9 @@ async def health() -> dict:
 
     from . import __version__
 
+    # Probe Glia preprocessor (non-blocking, cached)
+    preprocessing = await _get_preprocessing_status()
+
     return {
         "status": status,
         "version": __version__,
@@ -60,6 +110,7 @@ async def health() -> dict:
             "cvat": _app_state.cvat_ready,
             "redis": _app_state.redis_ready,
         },
+        "preprocessing": preprocessing,
     }
 
 

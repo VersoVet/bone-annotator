@@ -256,6 +256,37 @@ CVAT:push_predictions()
 
 ---
 
+## Preprocessing distribué (OnyxGlia)
+
+Le preprocessing des acquisitions (DICOM .b2nd → PNG 16-bit) est délégué à une
+machine dédiée au calcul : **OnyxGlia** (10.0.0.8).
+
+```
+bone-annotator (Synapse :9468)
+    │
+    │  POST /api/preprocess (httpx async)
+    ▼
+bone-preprocessor (Glia :9480)            ← service dédié
+    │
+    ├─ imaging-sdk (AutoAdjustOptimizer)  ← paramètres W/L auto par frame
+    ├─ ThreadPoolExecutor (12 workers)    ← parallélisme CPU 24 cores
+    ├─ NFS read  /mnt/bonestore           ← acquisitions .b2nd (read-only)
+    ├─ NFS read  /opt/onyx/imaging-sdk/pipelines  ← pipelines (NFS depuis Synapse)
+    └─ NFS write /mnt/cortex-bone-share   ← output PNG (partagé Synapse+Glia)
+```
+
+| Machine | Rôle | Specs |
+|---------|------|-------|
+| **OnyxGlia** (10.0.0.8) | Preprocessing batch | 2× Xeon E5-2630, 24 cores, 62 Go RAM |
+| **OnyxSynapse** (10.0.0.59) | API + CVAT + stockage | Service bone-annotator |
+
+**Fallback** : si Glia est injoignable, le preprocessing retombe en mode local
+(single-thread sur Synapse). Configurable dans `config/bone-annotator.yaml` section `preprocessing:`.
+
+**Performance** : 929 frames en ~66s (Glia, 12 workers) vs ~8 min (Synapse, single-thread) = **7× plus rapide**.
+
+---
+
 ## Segmentation et propagation
 
 Le serveur SAM legacy sur OnyxCortex `:9470` fournit les embeddings `/api/embed`
