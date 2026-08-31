@@ -222,20 +222,27 @@ class CVATClient:
             return False
 
     async def get_task_labels(self, task_id: int) -> list[dict[str, Any]]:
-        """Get labels for a CVAT task (from task or its project)."""
+        """Get labels for a CVAT task via the /api/labels endpoint."""
         try:
             if self.client is None:
                 return []
-            response = await self.client.get(f"{self.api_base}/tasks/{task_id}")
-            if response.status_code != 200:
-                return []
-            task_data = response.json()
-            labels = task_data.get("labels", [])
-            if not labels and task_data.get("project_id"):
-                proj_resp = await self.client.get(f"{self.api_base}/projects/{task_data['project_id']}")
-                if proj_resp.status_code == 200:
-                    labels = proj_resp.json().get("labels", [])
-            return labels
+            # CVAT v2 returns labels via a separate endpoint
+            resp = await self.client.get(f"{self.api_base}/labels?task_id={task_id}&page_size=200")
+            if resp.status_code == 200:
+                data = resp.json()
+                results = data.get("results", data) if isinstance(data, dict) else data
+                if isinstance(results, list) and results:
+                    return results
+            # Fallback: try project labels
+            task_resp = await self.client.get(f"{self.api_base}/tasks/{task_id}")
+            if task_resp.status_code == 200:
+                pid = task_resp.json().get("project_id")
+                if pid:
+                    resp = await self.client.get(f"{self.api_base}/labels?project_id={pid}&page_size=200")
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        return data.get("results", []) if isinstance(data, dict) else data
+            return []
         except Exception as e:
             logger.error("Error fetching labels for task %d: %s", task_id, e)
             return []
