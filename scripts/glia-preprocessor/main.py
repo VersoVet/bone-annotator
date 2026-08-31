@@ -33,6 +33,13 @@ DEFAULT_PIPELINE_DIR = "/opt/onyx/imaging-sdk/pipelines/users"
 DEFAULT_N_WORKERS = 12
 
 
+class CropParams(BaseModel):
+    """Crop bounding box from parent segmentation mask."""
+
+    bbox: list[int] = Field(..., description="[x1, y1, x2, y2] bounding box")
+    padding_percent: int = Field(default=10, ge=0, le=50)
+
+
 class PreprocessRequest(BaseModel):
     """Request to preprocess an acquisition."""
 
@@ -42,6 +49,7 @@ class PreprocessRequest(BaseModel):
     bone_type: str = Field(default="humerus", description="Bone type")
     n_workers: int = Field(default=DEFAULT_N_WORKERS, ge=1, le=24)
     pipeline_dir: str = Field(default=DEFAULT_PIPELINE_DIR)
+    crop: CropParams | None = Field(default=None, description="Crop from parent mask bbox")
 
 
 class JobStatus(BaseModel):
@@ -115,6 +123,11 @@ async def _run_job(job_id: str, request: PreprocessRequest) -> None:
         _jobs[job_id]["percent"] = int(100 * current / max(total, 1))
 
     try:
+        crop_bbox = None
+        crop_padding = 10
+        if request.crop:
+            crop_bbox = request.crop.bbox
+            crop_padding = request.crop.padding_percent
         result = await asyncio.to_thread(
             process_acquisition,
             raw_dir=request.acquisition_path,
@@ -124,6 +137,8 @@ async def _run_job(job_id: str, request: PreprocessRequest) -> None:
             bone_type=request.bone_type,
             n_workers=request.n_workers,
             on_progress=_on_progress,
+            crop_bbox=crop_bbox,
+            crop_padding_percent=crop_padding,
         )
         _jobs[job_id]["status"] = "completed"
         _jobs[job_id]["percent"] = 100

@@ -1,0 +1,45 @@
+{
+  "name": "Morphologie radio conventionnelle",
+  "version": "1.0",
+  "context": "morphologie_radio",
+  "description": "Segmentation osseuse sur radiographies conventionnelles (multi-structures)",
+  "description_long": "Pipeline pour radios conventionnelles avec tissus mous. Fenetrage os standard, debruitage bilateral pour reduire le grain, CLAHE modere pour le contraste os/tissu mou sans saturer. Pas d'unsharp pour eviter d'amplifier les bords des tissus mous qui genent la segmentation.",
+  "category": "bone",
+  "target_pathologies": ["bone_segmentation", "morphometry"],
+  "anatomy_compatible": ["FEMUR", "HUMERUS", "RADIUS", "ULNA", "TIBIA", "FIBULA", "PELVIS", "SPINE", "SKULL"],
+  "species": ["DOG", "CAT", "HORSE", "EXOTIC"],
+  "clinical_note": "Pour les radios avec tissus mous. Contrairement a os_nu_medsam (os nus sans tissu mou), ce pipeline gere le fond complexe des radiographies cliniques.",
+  "gpu_cost": "low",
+  "realtime_compatible": true,
+  "execution": {
+    "use_gpu": false
+  },
+  "filters": [
+    {
+      "name": "window_level",
+      "enabled": true,
+      "params": {
+        "window": 4000.0,
+        "level": 2000.0,
+        "apply_to_pixels": true
+      }
+    },
+    {
+      "name": "bilateral_denoise",
+      "enabled": true,
+      "params": {
+        "diameter": 5,
+        "sigma_color": 50,
+        "sigma_space": 50
+      }
+    },
+    {
+      "name": "clahe",
+      "enabled": true,
+      "params": {
+        "clip_limit": 2.5,
+        "grid_size": 8
+      }
+    }
+  ]
+}

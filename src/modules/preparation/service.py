@@ -110,6 +110,7 @@ class DatasetPreparationService:
         custom_pipeline: list[dict[str, Any]] | None = None,
         image_size: int | None = None,
         on_progress: Any | None = None,
+        crop_params: dict[str, Any] | None = None,
     ) -> PreparedDataset:
         """Prepare annotation dataset from raw .b2nd frames.
 
@@ -145,6 +146,7 @@ class DatasetPreparationService:
                     bone_type,
                     pipeline_preset,
                     on_progress,
+                    crop_params,
                 )
             except Exception as e:
                 logger.warning("Remote preprocessing failed, falling back to local: %s", e)
@@ -168,6 +170,7 @@ class DatasetPreparationService:
         bone_type: str,
         pipeline_preset: str,
         on_progress: Any | None = None,
+        crop_params: dict[str, Any] | None = None,
     ) -> PreparedDataset:
         """Delegate dataset preparation to remote preprocessing service.
 
@@ -178,6 +181,7 @@ class DatasetPreparationService:
             bone_type: Bone type.
             pipeline_preset: Pipeline context name.
             on_progress: Optional callback(current, total).
+            crop_params: Optional crop bbox from parent task.
 
         Returns:
             PreparedDataset with path on shared NFS.
@@ -198,6 +202,7 @@ class DatasetPreparationService:
             output_dir=str(output_dir),
             bone_type=bone_type,
             on_progress=on_progress,
+            crop_params=crop_params,
         )
 
         # Save metadata

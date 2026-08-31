@@ -17,6 +17,7 @@ async def prepare_remote(
     output_dir: str,
     bone_type: str,
     on_progress: Callable[[int, int], None] | None = None,
+    crop_params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Submit preprocessing to remote service and poll until done.
 
@@ -27,6 +28,7 @@ async def prepare_remote(
         output_dir: Shared NFS output directory for PNG files.
         bone_type: Bone type for anatomy-aware processing.
         on_progress: Optional callback(current, total).
+        crop_params: Optional crop bbox from parent task.
 
     Returns:
         Result dict with frame_count, duration_seconds, pipeline_config.
@@ -43,16 +45,19 @@ async def prepare_remote(
 
     async with httpx.AsyncClient(timeout=httpx.Timeout(timeout)) as client:
         # Submit job
-        resp = await client.post(
-            f"{base_url}/api/preprocess",
-            json={
-                "acquisition_path": acquisition_path,
-                "pipeline_preset": pipeline_preset,
-                "output_dir": output_dir,
-                "bone_type": bone_type,
-                "n_workers": config.get("n_workers", 12),
-            },
-        )
+        payload: dict[str, Any] = {
+            "acquisition_path": acquisition_path,
+            "pipeline_preset": pipeline_preset,
+            "output_dir": output_dir,
+            "bone_type": bone_type,
+            "n_workers": config.get("n_workers", 12),
+        }
+        if crop_params:
+            payload["crop"] = {
+                "bbox": crop_params["bbox"],
+                "padding_percent": crop_params.get("padding_percent", 10),
+            }
+        resp = await client.post(f"{base_url}/api/preprocess", json=payload)
         resp.raise_for_status()
         job = resp.json()
         job_id = job["job_id"]

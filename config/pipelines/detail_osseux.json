@@ -1,0 +1,53 @@
+{
+  "name": "Detail osseux",
+  "version": "1.0",
+  "context": "detail_osseux",
+  "description": "Contraste intra-osseux fin pour annotation cortex, trabecule, canal medullaire",
+  "description_long": "Pipeline haute resolution pour structures osseuses internes. CLAHE adaptatif revele le trabecule, bilateral denoise reduit le bruit sans perdre les bords, unsharp masking renforce les contours. Optimise pour les crops d'os isolés (post-segmentation morphologie).",
+  "category": "bone",
+  "target_pathologies": ["bone_detail", "cortical_thickness", "trabecular_pattern"],
+  "anatomy_compatible": ["FEMUR", "HUMERUS", "RADIUS", "ULNA", "TIBIA", "FIBULA", "PELVIS", "SPINE"],
+  "species": ["DOG", "CAT", "HORSE", "EXOTIC"],
+  "clinical_note": "A utiliser sur des ROI croppees depuis la segmentation morphologie. Le CLAHE et l'unsharp ne sont efficaces que sur l'os isole.",
+  "gpu_cost": "low",
+  "realtime_compatible": true,
+  "execution": {
+    "use_gpu": false
+  },
+  "filters": [
+    {
+      "name": "window_level",
+      "enabled": true,
+      "params": {
+        "window": 2000.0,
+        "level": 1200.0,
+        "apply_to_pixels": true
+      }
+    },
+    {
+      "name": "bilateral_denoise",
+      "enabled": true,
+      "params": {
+        "diameter": 5,
+        "sigma_color": 40,
+        "sigma_space": 40
+      }
+    },
+    {
+      "name": "clahe",
+      "enabled": true,
+      "params": {
+        "clip_limit": 3.0,
+        "grid_size": 8
+      }
+    },
+    {
+      "name": "unsharp",
+      "enabled": true,
+      "params": {
+        "strength": 0.8,
+        "radius": 2
+      }
+    }
+  ]
+}

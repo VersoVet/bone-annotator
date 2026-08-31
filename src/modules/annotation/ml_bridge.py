@@ -11,7 +11,11 @@ from src.modules.boneseg.gpu import check_gpu_available
 logger = logging.getLogger(__name__)
 
 
-async def call_bone_ml_annotate(cvat_task_id: int, bone_type: str | None = None) -> str:
+async def call_bone_ml_annotate(
+    cvat_task_id: int,
+    bone_type: str | None = None,
+    objective: str | None = None,
+) -> str:
     """Call bone-ml to pre-annotate a CVAT task.
 
     Tries BoneSeg first, then multitask, then YOLO fallback.
@@ -19,6 +23,7 @@ async def call_bone_ml_annotate(cvat_task_id: int, bone_type: str | None = None)
     Args:
         cvat_task_id: CVAT task identifier.
         bone_type: Optional bone type for model routing.
+        objective: Optional objective for model routing (segmentation, measurement, classification).
 
     Returns:
         Status string from bone-ml or error descriptor.
@@ -31,6 +36,8 @@ async def call_bone_ml_annotate(cvat_task_id: int, bone_type: str | None = None)
                 boneseg_body: dict[str, Any] = {"cvat_task_id": cvat_task_id}
                 if bone_type:
                     boneseg_body["bone_type"] = bone_type
+                if objective:
+                    boneseg_body["objective"] = objective
                 resp = await client.post(
                     f"{ml_config['base_url']}/api/boneseg/annotate",
                     json=boneseg_body,

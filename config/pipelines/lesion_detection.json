@@ -1,0 +1,60 @@
+{
+  "name": "Detection lesions",
+  "version": "1.0",
+  "context": "lesion_detection",
+  "description": "Enhancement pour detection fractures, osteolyse, reactions periostees",
+  "description_long": "Pipeline optimise pour reveler les anomalies osseuses. Fenetrage large pour ne pas perdre de signal dans les zones denses, bilateral agressif pour reduire le bruit, enhancement de bords pour les lignes de fracture et reactions periostees. Le gamma boost les zones sombres ou le periost est altere.",
+  "category": "bone",
+  "target_pathologies": ["fracture", "osteolyse", "periosteal_reaction", "bone_lesion"],
+  "anatomy_compatible": ["FEMUR", "HUMERUS", "RADIUS", "ULNA", "TIBIA", "FIBULA", "PELVIS", "SPINE"],
+  "species": ["DOG", "CAT", "HORSE", "EXOTIC"],
+  "clinical_note": "Fenetrage intentionnellement large pour ne pas saturer les zones denses. Le CLAHE et le gamma compensent en revelant les details dans les zones intermediaires.",
+  "gpu_cost": "low",
+  "realtime_compatible": true,
+  "execution": {
+    "use_gpu": false
+  },
+  "filters": [
+    {
+      "name": "window_level",
+      "enabled": true,
+      "params": {
+        "window": 3500.0,
+        "level": 1800.0,
+        "apply_to_pixels": true
+      }
+    },
+    {
+      "name": "bilateral_denoise",
+      "enabled": true,
+      "params": {
+        "diameter": 7,
+        "sigma_color": 60,
+        "sigma_space": 60
+      }
+    },
+    {
+      "name": "clahe",
+      "enabled": true,
+      "params": {
+        "clip_limit": 4.0,
+        "grid_size": 16
+      }
+    },
+    {
+      "name": "gamma",
+      "enabled": true,
+      "params": {
+        "gamma": 0.85
+      }
+    },
+    {
+      "name": "unsharp",
+      "enabled": true,
+      "params": {
+        "strength": 1.2,
+        "radius": 3
+      }
+    }
+  ]
+}

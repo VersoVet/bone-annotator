@@ -55,10 +55,24 @@ def _process_single_frame(
     pipeline_preset: str,
     bone_type: str,
     optimized_params: dict[str, dict[str, Any]],
+    crop_bbox: list[int] | None = None,
+    crop_padding_percent: int = 10,
 ) -> bool:
-    """Process a single frame: read, apply pipeline with auto-adjust, save PNG."""
+    """Process a single frame: read, crop, apply pipeline with auto-adjust, save PNG."""
     try:
         raw = _read_b2nd_frame(frame_path)
+
+        # Apply crop if specified
+        if crop_bbox:
+            x1, y1, x2, y2 = crop_bbox
+            h, w = raw.shape[:2]
+            pad_w = int((x2 - x1) * crop_padding_percent / 100)
+            pad_h = int((y2 - y1) * crop_padding_percent / 100)
+            x1 = max(0, x1 - pad_w)
+            y1 = max(0, y1 - pad_h)
+            x2 = min(w, x2 + pad_w)
+            y2 = min(h, y2 + pad_h)
+            raw = raw[y1:y2, x1:x2]
 
         from imaging_sdk import get_filter
 
@@ -96,6 +110,8 @@ def process_acquisition(
     bone_type: str = "humerus",
     n_workers: int = 12,
     on_progress: Callable[[int, int], None] | None = None,
+    crop_bbox: list[int] | None = None,
+    crop_padding_percent: int = 10,
 ) -> dict[str, Any]:
     """Process all .b2nd frames in parallel with imaging-sdk.
 
@@ -107,6 +123,8 @@ def process_acquisition(
         bone_type: Bone type for anatomy-aware processing.
         n_workers: Number of parallel workers.
         on_progress: Optional callback(current, total).
+        crop_bbox: Optional [x1, y1, x2, y2] crop bounding box.
+        crop_padding_percent: Padding around crop bbox (default 10%).
 
     Returns:
         Dict with frame_count, duration, errors.
@@ -164,6 +182,7 @@ def process_acquisition(
                 _process_single_frame,
                 fp, out_path, manager, pipeline_dict,
                 pipeline_preset, bone_type, optimized_params,
+                crop_bbox, crop_padding_percent,
             )
             futures[future] = i
 
