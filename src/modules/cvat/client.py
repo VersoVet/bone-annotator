@@ -221,6 +221,25 @@ class CVATClient:
             logger.error("Error setting labels on task %d: %s", task_id, e)
             return False
 
+    async def get_task_labels(self, task_id: int) -> list[dict[str, Any]]:
+        """Get labels for a CVAT task (from task or its project)."""
+        try:
+            if self.client is None:
+                return []
+            response = await self.client.get(f"{self.api_base}/tasks/{task_id}")
+            if response.status_code != 200:
+                return []
+            task_data = response.json()
+            labels = task_data.get("labels", [])
+            if not labels and task_data.get("project_id"):
+                proj_resp = await self.client.get(f"{self.api_base}/projects/{task_data['project_id']}")
+                if proj_resp.status_code == 200:
+                    labels = proj_resp.json().get("labels", [])
+            return labels
+        except Exception as e:
+            logger.error("Error fetching labels for task %d: %s", task_id, e)
+            return []
+
     async def get_task_jobs(self, task_id: int) -> list[dict[str, Any]]:
         """Get jobs for a CVAT task (includes assignee info)."""
         try:

@@ -75,6 +75,13 @@ class ValidateRequest(BaseModel):
     notes: str | None = Field(None, description="Validation notes")
 
 
+class PropagateRequest(BaseModel):
+    """Request for MedSAM2 multi-label propagation."""
+
+    seed_frame: int = Field(default=0, ge=0, description="Seed frame index")
+    label_ids: list[int] | None = Field(default=None, description="Label IDs to propagate (None=all)")
+
+
 class PreAnnotateResponse(BaseModel):
     """Response from ML pre-annotation request."""
 

@@ -34,13 +34,18 @@ async def propagate(
     cvat_client: Any,
     task: dict[str, Any],
     seed_frame_idx: int = 0,
+    label_ids: list[int] | None = None,
 ) -> dict[str, Any]:
-    """Propagate a seed mask across all frames via MedSAM2.
+    """Propagate seed masks across all frames via MedSAM2.
+
+    Supports multi-label: each label on the seed frame is propagated
+    sequentially (one GPU pass per label).
 
     Args:
         cvat_client: Authenticated CVATClient instance.
         task: Task dict from task_db (needs cvat_task_id, dataset_path).
         seed_frame_idx: Frame index with the seed annotation.
+        label_ids: Optional list of label IDs to propagate. None = all.
 
     Returns:
         Dict with propagation stats.
@@ -52,89 +57,106 @@ async def propagate(
         msg = f"Dataset images not found: {images_dir}"
         raise ValueError(msg)
 
-    # 1. Pull seed mask from CVAT
+    # 1. Pull seed annotations from CVAT
     annotations = await cvat_client.get_annotations(cvat_task_id)
 
-    seed_mask = None
-    image_size: tuple[int, int] | None = None
+    frame_files = sorted(images_dir.glob("*.png"))
+    if seed_frame_idx >= len(frame_files):
+        raise ValueError(f"Seed frame {seed_frame_idx} is outside the image series")
+
+    # Group seed shapes by label_id
+    seed_shapes: dict[int, dict[str, Any]] = {}
     if annotations and annotations.get("shapes"):
         for shape in annotations["shapes"]:
-            if shape.get("frame") == seed_frame_idx:
-                if shape.get("type") == "mask":
-                    image_files = sorted(images_dir.glob("*.png"))
-                    if not image_files:
-                        raise ValueError(f"No images found in {images_dir}")
-                    with Image.open(image_files[0]) as image:
-                        image_size = image.size
-                    seed_mask = _cvat_mask_to_binary(shape, image_size)
-                    break
-                elif shape.get("type") in ("polygon", "rectangle"):
-                    seed_mask = _cvat_shape_to_binary(shape, images_dir)
-                    break
+            if shape.get("frame") != seed_frame_idx:
+                continue
+            lid = shape.get("label_id", 0)
+            if lid in seed_shapes:
+                continue
+            seed_shapes[lid] = shape
 
-    if seed_mask is None:
+    if not seed_shapes:
         msg = (
             f"No annotation found on frame {seed_frame_idx} in CVAT task {cvat_task_id}. "
             "Annotate at least one frame first."
         )
         raise ValueError(msg)
 
-    # 2. Load every frame. MedSAM2 propagation is chunked below to avoid
-    # silently dropping frames while keeping the original CVAT indices.
-    frame_files = sorted(images_dir.glob("*.png"))
-    if seed_frame_idx >= len(frame_files):
-        raise ValueError(f"Seed frame {seed_frame_idx} is outside the image series")
+    # Filter to requested label_ids if provided
+    if label_ids:
+        seed_shapes = {lid: s for lid, s in seed_shapes.items() if lid in label_ids}
+        if not seed_shapes:
+            raise ValueError(f"None of the requested label_ids {label_ids} found on frame {seed_frame_idx}")
 
-    mask_pil = Image.fromarray((seed_mask * 255).astype(np.uint8))
-    buf = io.BytesIO()
-    mask_pil.save(buf, format="PNG")
-    seed_mask_b64 = base64.b64encode(buf.getvalue()).decode()
+    # Resolve image size
+    with Image.open(frame_files[0]) as img:
+        image_size = img.size
 
-    # 3. Call MedSAM2
     medsam2_url = _load_medsam2_url()
-    propagated_masks = await _propagate_all_frames(
-        medsam2_url,
-        frame_files,
-        seed_frame_idx,
-        seed_mask_b64,
-    )
-    logger.info("MedSAM2 returned %d masks", len(propagated_masks))
+    all_cvat_shapes: list[dict[str, Any]] = []
 
-    # 4. Convert to CVAT shapes and push
-    label_id = _get_bone_label_id(annotations)
-    cvat_shapes = []
+    # 2. Propagate each label sequentially (one GPU, one mask at a time)
+    for label_id, shape in seed_shapes.items():
+        logger.info("Propagating label_id=%d on %d frames...", label_id, len(frame_files))
 
-    for frame_idx, mask_b64 in propagated_masks.items():
-        mask_bytes = base64.b64decode(mask_b64)
-        mask_arr = np.array(Image.open(io.BytesIO(mask_bytes)))
-        if mask_arr.max() == 0:
+        if shape.get("type") == "mask":
+            seed_mask = _cvat_mask_to_binary(shape, image_size)
+        elif shape.get("type") in ("polygon", "rectangle"):
+            seed_mask = _cvat_shape_to_binary(shape, images_dir)
+        else:
+            logger.warning("Unsupported shape type %s for label %d", shape.get("type"), label_id)
             continue
-        binary = (mask_arr > 128).astype(np.uint8)
-        rle = _binary_mask_to_rle(binary)
-        if rle:
-            cvat_shapes.append(
-                {
-                    "type": "mask",
-                    "frame": frame_idx,
-                    "label_id": label_id,
-                    "points": rle,
-                    "occluded": False,
-                    "z_order": 0,
-                    "attributes": [],
-                }
-            )
 
-    if cvat_shapes:
-        payload = {"version": 0, "shapes": cvat_shapes, "tracks": [], "tags": []}
+        if seed_mask is None:
+            continue
+
+        mask_pil = Image.fromarray((seed_mask * 255).astype(np.uint8))
+        buf = io.BytesIO()
+        mask_pil.save(buf, format="PNG")
+        seed_mask_b64 = base64.b64encode(buf.getvalue()).decode()
+
+        propagated_masks = await _propagate_all_frames(
+            medsam2_url,
+            frame_files,
+            seed_frame_idx,
+            seed_mask_b64,
+        )
+        logger.info("MedSAM2 returned %d masks for label %d", len(propagated_masks), label_id)
+
+        for frame_idx, mask_b64 in propagated_masks.items():
+            mask_bytes = base64.b64decode(mask_b64)
+            mask_arr = np.array(Image.open(io.BytesIO(mask_bytes)))
+            if mask_arr.max() == 0:
+                continue
+            binary = (mask_arr > 128).astype(np.uint8)
+            rle = _binary_mask_to_rle(binary)
+            if rle:
+                all_cvat_shapes.append(
+                    {
+                        "type": "mask",
+                        "frame": frame_idx,
+                        "label_id": label_id,
+                        "points": rle,
+                        "occluded": False,
+                        "z_order": 0,
+                        "attributes": [],
+                    }
+                )
+
+    # 3. Push all propagated masks to CVAT
+    if all_cvat_shapes:
+        payload = {"version": 0, "shapes": all_cvat_shapes, "tracks": [], "tags": []}
         await cvat_client.update_annotations(cvat_task_id, payload)
-        logger.info("Pushed %d MedSAM2 masks to CVAT task %d", len(cvat_shapes), cvat_task_id)
+        logger.info(
+            "Pushed %d MedSAM2 masks (%d labels) to CVAT task %d", len(all_cvat_shapes), len(seed_shapes), cvat_task_id
+        )
 
     return {
         "task_id": task["id"],
         "cvat_task_id": cvat_task_id,
         "total_frames": len(frame_files),
-        "sampled_frames": len(frame_files),
-        "propagated_masks": len(cvat_shapes),
+        "labels_propagated": len(seed_shapes),
+        "propagated_masks": len(all_cvat_shapes),
         "seed_frame": seed_frame_idx,
     }
 

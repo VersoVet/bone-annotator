@@ -83,6 +83,25 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
         .stat-value { font-size: 1.8em; font-weight: 700; color: #2d3748; }
         .stat-label { font-size: 0.8em; color: #718096; }
+
+        /* MedSAM2 Modal */
+        .modal-overlay { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);
+            display:none;z-index:1000;align-items:center;justify-content:center; }
+        .modal-overlay.show { display:flex; }
+        .modal { background:white;border-radius:12px;padding:24px;max-width:500px;width:90%;
+            box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+        .modal h3 { margin-bottom:16px;color:#2d3748;border-bottom:2px solid #7c3aed;padding-bottom:8px; }
+        .modal-label { display:flex;align-items:center;gap:10px;padding:10px 12px;margin:6px 0;
+            background:#f7fafc;border-radius:6px;cursor:pointer; }
+        .modal-label:hover { background:#edf2f7; }
+        .modal-label input[type="checkbox"] { width:18px;height:18px;accent-color:#7c3aed; }
+        .modal-label .label-name { font-weight:600;color:#2d3748; }
+        .modal-label .label-type { font-size:0.75em;color:#a0aec0; }
+        .modal-actions { display:flex;gap:8px;margin-top:16px;justify-content:flex-end; }
+        .modal-progress { margin-top:12px;font-size:0.85em;color:#7c3aed;display:none; }
+        .btn-purple { background:#7c3aed;color:white;border:none; }
+        .btn-purple:hover { background:#6d28d9; }
+        .btn-purple:disabled { background:#c4b5fd;cursor:not-allowed; }
     </style>
 </head>
 <body>
@@ -175,6 +194,26 @@
             <option value="ulna">Ulna</option>
             <option value="femur">Femur</option>
         </select>
+    </div>
+
+    <!-- MedSAM2 Propagation Modal -->
+    <div class="modal-overlay" id="medsam2Modal">
+        <div class="modal">
+            <h3>MedSAM2 — Propagation temporelle</h3>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:0.85em;font-weight:600;color:#4a5568;">Frame seed :</label>
+                <input type="number" id="modalSeedFrame" value="0" min="0" style="width:80px;padding:6px;border:1px solid #e2e8f0;border-radius:6px;">
+                <button class="btn btn-sm btn-outline" onclick="loadSeedAnnotations()" style="margin-left:8px;">Charger</button>
+            </div>
+            <div id="modalAnnotations" style="min-height:60px;">
+                <div style="color:#a0aec0;padding:20px;text-align:center;">Cliquez "Charger" pour voir les annotations de la frame seed</div>
+            </div>
+            <div class="modal-progress" id="modalProgress"></div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeMedSAM2Modal()">Annuler</button>
+                <button class="btn btn-purple" id="modalPropagateBtn" onclick="runPropagation()" disabled>Propager</button>
+            </div>
+        </div>
     </div>
 
     <div class="task-table">
@@ -384,27 +423,87 @@ async function syncTask(id) {
     } catch(e) { alert('Erreur sync: '+e); }
 }
 
-async function propagateMedSAM2(id) {
-    const seedFrame = prompt('Frame seed (index de la frame annotee, defaut 0):', '0');
-    if (seedFrame === null) return;
-    const seed = parseInt(seedFrame) || 0;
-    if (!confirm(`Propager MedSAM2 depuis la frame ${seed} vers toute la serie ?\\n\\nAssurez-vous d\\'avoir annote au moins une frame dans CVAT avant.`)) return;
-    const status = document.getElementById('createStatus');
-    status.textContent = 'MedSAM2 propagation en cours... (peut prendre 1-2 min)';
-    status.style.color = '#7c3aed';
+let medsam2TaskId = null;
+
+function propagateMedSAM2(id) {
+    medsam2TaskId = id;
+    document.getElementById('modalSeedFrame').value = 0;
+    document.getElementById('modalAnnotations').innerHTML =
+        '<div style="color:#a0aec0;padding:20px;text-align:center;">Cliquez "Charger" pour voir les annotations de la frame seed</div>';
+    document.getElementById('modalPropagateBtn').disabled = true;
+    document.getElementById('modalProgress').style.display = 'none';
+    document.getElementById('medsam2Modal').classList.add('show');
+    loadSeedAnnotations();
+}
+
+function closeMedSAM2Modal() {
+    document.getElementById('medsam2Modal').classList.remove('show');
+    medsam2TaskId = null;
+}
+
+async function loadSeedAnnotations() {
+    const frame = parseInt(document.getElementById('modalSeedFrame').value) || 0;
+    const el = document.getElementById('modalAnnotations');
+    el.innerHTML = '<div style="color:#a0aec0;padding:10px;text-align:center;">Chargement...</div>';
     try {
-        const r = await fetch(`${API}/api/annotation/propagate/${id}?seed_frame=${seed}`, {method:'POST'});
+        const r = await fetch(`${API}/api/annotation/task/${medsam2TaskId}/seed-annotations?frame=${frame}`);
+        const d = await r.json();
+        if (!d.annotations || d.annotations.length === 0) {
+            el.innerHTML = '<div style="color:#e53e3e;padding:10px;">Aucune annotation sur cette frame. Annotez d\'abord dans CVAT puis sauvegardez (Ctrl+S).</div>';
+            document.getElementById('modalPropagateBtn').disabled = true;
+            return;
+        }
+        let html = '';
+        d.annotations.forEach(a => {
+            html += `<label class="modal-label">
+                <input type="checkbox" checked value="${a.label_id}">
+                <span class="label-name">${a.label_name}</span>
+                <span class="label-type">${a.type}</span>
+            </label>`;
+        });
+        el.innerHTML = html;
+        document.getElementById('modalPropagateBtn').disabled = false;
+    } catch(e) {
+        el.innerHTML = `<div style="color:#e53e3e;padding:10px;">Erreur: ${e}</div>`;
+    }
+}
+
+async function runPropagation() {
+    const frame = parseInt(document.getElementById('modalSeedFrame').value) || 0;
+    const checks = document.querySelectorAll('#modalAnnotations input[type="checkbox"]:checked');
+    const labelIds = Array.from(checks).map(c => parseInt(c.value));
+    if (!labelIds.length) { alert('Selectionnez au moins un label'); return; }
+
+    const btn = document.getElementById('modalPropagateBtn');
+    const progress = document.getElementById('modalProgress');
+    btn.disabled = true;
+    btn.textContent = 'Propagation en cours...';
+    progress.style.display = 'block';
+    progress.textContent = `Propagation de ${labelIds.length} label(s) sur toutes les frames... (1-2 min par label)`;
+
+    try {
+        const r = await fetch(`${API}/api/annotation/propagate/${medsam2TaskId}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ seed_frame: frame, label_ids: labelIds }),
+        });
         const d = await r.json();
         if (r.ok) {
-            alert(`MedSAM2: ${d.propagated_masks} masques propages sur ${d.sampled_frames} frames (total: ${d.total_frames})`);
+            progress.textContent = `${d.propagated_masks} masques propages (${d.labels_propagated} labels) sur ${d.total_frames} frames`;
+            progress.style.color = '#48bb78';
+            btn.textContent = 'Termine !';
+            setTimeout(() => { closeMedSAM2Modal(); loadTasks(); }, 2000);
         } else {
-            alert(`Erreur: ${d.detail || JSON.stringify(d)}`);
+            progress.textContent = `Erreur: ${d.detail || JSON.stringify(d)}`;
+            progress.style.color = '#e53e3e';
+            btn.textContent = 'Propager';
+            btn.disabled = false;
         }
-        status.textContent = '';
-        loadTasks();
     } catch(e) {
-        alert('Erreur MedSAM2: '+e);
-        status.textContent = '';
+        progress.textContent = `Erreur: ${e}`;
+        progress.style.color = '#e53e3e';
+        btn.textContent = 'Propager';
+        btn.disabled = false;
     }
 }
 

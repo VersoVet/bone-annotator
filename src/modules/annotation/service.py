@@ -272,8 +272,13 @@ class AnnotationWorkflowService:
 
         await maybe_trigger_training(self.task_db._get_conn(), bone_type)
 
-    async def propagate_medsam2(self, task_id: int, seed_frame_idx: int = 0) -> dict[str, Any]:
-        """Propagate bone mask with MedSAM2 temporal propagation."""
+    async def propagate_medsam2(
+        self,
+        task_id: int,
+        seed_frame_idx: int = 0,
+        label_ids: list[int] | None = None,
+    ) -> dict[str, Any]:
+        """Propagate bone masks with MedSAM2 temporal propagation."""
         from .medsam2_bridge import propagate
 
         task = self.task_db.get_task(task_id)
@@ -282,7 +287,7 @@ class AnnotationWorkflowService:
         if not task.get("dataset_path"):
             raise ValueError(f"Task {task_id} has no dataset_path")
         await self.cvat.authenticate()
-        result = await propagate(self.cvat, task, seed_frame_idx)
+        result = await propagate(self.cvat, task, seed_frame_idx, label_ids)
         self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
         from .catalog_notify import notify_catalog_task_status
 

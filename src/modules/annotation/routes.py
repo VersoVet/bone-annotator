@@ -9,7 +9,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 
 from .exceptions import ActiveTaskExistsError
-from .models import CreateTaskRequest, ValidateRequest
+from .models import CreateTaskRequest, PropagateRequest, ValidateRequest
 from .service import get_service
 
 logger = logging.getLogger(__name__)
@@ -215,29 +215,70 @@ async def re_annotate_task(
         raise HTTPException(status_code=500, detail="Failed to re-annotate")
 
 
-@router.post("/propagate/{task_id}")
-async def propagate_medsam2(
+@router.get("/task/{task_id}/seed-annotations")
+async def get_seed_annotations(
     task_id: int,
-    seed_frame: int = Query(0, ge=0, description="Frame index with the seed mask"),
+    frame: int = Query(0, ge=0, description="Frame index to inspect"),
 ) -> dict[str, Any]:
-    """Propagate bone mask with MedSAM2 temporal propagation.
-
-    Annotate one frame in CVAT, then call this to propagate
-    the mask to all other frames in the series.
+    """List annotations on a specific frame for MedSAM2 propagation UI.
 
     Args:
         task_id: Internal task ID.
-        seed_frame: Frame index with the initial annotation.
+        frame: Frame index to inspect.
 
     Returns:
-        Propagation result with mask counts.
+        List of annotations with label_id and label_name.
+    """
+    service = get_service()
+    task = service.task_db.get_task(task_id)
+    if not task or not task.get("cvat_task_id"):
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found or no CVAT task")
+    await service.cvat.authenticate()
+    annotations = await service.cvat.get_annotations(task["cvat_task_id"])
+    labels = await service.cvat.get_task_labels(task["cvat_task_id"])
+    label_map = {lbl["id"]: lbl["name"] for lbl in labels}
+
+    seed_shapes = []
+    for shape in annotations.get("shapes", []):
+        if shape.get("frame") == frame:
+            lid = shape.get("label_id", 0)
+            seed_shapes.append(
+                {
+                    "label_id": lid,
+                    "label_name": label_map.get(lid, f"label_{lid}"),
+                    "type": shape.get("type", "unknown"),
+                }
+            )
+    return {"frame": frame, "annotations": seed_shapes, "total": len(seed_shapes)}
+
+
+@router.post("/propagate/{task_id}")
+async def propagate_medsam2(
+    task_id: int,
+    request: PropagateRequest | None = None,
+    seed_frame: int = Query(0, ge=0, description="Frame index with the seed mask"),
+) -> dict[str, Any]:
+    """Propagate bone masks with MedSAM2 temporal propagation.
+
+    Supports multi-label: propagates each label on the seed frame
+    sequentially. If label_ids is None, propagates all labels.
+
+    Args:
+        task_id: Internal task ID.
+        request: Optional body with seed_frame and label_ids.
+        seed_frame: Frame index (query param fallback).
+
+    Returns:
+        Propagation result with mask counts per label.
 
     Raises:
         HTTPException: If propagation fails.
     """
     try:
+        sf = request.seed_frame if request else seed_frame
+        lids = request.label_ids if request else None
         service = get_service()
-        result = await service.propagate_medsam2(task_id, seed_frame)
+        result = await service.propagate_medsam2(task_id, sf, lids)
         return {"status": "propagated", **result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
