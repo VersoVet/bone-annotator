@@ -102,6 +102,27 @@
         .btn-purple { background:#7c3aed;color:white;border:none; }
         .btn-purple:hover { background:#6d28d9; }
         .btn-purple:disabled { background:#c4b5fd;cursor:not-allowed; }
+
+        /* Profile badges */
+        .profile-badge { padding:2px 8px;border-radius:10px;font-size:0.7em;font-weight:600;display:inline-block; }
+        .profile-segmentation { background:#bee3f8;color:#2b6cb0; }
+        .profile-measurement { background:#c6f6d5;color:#276749; }
+        .profile-classification { background:#fefcbf;color:#975a16; }
+        .profile-default { background:#edf2f7;color:#4a5568; }
+        .parent-link { font-size:0.75em;color:#7c3aed;text-decoration:none;font-weight:600; }
+        .parent-link:hover { text-decoration:underline; }
+
+        /* Campaigns section */
+        .campaigns-section { background:white;border-radius:8px;padding:15px 20px;margin-bottom:15px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+        .campaigns-section h3 { font-size:0.85em;color:#4a5568;margin-bottom:10px;cursor:pointer; }
+        .campaigns-section h3:hover { color:#2d3748; }
+        .campaign-row { display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid #edf2f7;font-size:0.85em; }
+        .campaign-row:last-child { border:none; }
+        .campaign-status { width:8px;height:8px;border-radius:50%;display:inline-block; }
+        .campaign-running { background:#f6ad55; }
+        .campaign-completed { background:#48bb78; }
+        .campaign-failed { background:#fc8181; }
     </style>
 </head>
 <body>
@@ -174,6 +195,13 @@
         <div id="createStatus" style="margin-top:8px; font-size:0.85em;"></div>
     </div>
 
+    <div class="campaigns-section" id="campaignsSection" style="display:none;">
+        <h3 onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+            Campagnes bone-pipeline ▾
+        </h3>
+        <div id="campaignsContent"></div>
+    </div>
+
     <div class="filters">
         <label style="font-size:0.85em; font-weight:600; color:#4a5568;">Filtres:</label>
         <select id="filterStatus" onchange="loadTasks()">
@@ -193,6 +221,9 @@
             <option value="radius">Radius</option>
             <option value="ulna">Ulna</option>
             <option value="femur">Femur</option>
+        </select>
+        <select id="filterProfile" onchange="loadTasks()">
+            <option value="">Tous les profils</option>
         </select>
     </div>
 
@@ -219,7 +250,7 @@
     <div class="task-table">
         <table>
             <thead><tr>
-                <th>ID</th><th>Acquisition</th><th>Os</th><th>Imaging treatment</th>
+                <th>ID</th><th>Acquisition</th><th>Os</th><th>Profil</th><th>Pipeline</th>
                 <th>Status</th><th>Assignee</th><th>Frames</th><th>Actions</th>
             </tr></thead>
             <tbody id="taskBody">
@@ -320,9 +351,11 @@ async function createTask() {
 async function loadTasks() {
     const status = document.getElementById('filterStatus').value;
     const bone = document.getElementById('filterBone').value;
+    const profile = document.getElementById('filterProfile').value;
     let url = `${API}/api/annotation/tasks?limit=100`;
     if (status) url += `&status=${status}`;
     if (bone) url += `&bone_type=${bone}`;
+    if (profile) url += `&profile_id=${profile}`;
     try {
         const r = await fetch(url);
         const d = await r.json();
@@ -330,7 +363,7 @@ async function loadTasks() {
         renderStats(d.tasks || [], d.total || 0);
     } catch(e) {
         document.getElementById('taskBody').innerHTML =
-            '<tr><td colspan="8" class="empty-state">Erreur de chargement</td></tr>';
+            '<tr><td colspan="9" class="empty-state">Erreur de chargement</td></tr>';
     }
 }
 
@@ -386,16 +419,31 @@ function treatmentLabel(preset) {
     return pipelineLabels[preset] || preset || '-';
 }
 
+function profileBadge(t) {
+    if (!t.profile_id) return '-';
+    const cls = t.objective === 'segmentation' ? 'profile-segmentation'
+        : t.objective === 'measurement' ? 'profile-measurement'
+        : t.objective === 'classification' ? 'profile-classification'
+        : 'profile-default';
+    return `<span class="profile-badge ${cls}">${t.profile_id}</span>`;
+}
+
+function parentLink(t) {
+    const pid = t.crop_from_task_id || t.parent_task_id;
+    return pid ? `<a class="parent-link" href="#" onclick="document.getElementById('filterProfile').value='';loadTasks();return false;" title="Parent task">#${pid}</a>` : '';
+}
+
 function renderTasks(tasks) {
     const body = document.getElementById('taskBody');
     if (!tasks.length) {
-        body.innerHTML = '<tr><td colspan="8" class="empty-state">Aucune tache. Cliquez "+ Nouvelle Tache".</td></tr>';
+        body.innerHTML = '<tr><td colspan="9" class="empty-state">Aucune tache. Cliquez "+ Nouvelle Tache".</td></tr>';
         return;
     }
     body.innerHTML = tasks.map(t => `<tr>
-        <td><strong>#${t.id}</strong></td>
+        <td><strong>#${t.id}</strong> ${parentLink(t)}</td>
         <td>${t.acquisition_id}</td>
         <td>${t.bone_type}${t.region !== 'entire' ? ' ('+t.region+')' : ''}</td>
+        <td>${profileBadge(t)}</td>
         <td>${treatmentLabel(t.pipeline_preset)}</td>
         <td><span class="badge badge-${t.status}">${t.status}</span>
             ${t.progress ? `<div style="font-size:0.75em;color:#718096;margin-top:2px">${t.progress.step}: ${t.progress.detail||''}</div>` : ''}
@@ -413,8 +461,8 @@ function renderTasks(tasks) {
             <button class="btn btn-sm btn-danger" onclick="deleteTask(${t.id})" title="Supprimer la tache et la tache CVAT">Suppr</button>
         </td>
     </tr>`).join('');
-    // Check CVAT existence for tasks with cvat_task_id
     tasks.filter(t => t.cvat_task_id).forEach(t => checkCvatExists(t.id));
+    updateProfileFilter(tasks);
 }
 
 async function deleteTask(id) {
@@ -615,14 +663,56 @@ async function loadPageConfig() {
     } catch(e) { console.error('Config:', e); }
 }
 
+function updateProfileFilter(tasks) {
+    const sel = document.getElementById('filterProfile');
+    const current = sel.value;
+    const profiles = [...new Set(tasks.map(t => t.profile_id).filter(Boolean))];
+    sel.innerHTML = '<option value="">Tous les profils</option>';
+    profiles.forEach(p => {
+        sel.innerHTML += `<option value="${p}" ${p===current?'selected':''}>${p}</option>`;
+    });
+}
+
+async function loadCampaigns() {
+    const section = document.getElementById('campaignsSection');
+    const content = document.getElementById('campaignsContent');
+    try {
+        const r = await fetch('http://10.0.0.59:9471/api/campaigns', {signal: AbortSignal.timeout(3000)});
+        if (!r.ok) throw new Error(r.status);
+        const d = await r.json();
+        const campaigns = d.campaigns || d || [];
+        if (!campaigns.length) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        content.innerHTML = campaigns.map(c => {
+            const cfg = c.config || {};
+            const profiles = cfg.profiles || [];
+            const statusCls = c.status === 'running' ? 'campaign-running'
+                : c.status === 'completed' ? 'campaign-completed' : 'campaign-failed';
+            return `<div class="campaign-row">
+                <span class="campaign-status ${statusCls}"></span>
+                <strong>${cfg.name || c.id}</strong>
+                <span>${cfg.acquisition_id || ''}</span>
+                <span>${cfg.bone_type || ''}</span>
+                <span>${profiles.length ? profiles.join(', ') : cfg.pipeline_preset || ''}</span>
+                <span class="badge badge-${c.status || 'created'}">${c.status || '?'}</span>
+                <a href="http://10.0.0.59:9471/" target="_blank" class="btn btn-sm btn-outline" style="margin-left:auto;">Pipeline</a>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        section.style.display = 'none';
+    }
+}
+
 // Init
 loadPageConfig();
 loadSources();
 loadCvatUsers();
 loadPipelines();
 loadTracking();
+loadCampaigns();
 loadTasks();
 setInterval(loadTracking, 30000);
+setInterval(loadCampaigns, 30000);
 </script>
 </body>
 </html>

@@ -16,6 +16,15 @@
   },
   "filters": [
     {
+      "name": "mask_crop",
+      "enabled": true,
+      "params": {
+        "padding_percent": 10,
+        "background": "black",
+        "min_size": 64
+      }
+    },
+    {
       "name": "window_level",
       "enabled": true,
       "params": {
