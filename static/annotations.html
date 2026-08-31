@@ -440,7 +440,7 @@ function renderTasks(tasks) {
         return;
     }
     body.innerHTML = tasks.map(t => `<tr>
-        <td><strong>#${t.id}</strong> ${parentLink(t)}</td>
+        <td><strong>#${t.id}</strong>${t.cvat_task_id ? ` <span style="font-size:0.7em;color:#a0aec0;">CVAT#${t.cvat_task_id}</span>` : ''} ${parentLink(t)}</td>
         <td>${t.acquisition_id}</td>
         <td>${t.bone_type}${t.region !== 'entire' ? ' ('+t.region+')' : ''}</td>
         <td>${profileBadge(t)}</td>
