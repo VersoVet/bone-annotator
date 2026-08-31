@@ -62,6 +62,8 @@ def _task_row_to_response(row: dict[str, Any]) -> TaskResponse:
         has_pre_annotations=row.get("has_pre_annotations", False),
         pipeline_preset=row.get("pipeline_preset"),
         dataset_path=row.get("dataset_path"),
+        profile_id=row.get("profile_id"),
+        objective=row.get("objective"),
         progress=_build_task_progress(status, row.get("notes")),
     )
 
@@ -108,6 +110,7 @@ class AnnotationWorkflowService:
             self.task_db.find_active_task,
             request.acquisition_id,
             request.bone_type,
+            request.profile_id,
         )
         if existing:
             raise ActiveTaskExistsError(existing)
@@ -124,6 +127,10 @@ class AnnotationWorkflowService:
             assignee=request.assignee,
             pipeline_preset=pipeline,
             status="preparing",
+            profile_id=request.profile_id,
+            objective=request.objective,
+            labels_filter=request.labels_filter,
+            crop_from_task_id=request.crop_from_task_id,
         )
 
         # Launch background preparation
@@ -202,9 +209,10 @@ class AnnotationWorkflowService:
         offset: int = 0,
         status: str | None = None,
         bone_type: str | None = None,
+        profile_id: str | None = None,
     ) -> TaskListResponse:
         """List annotation tasks with optional filters."""
-        tasks, total = self.task_db.list_tasks(limit, offset, status, bone_type)
+        tasks, total = self.task_db.list_tasks(limit, offset, status, bone_type, profile_id)
         for t in tasks:
             for key in ("created_at", "updated_at", "validated_at"):
                 if t.get(key):

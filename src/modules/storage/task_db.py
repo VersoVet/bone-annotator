@@ -60,6 +60,17 @@ _MIGRATIONS = [
     # parent_task_id for re-annotation chains
     f"""ALTER TABLE {SCHEMA}.annotation_tasks
         ADD COLUMN IF NOT EXISTS parent_task_id INTEGER""",
+    # Multi-objective annotation profiles
+    f"""ALTER TABLE {SCHEMA}.annotation_tasks
+        ADD COLUMN IF NOT EXISTS profile_id VARCHAR(50)""",
+    f"""ALTER TABLE {SCHEMA}.annotation_tasks
+        ADD COLUMN IF NOT EXISTS objective VARCHAR(50)""",
+    f"""ALTER TABLE {SCHEMA}.annotation_tasks
+        ADD COLUMN IF NOT EXISTS labels_filter JSONB""",
+    f"""ALTER TABLE {SCHEMA}.annotation_tasks
+        ADD COLUMN IF NOT EXISTS crop_from_task_id INTEGER""",
+    f"""ALTER TABLE {SCHEMA}.annotation_tasks
+        ADD COLUMN IF NOT EXISTS crop_params JSONB""",
     # training_runs table for active learning
     f"""CREATE TABLE IF NOT EXISTS {SCHEMA}.training_runs (
         id SERIAL PRIMARY KEY,
@@ -219,6 +230,10 @@ class AnnotationTaskDB:
         pipeline_config: list[dict[str, Any]] | None = None,
         has_pre_annotations: bool = False,
         cvat_url: str | None = None,
+        profile_id: str | None = None,
+        objective: str | None = None,
+        labels_filter: list[str] | None = None,
+        crop_from_task_id: int | None = None,
     ) -> int:
         """Insert a new annotation task.
 
@@ -230,8 +245,10 @@ class AnnotationTaskDB:
             f"""INSERT INTO {SCHEMA}.annotation_tasks
             (acquisition_id, bone_type, author, cvat_task_id, source_name,
              region, status, assignee, frame_count, dataset_path, pipeline_preset,
-             pipeline_config, has_pre_annotations, cvat_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+             pipeline_config, has_pre_annotations, cvat_url,
+             profile_id, objective, labels_filter, crop_from_task_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s)
             RETURNING id""",
             (
                 acquisition_id,
@@ -248,6 +265,10 @@ class AnnotationTaskDB:
                 json.dumps(pipeline_config) if pipeline_config else None,
                 has_pre_annotations,
                 cvat_url,
+                profile_id,
+                objective,
+                json.dumps(labels_filter) if labels_filter else None,
+                crop_from_task_id,
             ),
         ).fetchone()
         return row[0] if row else 0
@@ -273,15 +294,20 @@ class AnnotationTaskDB:
             "dataset_path",
             "pipeline_config",
             "parent_task_id",
+            "profile_id",
+            "objective",
+            "labels_filter",
+            "crop_from_task_id",
+            "crop_params",
         }
         updates = {k: v for k, v in kwargs.items() if k in allowed}
         if not updates:
             return
         conn = self._get_conn()
         set_clauses = ", ".join(f"{k}=%s" for k in updates)
+        json_fields = {"pipeline_config", "labels_filter", "crop_params"}
         values = [
-            json.dumps(value) if key == "pipeline_config" and value is not None else value
-            for key, value in updates.items()
+            json.dumps(value) if key in json_fields and value is not None else value for key, value in updates.items()
         ] + [task_id]
         conn.execute(
             f"UPDATE {SCHEMA}.annotation_tasks SET {set_clauses}, updated_at=NOW() WHERE id=%s",
@@ -323,6 +349,7 @@ class AnnotationTaskDB:
         offset: int = 0,
         status: str | None = None,
         bone_type: str | None = None,
+        profile_id: str | None = None,
     ) -> tuple[list[dict[str, Any]], int]:
         """List annotation tasks with filters.
 
@@ -331,6 +358,7 @@ class AnnotationTaskDB:
             offset: Pagination offset.
             status: Filter by status.
             bone_type: Filter by bone type.
+            profile_id: Filter by annotation profile.
 
         Returns:
             Tuple of (task list, total count).
@@ -344,6 +372,9 @@ class AnnotationTaskDB:
         if bone_type:
             where_parts.append("bone_type=%s")
             params.append(bone_type)
+        if profile_id:
+            where_parts.append("profile_id=%s")
+            params.append(profile_id)
         where = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
         total = conn.execute(f"SELECT COUNT(*) FROM {SCHEMA}.annotation_tasks {where}", params).fetchone()[0]
@@ -356,8 +387,13 @@ class AnnotationTaskDB:
         tasks = [dict(zip(cols, row, strict=False)) for row in rows]
         return tasks, total
 
-    def find_active_task(self, acquisition_id: str, bone_type: str) -> dict[str, Any] | None:
-        """Find an active annotation task for acquisition+bone_type.
+    def find_active_task(
+        self,
+        acquisition_id: str,
+        bone_type: str,
+        profile_id: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Find an active annotation task for acquisition+bone_type+profile.
 
         Active statuses block duplicate task creation. Terminal statuses
         (validated, rejected, failed) allow re-creation.
@@ -365,20 +401,32 @@ class AnnotationTaskDB:
         Args:
             acquisition_id: Acquisition identifier.
             bone_type: Bone type partition.
+            profile_id: Annotation profile (None = legacy tasks without profile).
 
         Returns:
             Task row dict or None if no active task exists.
         """
         conn = self._get_conn()
         placeholders = ", ".join(["%s"] * len(ACTIVE_TASK_STATUSES))
-        row = conn.execute(
-            f"""SELECT id, status, cvat_task_id, acquisition_id, bone_type
-                FROM {SCHEMA}.annotation_tasks
-                WHERE acquisition_id=%s AND bone_type=%s
-                AND status IN ({placeholders})
-                ORDER BY id DESC LIMIT 1""",
-            (acquisition_id, bone_type, *ACTIVE_TASK_STATUSES),
-        ).fetchone()
+        if profile_id:
+            row = conn.execute(
+                f"""SELECT id, status, cvat_task_id, acquisition_id, bone_type, profile_id
+                    FROM {SCHEMA}.annotation_tasks
+                    WHERE acquisition_id=%s AND bone_type=%s AND profile_id=%s
+                    AND status IN ({placeholders})
+                    ORDER BY id DESC LIMIT 1""",
+                (acquisition_id, bone_type, profile_id, *ACTIVE_TASK_STATUSES),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                f"""SELECT id, status, cvat_task_id, acquisition_id, bone_type, profile_id
+                    FROM {SCHEMA}.annotation_tasks
+                    WHERE acquisition_id=%s AND bone_type=%s
+                    AND profile_id IS NULL
+                    AND status IN ({placeholders})
+                    ORDER BY id DESC LIMIT 1""",
+                (acquisition_id, bone_type, *ACTIVE_TASK_STATUSES),
+            ).fetchone()
         if not row:
             return None
         return {
@@ -387,6 +435,7 @@ class AnnotationTaskDB:
             "cvat_task_id": row[2],
             "acquisition_id": row[3],
             "bone_type": row[4],
+            "profile_id": row[5] if len(row) > 5 else None,
         }
 
     def validate_task(self, task_id: int, validated_by: str, decision: str) -> None:

@@ -1,6 +1,6 @@
 # Bibliographie
 
-*387 article(s) — généré le 2026-08-31 12:07 UTC*
+*387 article(s) — généré le 2026-08-31 13:36 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|

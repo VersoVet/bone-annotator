@@ -18,6 +18,12 @@ class CreateTaskRequest(BaseModel):
     assignee: str | None = Field(None, description="CVAT user to assign")
     pipeline_preset: str | None = Field(default=None, description="Imaging treatment preset")
     pre_annotate: bool = Field(default=False, description="Request ML pre-annotations")
+    profile_id: str | None = Field(default=None, description="Annotation profile ID")
+    objective: str | None = Field(
+        default=None, description="Profile objective (segmentation, measurement, classification)"
+    )
+    labels_filter: list[str] | None = Field(default=None, description="Subset of labels to use in CVAT")
+    crop_from_task_id: int | None = Field(default=None, description="Parent task ID for cropped dataset")
 
 
 class TaskProgress(BaseModel):
@@ -45,6 +51,8 @@ class TaskResponse(BaseModel):
     has_pre_annotations: bool = Field(default=False)
     pipeline_preset: str | None = Field(None)
     dataset_path: str | None = Field(None)
+    profile_id: str | None = Field(None, description="Annotation profile ID")
+    objective: str | None = Field(None, description="Profile objective")
     progress: TaskProgress | None = Field(None, description="Preparation progress")
 
 

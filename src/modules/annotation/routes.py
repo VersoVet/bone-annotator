@@ -124,6 +124,7 @@ async def list_annotation_tasks(
     offset: int = Query(0, ge=0),
     status: str | None = Query(None, description="Filter by status"),
     bone_type: str | None = Query(None, description="Filter by bone type"),
+    profile_id: str | None = Query(None, description="Filter by annotation profile"),
 ) -> dict[str, Any]:
     """List annotation tasks with filtering.
 
@@ -138,7 +139,7 @@ async def list_annotation_tasks(
     """
     try:
         service = get_service()
-        result = await service.list_tasks(limit, offset, status, bone_type)
+        result = await service.list_tasks(limit, offset, status, bone_type, profile_id)
         return {"status": "ok", **result.model_dump()}
     except Exception as e:
         logger.error("Error listing tasks: %s", e)
