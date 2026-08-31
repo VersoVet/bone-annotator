@@ -65,6 +65,15 @@ imaging:
   default_pre_annotate: false
   default_active_learning_pipeline: os_nu_medsam_user
 
+# Preprocessing — machine dédiée au traitement batch
+preprocessing:
+  mode: remote                # "local" ou "remote" (Glia)
+  remote_host: 10.0.0.8       # OnyxGlia (configurable)
+  remote_port: 9480            # Port du service bone-preprocessor
+  n_workers: 12                # Workers parallèles (12 sur 24 cores Glia)
+  timeout_seconds: 600         # Timeout max par acquisition
+  shared_output_root: /mnt/cortex-bone-share/datasets  # NFS partagé Synapse+Glia
+
 # Dashboard — valeurs par défaut UI
 dashboard:
   title: "Gestion des Annotations"

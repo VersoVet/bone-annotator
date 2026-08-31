@@ -107,8 +107,8 @@ class DatasetPreparationService:
     ) -> PreparedDataset:
         """Prepare annotation dataset from raw .b2nd frames.
 
-        Runs the CPU-bound frame processing in a thread to avoid blocking
-        the asyncio event loop.
+        Routes to remote preprocessing (Glia) or local depending on config.
+        Falls back to local if remote is unavailable.
 
         Args:
             acquisition_path: Path to acquisition directory.
@@ -124,6 +124,25 @@ class DatasetPreparationService:
         """
         import asyncio
 
+        from src.config import get_preprocessing_config
+
+        config = get_preprocessing_config()
+        if pipeline_preset is None:
+            pipeline_preset = get_imaging_config()["default_treatment"]
+
+        if config["mode"] == "remote" and not custom_pipeline:
+            try:
+                return await self._prepare_dataset_remote(
+                    config,
+                    acquisition_path,
+                    acquisition_id,
+                    bone_type,
+                    pipeline_preset,
+                    on_progress,
+                )
+            except Exception as e:
+                logger.warning("Remote preprocessing failed, falling back to local: %s", e)
+
         return await asyncio.to_thread(
             self._prepare_dataset_sync,
             acquisition_path,
@@ -133,6 +152,79 @@ class DatasetPreparationService:
             custom_pipeline,
             image_size,
             on_progress,
+        )
+
+    async def _prepare_dataset_remote(
+        self,
+        config: dict[str, Any],
+        acquisition_path: Path,
+        acquisition_id: str,
+        bone_type: str,
+        pipeline_preset: str,
+        on_progress: Any | None = None,
+    ) -> PreparedDataset:
+        """Delegate dataset preparation to remote preprocessing service.
+
+        Args:
+            config: Preprocessing config from YAML.
+            acquisition_path: Path to acquisition directory.
+            acquisition_id: Acquisition identifier.
+            bone_type: Bone type.
+            pipeline_preset: Pipeline context name.
+            on_progress: Optional callback(current, total).
+
+        Returns:
+            PreparedDataset with path on shared NFS.
+        """
+        from .remote import prepare_remote
+
+        timestamp = datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")
+        dataset_id = f"{acquisition_id}_{pipeline_preset}_{timestamp}"
+        output_root = Path(config["shared_output_root"])
+        output_dir = output_root / dataset_id / "images"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        raw_dir = str(acquisition_path / "raw")
+        result = await prepare_remote(
+            config=config,
+            acquisition_path=raw_dir,
+            pipeline_preset=pipeline_preset,
+            output_dir=str(output_dir),
+            bone_type=bone_type,
+            on_progress=on_progress,
+        )
+
+        # Save metadata
+        metadata = {
+            "dataset_id": dataset_id,
+            "acquisition_id": acquisition_id,
+            "bone_type": bone_type,
+            "pipeline_preset": pipeline_preset,
+            "pipeline_config": result.get("pipeline_config", []),
+            "frame_count": result["frame_count"],
+            "created_at": datetime.now(tz=UTC).isoformat(),
+            "image_format": "png_16bit",
+            "preprocessed_by": f"{config['remote_host']}:{config['remote_port']}",
+            "duration_seconds": result.get("duration_seconds", 0),
+        }
+        meta_path = output_root / dataset_id / "metadata.json"
+        meta_path.write_text(json.dumps(metadata, indent=2))
+
+        logger.info(
+            "Remote dataset prepared: %s (%d frames in %.1fs)",
+            dataset_id,
+            result["frame_count"],
+            result.get("duration_seconds", 0),
+        )
+
+        return PreparedDataset(
+            dataset_id=dataset_id,
+            path=output_dir.parent,
+            frame_count=result["frame_count"],
+            pipeline_preset=pipeline_preset,
+            pipeline_config=result.get("pipeline_config", []),
+            bone_type=bone_type,
+            acquisition_id=acquisition_id,
         )
 
     def _prepare_dataset_sync(
@@ -254,7 +346,11 @@ class DatasetPreparationService:
         context: str | None = None,
         bone_type: str | None = None,
     ) -> np.ndarray:
-        """Apply imaging-sdk pipeline to a frame.
+        """Apply imaging-sdk pipeline with auto-adjusted parameters per frame.
+
+        Uses AutoAdjustOptimizer (like vet-fluoro-studio) to compute
+        optimal filter parameters for each frame before applying the
+        pipeline. Falls back to static values if optimizer is unavailable.
 
         Args:
             image: Raw uint16 frame.
@@ -267,16 +363,49 @@ class DatasetPreparationService:
         """
         if context is None:
             context = get_imaging_config()["default_treatment"]
-        if self.manager:
+        if not self.manager:
+            return image
+
+        try:
+            pipeline_dict = self.manager.load_pipeline(context)
+            if not pipeline_dict:
+                return self.manager.apply_pipeline(image, context, anatomy=bone_type)
+
+            # Auto-adjust: compute optimal params per frame (same as vet-fluoro-studio)
+            optimized: dict[str, dict[str, Any]] = {}
             try:
-                return self.manager.apply_pipeline(
-                    image,
-                    context,
-                    anatomy=bone_type,
-                )
+                from imaging_sdk.auto_adjust_optimizer import AutoAdjustOptimizer
+
+                optimizer = AutoAdjustOptimizer(verbose=False)
+                optimized = optimizer.optimize(image, pipeline_dict, {})
             except Exception as e:
-                logger.warning("Pipeline %s failed, returning raw: %s", context, e)
-        return image
+                logger.debug("Auto-adjust unavailable, using static params: %s", e)
+
+            # Apply filters with optimized params merged in
+            from imaging_sdk import get_filter
+
+            result = image.copy()
+            for fspec in pipeline_dict.get("filters", []):
+                fname = fspec.get("name", "")
+                if not fname or not fspec.get("enabled", True):
+                    continue
+                fobj = get_filter(fname)
+                if fobj is None:
+                    continue
+                params = dict(fspec.get("params", {}))
+                if fname in optimized:
+                    params.update(optimized[fname])
+                try:
+                    if hasattr(fobj, "validate_params"):
+                        params = fobj.validate_params(params)
+                    result = fobj(result, params)
+                except Exception as e:
+                    logger.warning("Filter %s failed: %s", fname, e)
+
+            return result
+        except Exception as e:
+            logger.warning("Pipeline %s failed, returning raw: %s", context, e)
+            return image
 
     def _resize(self, image: np.ndarray, size: int) -> np.ndarray:
         """Resize image to square dimensions."""

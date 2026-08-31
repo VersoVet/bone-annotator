@@ -76,38 +76,50 @@ REDIS_DB = int(_get("redis", "db", "REDIS_DB", 0))
 VAULT_URL = _get("vault", "url", "ONYX_VAULT_URL", "http://10.0.0.44:8050")
 VAULT_TOKEN = os.getenv("ONYX_VAULT_TOKEN", "")
 
-IMAGING_BUNDLED_DIR = _get(
-    "imaging", "bundled_dir", "IMAGING_BUNDLED_DIR", "/opt/onyx/imaging-sdk/pipelines"
-)
-IMAGING_USER_DIR = _get(
-    "imaging", "user_dir", "IMAGING_USER_DIR", "/opt/onyx/imaging-sdk/pipelines/users"
-)
-IMAGING_DEFAULT_TREATMENT = _get(
-    "imaging", "default_treatment", "IMAGING_DEFAULT_TREATMENT", "os_nu_medsam_user"
-)
+IMAGING_BUNDLED_DIR = _get("imaging", "bundled_dir", "IMAGING_BUNDLED_DIR", "/opt/onyx/imaging-sdk/pipelines")
+IMAGING_USER_DIR = _get("imaging", "user_dir", "IMAGING_USER_DIR", "/opt/onyx/imaging-sdk/pipelines/users")
+IMAGING_DEFAULT_TREATMENT = _get("imaging", "default_treatment", "IMAGING_DEFAULT_TREATMENT", "os_nu_medsam_user")
 IMAGING_DEFAULT_TREATMENT_LABEL = _get(
     "imaging",
     "default_treatment_label",
     "IMAGING_DEFAULT_TREATMENT_LABEL",
     "Os nu — MedSAM [USER]",
 )
-IMAGING_DEFAULT_PRE_ANNOTATE = bool(
-    _CFG.get("imaging", {}).get("default_pre_annotate", False)
-)
+IMAGING_DEFAULT_PRE_ANNOTATE = bool(_CFG.get("imaging", {}).get("default_pre_annotate", False))
 DASHBOARD_TITLE = _get("dashboard", "title", "DASHBOARD_TITLE", "Gestion des Annotations")
 DASHBOARD_POLL_MS = int(_get("dashboard", "poll_interval_ms", "DASHBOARD_POLL_MS", 5000))
 
 LEARNING_REPORT_EMAIL = _get("learning", "report_email_to", "LEARNING_REPORT_EMAIL", "")
-LEARNING_REGRESSION_THRESHOLD = float(
-    _CFG.get("learning", {}).get("regression_threshold", 0.02)
-)
-LEARNING_NEW_ACQ_THRESHOLD = int(
-    _CFG.get("learning", {}).get("new_acquisitions_alert_threshold", 100)
-)
-LEARNING_ML_READY_THRESHOLD = float(
-    _CFG.get("learning", {}).get("ml_correction_ready_threshold", 0.10)
-)
+LEARNING_REGRESSION_THRESHOLD = float(_CFG.get("learning", {}).get("regression_threshold", 0.02))
+LEARNING_NEW_ACQ_THRESHOLD = int(_CFG.get("learning", {}).get("new_acquisitions_alert_threshold", 100))
+LEARNING_ML_READY_THRESHOLD = float(_CFG.get("learning", {}).get("ml_correction_ready_threshold", 0.10))
 EMAIL_BASE_URL = _get("endpoints", "email", "EMAIL_BASE_URL", "http://10.0.0.44:8054")
+
+# ===== PREPROCESSING (remote offload) =====
+
+PREPROC_MODE = _get("preprocessing", "mode", "PREPROC_MODE", "local")
+PREPROC_REMOTE_HOST = _get("preprocessing", "remote_host", "PREPROC_REMOTE_HOST", "10.0.0.8")
+PREPROC_REMOTE_PORT = int(_get("preprocessing", "remote_port", "PREPROC_REMOTE_PORT", "9480"))
+PREPROC_N_WORKERS = int(_get("preprocessing", "n_workers", "PREPROC_N_WORKERS", "12"))
+PREPROC_TIMEOUT = int(_get("preprocessing", "timeout_seconds", "PREPROC_TIMEOUT", "600"))
+PREPROC_SHARED_ROOT = _get(
+    "preprocessing",
+    "shared_output_root",
+    "PREPROC_SHARED_ROOT",
+    "/mnt/cortex-bone-share/datasets",
+)
+
+
+def get_preprocessing_config() -> dict[str, Any]:
+    """Return preprocessing configuration."""
+    return {
+        "mode": PREPROC_MODE,
+        "remote_host": PREPROC_REMOTE_HOST,
+        "remote_port": PREPROC_REMOTE_PORT,
+        "n_workers": PREPROC_N_WORKERS,
+        "timeout_seconds": PREPROC_TIMEOUT,
+        "shared_output_root": PREPROC_SHARED_ROOT,
+    }
 
 
 # ===== CHECK FUNCTIONS =====
