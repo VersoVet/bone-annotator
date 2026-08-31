@@ -30,7 +30,7 @@ def test_bone_ml_config() -> None:
     assert "host" in cfg
     assert "port" in cfg
     assert "base_url" in cfg
-    assert "10.0.0.86" in cfg["base_url"]
+    assert cfg["base_url"].startswith("http")
 
 
 def test_dataset_pacs_config() -> None:

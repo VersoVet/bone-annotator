@@ -25,11 +25,23 @@ logger = logging.getLogger(__name__)
 
 
 def _build_task_progress(status: str, notes: str | None) -> TaskProgress | None:
-    """Map DB status/notes to a TaskProgress for polling clients."""
+    """Map DB status/notes to a TaskProgress for polling clients.
+
+    Notes may embed a percentage as "[42%] Some detail".
+    """
     if status in ("created", "annotating", "validated", "rejected"):
         return None
     step = status if status in ("preparing", "uploading", "failed") else "preparing"
-    return TaskProgress(step=step, detail=notes or "")
+    percent = 0
+    detail = notes or ""
+    if detail.startswith("[") and "%]" in detail:
+        try:
+            pct_str = detail[1 : detail.index("%]")]
+            percent = int(pct_str)
+            detail = detail[detail.index("%]") + 2 :].strip()
+        except (ValueError, IndexError):
+            pass
+    return TaskProgress(step=step, detail=detail, percent=percent)
 
 
 def _task_row_to_response(row: dict[str, Any]) -> TaskResponse:

@@ -25,6 +25,7 @@ class TaskProgress(BaseModel):
 
     step: str = Field(default="", description="Current step")
     detail: str = Field(default="")
+    percent: int = Field(default=0, ge=0, le=100, description="Completion percentage")
 
 
 class TaskResponse(BaseModel):

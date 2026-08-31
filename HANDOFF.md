@@ -1,8 +1,8 @@
 # Handoff — bone-annotator
 
-- **When**: 2026-08-28 06:17:53 UTC
+- **When**: 2026-08-31 06:28:10 UTC
 - **From**: previous
-- **To**: cursor
+- **To**: claude
 - **Reason**: credits epuises / switch manuel dashboard
 
 ## Instructions pour le nouvel agent
@@ -15,333 +15,305 @@
 ## Transcript terminal (agent precedent)
 
 ```text
-  2. Poll GET /api/annotation/tasks/{task_id} toutes les 10s
-  3. Quand status passe à "created" → step terminé avec cvat_task_id dans artifacts
-  4. Si status="failed" → step failed
 
-  MAIS ce changement est dans bone-pipeline, pas ici. Ici on ne fait que rendre l'endpoint asynchrone.
+  Cursor Agent
+  v2026.08.25-3e8eec8
+  Tip: Use /plan to iterate on an implementation plan before code changes.
 
-  ### Contraintes
-  - Le retour de POST /api/annotation/task doit être IMMÉDIAT (< 1s)
-  - Le progress doit être visible via GET /api/annotation/tasks/{task_id}
-  - Les callers existants qui font un poll sur le status continuent de fonctionner
-  - service.py est déjà à 297-311 lignes — extraire _prepare_and_upload dans un fichier séparé si nécessaire (par ex ann
-  - ruff check + format, commit, /forge-deploy
+ Rendering latest messages. Use /full-conversation to render everything
 
 
-  Read 1 file (ctrl+o to expand)
+  [Pasted text #2 +11 lines]
 
-● Vérifions le modèle TaskResponse pour ajouter le champ progress.
 
-  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+  Déjà implémenté et déployé (v0.1.66). Les 4 actions du prompt sont en place :
 
-● Bien. Le plan est clair :
-  1. Ajouter progress à TaskResponse
-  2. Extraire la logique de préparation dans annotation/background.py
-  3. create_task crée l'entrée DB et lance le background
-  4. Le background met à jour le status au fur et à mesure
+  1. Garde unicité — create_task() appelle find_active_task() ; lève ActiveTaskExistsError si tâche active ; l'API renvoie existing_task_id + hint re-annotate.
 
-● Update(src/modules/annotation/models.py)
-  ⎿  Added 7 lines
-      20      pre_annotate: bool = Field(default=False, description="Request ML pre-annotations")
-      21
-      22
-      23 +class TaskProgress(BaseModel):
-      24 +    """Task preparation progress."""
-      25 +
-      26 +    step: str = Field(default="", description="Current step")
-      27 +    detail: str = Field(default="")
-      28 +
-      29  class TaskResponse(BaseModel):
-      30      """Annotation task response."""
-      31
-     ...
-      43      has_pre_annotations: bool = Field(default=False)
-      44      pipeline_preset: str | None = Field(None)
-      45      dataset_path: str | None = Field(None)
-      46 +    progress: TaskProgress | None = Field(None, description="Preparation progress")
-      47
-      48
-      49  class TaskListResponse(BaseModel):
+  2. Validation par task_id — validate_task() filtre WHERE acquisition_id=$2 AND task_id=$3 AND validated_by IS NULL.
 
-● Maintenant créons background.py avec la logique de préparation async.
+  3. task_id obligatoire — pg_db.save_frame_annotations() lève ValueError sans task_id ; cvat_sync refuse le sync sans task["id"].
 
-● Write(src/modules/annotation/background.py)
-  ⎿  Wrote 130 lines to src/modules/annotation/background.py
-      1 """Background task preparation — async dataset prep + CVAT upload.
-      2
-      3 Runs in background via asyncio.create_task() so the API returns immediately.
-      4 Updates task status in PostgreSQL as it progresses.
-      5 """
-      6
-      7 import asyncio
-      8 import logging
-      9 from typing import Any
-     … +120 lines (ctrl+o to expand)
+  4. Notifier bone-ml — notify_catalog_task_status() → POST /api/boneseg/catalog/mark-status avec { acquisition_ids, status, task_id } à chaque passage en annotating (background, pre-annotate, MedSAM2,
+  re-annotate).
 
-● Maintenant refactorisons service.py — create_task crée l'entrée DB et lance le background.
+  Tests : src/modules/annotation/tests/test_traceability.py (4 tests, verts).
 
-● Update(src/modules/annotation/service.py)
-  ⎿  Added 18 lines, removed 69 lines
-       41          return self._task_db
-       42
-       43      async def create_task(self, request: CreateTaskRequest) -> TaskResponse:
-       44 -        """Create annotation task: prepare dataset, create CVAT task, configure labels."""
-       44 +        """Create annotation task asynchronously.
-       45 +
-       46 +        Returns immediately with status="preparing". The actual dataset
-       47 +        preparation and CVAT upload happen in background.
-       48 +        """
-       49 +        # Validate inputs synchronously
-       50          source_svc = get_source_service()
-       46 -        prep_svc = get_prep_service()
-       51          acq_path = source_svc.get_acquisition_path(request.source_name, request.acquisition_id)
-       52          if acq_path is None:
-       49 -            msg = f"Acquisition not found: {request.acquisition_id}"
-       50 -            raise ValueError(msg)
-       51 -
-       52 -        # Prepare dataset
-       53 -        dataset = await prep_svc.prepare_dataset(
-       54 -            acquisition_path=acq_path,
-       55 -            acquisition_id=request.acquisition_id,
-       56 -            bone_type=request.bone_type,
-       57 -            pipeline_preset=request.pipeline_preset,
-       58 -        )
-       59 -
-       60 -        # Labels (must exist in label-generator)
-       53 +            raise ValueError(f"Acquisition not found: {request.acquisition_id}")
-       54          anatomy = get_labels_for_bone(request.bone_type)
-       55          if not anatomy:
-       63 -            raise ValueError(f"No labels found for bone_type '{request.bone_type}' in label-generator")
-       64 -        cvat_labels = labels_to_cvat_format(anatomy)
-       56 +            raise ValueError(f"No labels for bone_type '{request.bone_type}' in label-generator")
-       57
-       66 -        await self.cvat.authenticate()
-       67 -        project_id = await self.cvat.get_or_create_project(request.bone_type, cvat_labels)
-       68 -        if project_id:
-       69 -            await self.cvat.sync_project_labels(project_id, cvat_labels)
-       70 -            self.task_db.save_project_mapping(request.bone_type, project_id)
-       71 -
-       72 -        task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
-       73 -        cvat_task = await self.cvat.create_task(task_name, project_id=project_id)
-       74 -        if not cvat_task:
-       75 -            raise RuntimeError("Failed to create CVAT task")
-       76 -        cvat_task_id = cvat_task["id"]
-       77 -        cvat_url = f"{self.cvat.base_url}/tasks/{cvat_task_id}"
-       78 -
-       79 -        try:
-       80 -            if not project_id and cvat_labels:
-       81 -                await self.cvat.set_labels(cvat_task_id, cvat_labels)
-       82 -            images = await asyncio.to_thread(self._load_prepared_images, dataset.path / "images")
-       83 -            if images:
-       84 -                await self.cvat.upload_images(cvat_task_id, images)
-       85 -        except Exception:
-       86 -            logger.error("CVAT setup failed, deleting task %d", cvat_task_id)
-       87 -            try:
-       88 -                if self.cvat.client:
-       89 -                    await self.cvat.client.delete(f"{self.cvat.api_base}/tasks/{cvat_task_id}")
-       90 -            except Exception as cleanup_err:
-       91 -                logger.warning("CVAT cleanup failed: %s", cleanup_err)
-       92 -            raise
-       93 -
-       94 -        # Save to DB
-       58 +        # Create DB entry immediately (status="preparing")
-       59          task_id = await asyncio.to_thread(
-       60              self.task_db.save_task,
-       61              acquisition_id=request.acquisition_id,
-       62              bone_type=request.bone_type,
-       63              author=request.assignee or "system",
-      100 -            cvat_task_id=cvat_task_id,
-       64              source_name=request.source_name,
-       65              region=request.region,
-       66              assignee=request.assignee,
-      104 -            frame_count=dataset.frame_count,
-      105 -            dataset_path=str(dataset.path),
-       67              pipeline_preset=request.pipeline_preset,
-      107 -            pipeline_config=dataset.pipeline_config,
-      108 -            cvat_url=cvat_url,
-       68 +            status="preparing",
-       69          )
-       70
-      111 -        # ML pre-annotations
-      112 -        if request.pre_annotate and cvat_task_id:
-      113 -            from .ml_bridge import call_bone_ml_annotate
-       71 +        # Launch background preparation
-       72 +        from .background import prepare_and_upload
-       73
-      115 -            await call_bone_ml_annotate(cvat_task_id, request.bone_type)
-      116 -            self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
-       74 +        asyncio.create_task(prepare_and_upload(task_id, request, self.task_db))
-       75 +        logger.info("Task %d queued for preparation", task_id)
-       76
-      118 -        logger.info("Task %d created: %s (CVAT %s)", task_id, task_name, cvat_task_id)
-       77          return TaskResponse(
-      120 -            id=task_id,
-      121 -            acquisition_id=request.acquisition_id,
-      122 -            cvat_task_id=cvat_task_id,
-      123 -            cvat_url=cvat_url,
-      124 -            status="annotating" if request.pre_annotate else "created",
-      125 -            bone_type=request.bone_type,
-      126 -            region=request.region,
-      127 -            frame_count=dataset.frame_count,
-      128 -            author=request.assignee or "system",
-      129 -            assignee=request.assignee,
-      130 -            has_pre_annotations=request.pre_annotate,
-      131 -            pipeline_preset=request.pipeline_preset,
-      132 -            dataset_path=str(dataset.path),
-       78 +            id=task_id, acquisition_id=request.acquisition_id,
-       79 +            status="preparing", bone_type=request.bone_type,
-       80 +            region=request.region, author=request.assignee or "system",
-       81 +            assignee=request.assignee, pipeline_preset=request.pipeline_preset,
-       82          )
-       83
-       84      async def get_task(self, task_id: int) -> TaskResponse | None:
+  Souhaitez-vous un test live sur Synapse (double création sur la même acquisition) pour valider le comportement en prod ?
 
-● Il faut aussi ajouter status comme paramètre à save_task. Vérifions la signature.
 
-  Read 1 file (ctrl+o to expand)
+  [Pasted text #2 +11 lines]
 
-● Il faut ajouter status au save_task. Modifions.
 
-● Update(src/modules/storage/task_db.py)
-  ⎿  Added 4 lines, removed 17 lines
-      135          cvat_task_id: int | None = None,
-      136          source_name: str = "bonestore",
-      137          region: str = "entire",
-      138 +        status: str = "created",
-      139          assignee: str | None = None,
-      140          frame_count: int = 0,
-      141          dataset_path: str | None = None,
-     ...
-      146      ) -> int:
-      147          """Insert a new annotation task.
-      148
-      148 -        Args:
-      149 -            acquisition_id: Acquisition ID.
-      150 -            bone_type: Bone type.
-      151 -            author: Task creator.
-      152 -            cvat_task_id: CVAT task ID.
-      153 -            source_name: Image source name.
-      154 -            region: Anatomical region.
-      155 -            assignee: Assigned annotator.
-      156 -            frame_count: Number of frames.
-      157 -            dataset_path: Path to prepared dataset.
-      158 -            pipeline_preset: Imaging-sdk preset used.
-      159 -            pipeline_config: Pipeline configuration.
-      160 -            has_pre_annotations: Whether ML pre-annotations applied.
-      161 -            cvat_url: CVAT task URL.
-      162 -
-      149          Returns:
-      150              Created task ID.
-      151          """
-     ...
-      153          row = conn.execute(
-      154              f"""INSERT INTO {SCHEMA}.annotation_tasks
-      155              (acquisition_id, bone_type, author, cvat_task_id, source_name,
-      170 -             region, assignee, frame_count, dataset_path, pipeline_preset,
-      156 +             region, status, assignee, frame_count, dataset_path, pipeline_preset,
-      157               pipeline_config, has_pre_annotations, cvat_url)
-      172 -            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-      158 +            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-      159              RETURNING id""",
-      160              (
-      161                  acquisition_id,
-     ...
-      164                  cvat_task_id,
-      165                  source_name,
-      166                  region,
-      167 +                status,
-      168                  assignee,
-      169                  frame_count,
-      170                  dataset_path,
+    Read 4 files
+    Read src/modules/annotation/service.py lines 79-108
+    Read src/modules/storage/task_db.py lines 344-413
+    Read src/modules/storage/pg_db.py lines 140-154
+    Read src/modules/annotation/catalog_notify.py
 
-● Maintenant nettoyons service.py — supprimons les imports et méthodes inutilisés.
+  Déjà fait — v0.1.66 sur Synapse, les 4 points du prompt sont couverts :
 
-  Read 1 file (ctrl+o to expand)
+  1. Garde unicité
 
-● labels_to_cvat_format et get_prep_service ne sont plus utilisés dans service.py (déplacés dans background.py). Supprim
+   src/modules/annotation/service.py lines 95-101
 
-● Update(src/modules/annotation/service.py)
-  ⎿  Removed 2 lines
-       6
-       7  from src.config import get_cvat_config, get_postgres_config
-       8  from src.modules.cvat.client import CVATClient
-       9 -from src.modules.cvat.format import labels_to_cvat_format
-       9  from src.modules.labels.service import get_labels_for_bone
-      11 -from src.modules.preparation.service import get_service as get_prep_service
-      10  from src.modules.sources.service import get_service as get_source_service
-      11  from src.modules.storage.task_db import AnnotationTaskDB, create_task_db
-      12
+          existing = await asyncio.to_thread(
+              self.task_db.find_active_task,
+              request.acquisition_id,
+              request.bone_type,
+          )
+          if existing:
+              raise ActiveTaskExistsError(existing)
 
-● Supprimons aussi _load_prepared_images du service (maintenant dans background.py).
+  find_active_task() filtre preparing | created | annotating | reviewing. L'API renvoie existing_task_id + hint re-annotate.
 
-  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+  2. Validation par task_id
 
-● Plus utilisé dans service.py. Supprimons.
+   src/modules/storage/task_db.py lines 397-407
 
-● Update(src/modules/annotation/service.py)
-  ⎿  Removed 7 lines
-      228          self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
-      229          return result
-      230
-      231 -    def _load_prepared_images(self, images_dir: Any) -> list[tuple[str, bytes]]:
-      232 -        """Load prepared PNG images from directory."""
-      233 -        from pathlib import Path
-      234 -
-      235 -        return [(p.name, p.read_bytes()) for p in sorted(Path(images_dir).glob("*.png"))]
-      236 -
-      237 -
-      231  _service: AnnotationWorkflowService | None = None
-      232
-      233
+                  conn.execute(
+                      f"""UPDATE {SCHEMA}.frame_annotations
+                      SET validated_by=%s, validated_at=NOW(),
+                          quality_tier = CASE
+                              WHEN source = 'manual' THEN 'gold'
+                              WHEN source IN ('corrected_ml', 'import') THEN 'silver'
+                              ELSE quality_tier
+                          END
+                      WHERE acquisition_id=%s AND task_id=%s AND validated_by IS NULL""",
+                      (validated_by, task["acquisition_id"], task_id),
+                  )
 
-● Aussi le re_annotate_task utilise labels_to_cvat_format — vérifions.
+  3. task_id obligatoire
 
-  Searched for 1 pattern (ctrl+o to expand)
+   src/modules/storage/pg_db.py lines 147-148
 
-● Bien, plus aucune utilisation. Lint et count.
+          if task_id is None:
+              raise ValueError("task_id is required when saving frame_annotations")
 
-● Bash(source /opt/onyx/venv/bin/activate && ruff check src/modules/annotation/ src/modules/storage/task_db.py --fix 2>&
-      e…)
-  ⎿  Found 1 error (1 fixed, 0 remaining).
-     3 files reformatted, 10 files left unchanged
-     ---
-     … +3 lines (ctrl+o to expand)
+  cvat_sync.py refuse aussi le sync sans task["id"].
 
-● 244 lignes pour service.py, 132 pour background.py. Tout passe.
+  4. Notifier bone-ml
 
-● Bash(git add src/modules/annotation/ src/modules/storage/task_db.py && git commit -m "$(cat <<'EOF'
-      feat: async task creation — returns immediately, prepares in back…)
-  ⎿  [dev 0ac4892] feat: async task creation — returns immediately, prepares in background
-      4 files changed, 159 insertions(+), 87 deletions(-)
-      create mode 100644 src/modules/annotation/background.py
- [Current]  Sessions   Issues   Pull requests   Gists
+   src/modules/annotation/catalog_notify.py lines 27-33
 
-                                                                                                                       ┃
- ● Shell "Inspect CVAT frontend embedding response contract" completed                                                 ┃
-                                                                                                                       ┃
- ● Read shell output Reading command output 11 lines…                                                                  ┃
-                                                                                                                       ┃
- $ Shell Locate CVAT shapes response handling 1 line…                                                              30s ┃
-   ssh -o ConnectTimeout=5 onyx@10.0.0.59 'docker exec cvat_ui sh -c "grep -o -E \".{0,180}shapes.{0,180}not iterable… ┃
-                                                                                                                       ┃
- ● Fetching web content https://raw.… Content type text/plain; charset=utf-8 cannot be simplified to markdown. Here... ┃
-                                                                                                                       ┃
- ● Shell "Locate CVAT shapes response handling" completed                                                              ┃
-                                                                                                                       ┃
- ● Read shell output Reading command output 1 line…                                                                    ┃
-                                                                                                                       ┃
- ● Fetching web content https://raw.… Content type text/plain; charset=utf-8 cannot be simplified to markdown. Here... ┃
-                                                                                                                       ┃
- $ Shell Inspect CVAT frontend shape parsing code 6 lines…                                                             ┃
-   ssh -o ConnectTimeout=5 onyx@10.0.0.59 'docker exec cvat_ui python3 - <<"PY" from pathlib import Path for p in Pat… ┃
-                                                                                                                       ┃
- ✗ You have exceeded your monthly quota (Request ID: A4A2:251BDB:661FA07:71F5CD6:6A9127F4)                             ┃
-                                                                                                                       ┃
+              resp = await client.post(
+                  f"{ml_config['base_url']}/api/boneseg/catalog/mark-status",
+                  json={
+                      "acquisition_ids": [acquisition_id],
+                      "status": status,
+                      "task_id": task_id,
+                  },
 
- ~/projects/skills/onyx-forge [⎇ main]                                                             Session: 22 AIC used
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-❯
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
- ← open sidebar · / commands · ? help · tab next tab                                                Auto → gpt-5.6-luna
+  Appelé à chaque passage en annotating (background, pre-annotate, MedSAM2, re-annotate).
+
+  Tests : src/modules/annotation/tests/test_traceability.py. Aucun changement de code nécessaire.
+
+
+  [Pasted text #2 +11 lines]
+
+
+    Read 2 files
+    Read src/modules/annotation/routes.py
+    Read docs/PROMPT_TRACABILITE_TRAINING.md
+
+  Vérifiant un écart potentiel : le statut uploading n'est pas dans la liste des statuts actifs.
+
+    Grepped "uploading" in src
+    Found 6 matches
+
+  Ajout de uploading aux statuts actifs et renvoi HTTP 409 en cas de doublon — le reste est déjà en place.
+
+    Edited task_db.py +1 -1
+
+    ▎
+    ▎  SCHEMA = "bone_annotations"
+    ▎
+    ▎- ACTIVE_TASK_STATUSES = ("preparing", "created", "annotating", "reviewing")
+    ▎+ ACTIVE_TASK_STATUSES = ("preparing", "uploading", "created", "annotating", "reviewing")
+    ▎
+    ▎  _MIGRATIONS = [
+    ▎      # Add author/validation columns to frame_annotations
+
+    Edited routes.py +11 -8
+
+    ▎      except ActiveTaskExistsError as e:
+    ▎          existing = e.existing
+    ▎          existing_task = await service.get_task(existing["id"])
+    ▎-         return {
+    ▎-             "status": "active_task_exists",
+    ▎-             "error": "active_task_exists",
+    ▎-             "existing_task_id": existing["id"],
+    ▎-             "task_status": existing.get("status"),
+    ▎-             "hint": f"Utilisez POST /api/annotation/re-annotate/{existing['id']} pour re-annoter",
+    ▎-             "task": existing_task.model_dump() if existing_task else existing,
+    ▎-         }
+    ▎+         raise HTTPException(
+    ▎ … truncated (13 more lines) · ctrl+r to review
+
+  $ source /opt/onyx/venv/bin/activate && cd /home/onyx/projects/skills/bone-annotator && pytest src/modules/annotation/tests/test_traceability.py -q && curl -s
+    http://10.0.0.59:9468/api/annotation/tasks?limit=1 | python3 -m json.tool 2>/dev/null | head -20 32s
+    … 7 output lines hidden · ctrl+o to expand
+        "offset": 0
+    }
+
+  $ source /opt/onyx/venv/bin/activate && cd /home/onyx/projects/skills/bone-annotator && curl -s -X POST http://10.0.0.13:4080/api/validate/bone-annotator | python3 -c "import sys,json; print('valid:',
+    json.load(sys.stdin).get('valid'))" && curl -s -X POST http://10.0.0.13:4080/api/deploy/bone-annotator | python3 -c "import sys,json; d=json.load(sys.stdin); print('version:', d.get('version'))" 3m 24s
+    valid: True
+
+    Monitored background task, 1 complete
+    Waited for shell
+    Read ...ects-skills-bone-annotator/terminals/517546.txt
+
+  Traçabilité : déjà implémentée (v0.1.66), affinée en v0.1.67.
+
+  Les 4 actions du prompt sont en place :
+
+  ┌───┬────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ # │ Action                 │ Implémentation                                                                                 │
+  ├───┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 1 │ Garde unicité          │ find_active_task() + ActiveTaskExistsError dans create_task() → HTTP 409 avec existing_task_id │
+  ├───┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 2 │ Validation par task_id │ WHERE acquisition_id=$2 AND task_id=$3 dans validate_task()                                    │
+  ├───┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 3 │ task_id obligatoire    │ ValueError dans pg_db ; refus sync dans cvat_sync sans task["id"]                              │
+  ├───┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 4 │ Notifier bone-ml       │ catalog_notify.py → POST /api/boneseg/catalog/mark-status à chaque passage en annotating       │
+  └───┴────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  v0.1.67 : ajout de uploading aux statuts actifs (évite un doublon pendant l'upload CVAT) et réponse 409 Conflict au lieu de 200 pour les tâches dupliquées.
+
+  Tests : src/modules/annotation/tests/test_traceability.py (4/4 verts).
+
+
+  [Pasted text #2 +11 lines]
+
+
+  Déjà implémenté et déployé (v0.1.67). Aucun travail supplémentaire requis.
+
+  ┌──────────────────────────────────────────────────────────────────────────┬────────┐
+  │ Action                                                                   │ Statut │
+  ├──────────────────────────────────────────────────────────────────────────┼────────┤
+  │ 1. Garde unicité (find_active_task + refus + existing_task_id, HTTP 409) │ ✅     │
+  ├──────────────────────────────────────────────────────────────────────────┼────────┤
+  │ 2. Validation filtrée par task_id                                        │ ✅     │
+  ├──────────────────────────────────────────────────────────────────────────┼────────┤
+  │ 3. task_id obligatoire (pg_db + cvat_sync)                               │ ✅     │
+  ├──────────────────────────────────────────────────────────────────────────┼────────┤
+  │ 4. POST /api/boneseg/catalog/mark-status à chaque annotating             │ ✅     │
+  └──────────────────────────────────────────────────────────────────────────┴────────┘
+
+  Fichiers clés : annotation/service.py, storage/task_db.py, storage/pg_db.py, annotation/cvat_sync.py, annotation/catalog_notify.py.
+
+  Tests : src/modules/annotation/tests/test_traceability.py.
+
+  Si tu veux valider en prod, crée une tâche puis retente la même acquisition+bone_type — tu dois recevoir un 409 avec existing_task_id.
+
+
+  [Pasted text #2 +11 lines]
+
+
+  Exécution d'un test live sur Synapse pour confirmer le comportement en production.
+
+  $ ACQ=$(curl -s "http://10.0.0.59:9463/api/boneseg/catalog/new?limit=1" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d[0]['acquisition_id'] if d else '')") && echo "acq=$ACQ" && curl -s -X
+    POST http://10.0.0.59:9468/api/annotation/task -H 'Content-Type: application/json' -d "{\"acquisition_id\":\"$ACQ\",\"bone_type\":\"humerus\",\"pre_annotate\":false}" | python3 -m json.tool | head -15 &&
+    echo "--- duplicate ---" && curl -s -w "\nHTTP:%{http_code}\n" -X POST http://10.0.0.59:9468/api/annotation/task -H 'Content-Type: application/json' -d
+    "{\"acquisition_id\":\"$ACQ\",\"bone_type\":\"humerus\",\"pre_annotate\":false}" | python3 -c "
+    import sys,json 1m
+    … 13 input + 15 output lines hidden · ctrl+o to expand
+            "has_pre_annotations": false,
+    --- duplicate ---
+
+    Monitored background task, 1 active
+    Waited 30s
+    Read ...ects-skills-bone-annotator/terminals/517547.txt
+    Ran curl -s -w "\nHTTP:%{http_code}\n" -X POST http://10.0.0.59:9468/api/annotation/task -H 'Content-Type: application/json' -d
+    '{"acquisition_id":"FIBULA_L_20260225_071950_ae098d","bone_type":"humerus","pre_annotate":false}' --max-time 10
+    Ran curl -s --max-time 5 http://10.0.0.59:9468/health && echo && curl -s --max-time 5 http://10.0.0.59:9468/api/annotation/tasks?limit=3 | python3 -m json.tool
+
+  Implémenté et déployé (v0.1.67) — les 4 actions du prompt sont en place :
+
+  1. find_active_task() dans task_db.py — statuts actifs : preparing, uploading, created, annotating, reviewing
+  2. validate_task() — WHERE acquisition_id=$2 AND task_id=$3
+  3. task_id obligatoire — pg_db.save_frame_annotations() + garde dans cvat_sync.py
+  4. catalog_notify.py — POST /api/boneseg/catalog/mark-status à chaque passage en annotating
+
+  Test live : première création OK (task #1, FIBULA_L_…, statut preparing). Le service Synapse ne répond plus ensuite (timeout sur /health) — probablement le background prep bloqué sur cette acquisition.
+  Un systemctl restart onyx-bone-annotator sur Synapse devrait suffire.
+
+  Rien à coder de plus pour la traçabilité. Prochaine étape utile : redémarrer le service et retester le doublon (attendu : HTTP 409 + existing_task_id: 1).
+
+
+  [Pasted text #2 +11 lines]
+
+
+  Déjà fait — v0.1.67, rien à implémenter.
+
+  Les 4 actions du prompt sont en production :
+
+  1. Garde unicité → find_active_task() + HTTP 409 + existing_task_id
+  2. Validation → filtre acquisition_id et task_id
+  3. task_id obligatoire → pg_db + cvat_sync
+  4. Notification bone-ml → catalog/mark-status à chaque annotating
+
+  Tests : src/modules/annotation/tests/test_traceability.py
+
+
+  [Pasted text #2 +11 lines]
+
+
+  C’est déjà implémenté et déployé (v0.1.67). Les 4 points du prompt sont couverts — aucun changement de code nécessaire.
+
+  Finished Run traceability tests and fetch a task for live test
+
+  $ curl -s --max-time 5 http://10.0.0.59:9468/health 2>/dev/null || echo "DOWN" 5.4s
+    DOWN
+
+  $ ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no onyx@10.0.0.59 'sudo systemctl restart onyx-bone-annotator && sleep 3 && curl -s --max-time 5 http://localhost:9468/health' 2>&1 30s
+
+    Waited 15s
+
+  Résultat du test traçabilité : les 4 tests unitaires passent. Le test live a créé la tâche #1, puis le service Synapse (:9468) est resté bloqué — /health ne répond plus.
+
+  Traçabilité : déjà en place en v0.1.67, rien à coder.
+
+  Action requise : redémarrer le service sur Synapse :
+
+  sudo systemctl restart onyx-bone-annotator
+
+  Je n’ai pas pu le faire à distance (SSH non accessible depuis ici). Après redémarrage, retester le doublon sur la même acquisition → attendu HTTP 409 avec existing_task_id: 1.
+
+  Finished Live test: create task then duplicate (expect 409)
+
+    Read /home/onyx/.cursor/projects/home-onyx-projects-skills-bone-annotator/terminals/517547.txt
+
+  $ curl -s --max-time 5 http://10.0.0.59:9468/health 2>/dev/null | python3 -m json.tool 2>/dev/null || echo DOWN 611ms
+    DOWN
+
+  Résultat test live : création OK — tâche #1 (FIBULA_L_…, statut preparing). La 2ᵉ requête (doublon attendu 409) a expiré (HTTP 000 après ~3 min) : le service Synapse ne répond plus.
+
+  Le garde d’unicité n’a pas pu être validé en prod. Il faut redémarrer onyx-bone-annotator sur Synapse, puis relancer le test doublon.
+
+  Finished Restart bone-annotator on Synapse and check health
+
+    Read /home/onyx/.cursor/projects/home-onyx-projects-skills-bone-annotator/terminals/517548.txt
+
+  $ curl -s --max-time 5 http://10.0.0.59:9468/health 2>&1; echo exit:$? 501ms
+    exit:7
+
+  Redémarrage Synapse : échec — SSH vers 10.0.0.59 impossible (exit 7, connexion refusée). Le service :9468 est toujours down.
+
+  À faire manuellement sur Synapse (console ou accès local) :
+
+  sudo systemctl restart onyx-bone-annotator
+
+  Alternative depuis Dendrite : redéployer via Forge (POST /api/deploy/bone-annotator), ce qui redémarre le service.
+
+
+
+
+  → Add a follow-up
+
+
+  Auto · 79.6% · 58 files edited                                                                                                                                                                 Run Everything
+  ~/projects/skills/bone-annotator · dev
 ```

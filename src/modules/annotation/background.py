@@ -37,8 +37,8 @@ async def prepare_and_upload(
         task_db: Task database instance.
     """
     try:
-        # --- STEP 1: Prepare dataset ---
-        task_db.update_task(task_id, status="preparing", notes="Preparing dataset...")
+        # --- STEP 1: Prepare dataset (0-40%) ---
+        task_db.update_task(task_id, status="preparing", notes="[5%] Loading acquisition...")
         source_svc = get_source_service()
         prep_svc = get_prep_service()
 
@@ -47,6 +47,7 @@ async def prepare_and_upload(
             task_db.update_task(task_id, status="failed", notes="Acquisition not found")
             return
 
+        task_db.update_task(task_id, notes="[10%] Preparing dataset (pipeline + frames)...")
         pipeline = request.pipeline_preset or get_imaging_config()["default_treatment"]
         dataset = await prep_svc.prepare_dataset(
             acquisition_path=acq_path,
@@ -59,12 +60,12 @@ async def prepare_and_upload(
             frame_count=dataset.frame_count,
             dataset_path=str(dataset.path),
             pipeline_config=dataset.pipeline_config,
-            notes=f"Dataset ready: {dataset.frame_count} frames",
+            notes=f"[40%] Dataset ready: {dataset.frame_count} frames",
         )
         logger.info("Task %d: dataset prepared (%d frames)", task_id, dataset.frame_count)
 
-        # --- STEP 2: Create CVAT task + upload ---
-        task_db.update_task(task_id, status="uploading", notes="Creating CVAT task...")
+        # --- STEP 2: Create CVAT task + upload (40-90%) ---
+        task_db.update_task(task_id, status="uploading", notes="[45%] Authenticating CVAT...")
 
         anatomy = get_labels_for_bone(request.bone_type)
         cvat_labels = labels_to_cvat_format(anatomy) if anatomy else []
@@ -72,6 +73,8 @@ async def prepare_and_upload(
         cfg = get_cvat_config()
         cvat = CVATClient(cfg["host"], cfg["port"], cfg["username"], cfg["password"])
         await cvat.authenticate()
+
+        task_db.update_task(task_id, notes="[50%] Creating CVAT project/task...")
 
         # Project
         project_id = await cvat.get_or_create_project(request.bone_type, cvat_labels)
@@ -94,21 +97,21 @@ async def prepare_and_upload(
         if not project_id and cvat_labels:
             await cvat.set_labels(cvat_task_id, cvat_labels)
 
-        # Upload images
-
-        task_db.update_task(task_id, notes=f"Uploading {dataset.frame_count} frames to CVAT...")
+        # Upload images (55-90%)
+        task_db.update_task(task_id, notes=f"[55%] Uploading {dataset.frame_count} frames to CVAT...")
         image_paths = await asyncio.to_thread(_list_images, dataset.path / "images")
         if image_paths:
             if not await cvat.upload_image_paths(cvat_task_id, image_paths):
                 raise RuntimeError(f"CVAT image upload failed for task {cvat_task_id}")
 
+        task_db.update_task(task_id, notes="[90%] Upload complete, finalizing...")
         await cvat.close()
 
-        # --- STEP 3: Done ---
+        # --- STEP 3: Done (90-100%) ---
         task_db.update_task(
             task_id,
             status="created",
-            notes=f"Ready: {dataset.frame_count} frames in CVAT #{cvat_task_id}",
+            notes=f"[100%] Ready: {dataset.frame_count} frames in CVAT #{cvat_task_id}",
         )
         logger.info("Task %d: created (CVAT %d, %d frames)", task_id, cvat_task_id, dataset.frame_count)
 

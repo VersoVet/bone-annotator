@@ -406,6 +406,30 @@ class AnnotationTaskDB:
                     (validated_by, task["acquisition_id"], task_id),
                 )
 
+    def recover_orphaned_tasks(self) -> int:
+        """Mark stuck preparing/uploading tasks as failed on startup.
+
+        Tasks in 'preparing' or 'uploading' status have no running
+        background coroutine after a service restart, so they must be
+        marked as failed to unblock the acquisition for a new task.
+
+        Returns:
+            Number of recovered (failed) tasks.
+        """
+        conn = self._get_conn()
+        result = conn.execute(
+            f"""UPDATE {SCHEMA}.annotation_tasks
+            SET status='failed', notes='Orphaned after service restart', updated_at=NOW()
+            WHERE status IN ('preparing', 'uploading')
+            RETURNING id""",
+        )
+        rows = result.fetchall()
+        count = len(rows)
+        if count:
+            ids = [r[0] for r in rows]
+            logger.warning("Recovered %d orphaned tasks: %s", count, ids)
+        return count
+
     def save_project_mapping(self, bone_type: str, project_id: int) -> None:
         """Cache bone_type → CVAT project_id in PostgreSQL."""
         try:

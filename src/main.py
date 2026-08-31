@@ -149,6 +149,9 @@ async def lifespan(app: FastAPI):
             pg_cfg = get_postgres_config()
             task_db = create_task_db(**pg_cfg)
             task_db.run_migrations()
+            recovered = task_db.recover_orphaned_tasks()
+            if recovered:
+                logger.info("✓ Recovered %d orphaned tasks (marked failed)", recovered)
             task_db.close()
             logger.info("✓ Annotation task migrations completed")
         except Exception as e:
