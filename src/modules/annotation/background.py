@@ -49,11 +49,17 @@ async def prepare_and_upload(
 
         task_db.update_task(task_id, notes="[10%] Preparing dataset (pipeline + frames)...")
         pipeline = request.pipeline_preset or get_imaging_config()["default_treatment"]
+
+        def _on_frame_progress(current: int, total: int) -> None:
+            pct = 10 + int(30 * current / max(total, 1))
+            task_db.update_task(task_id, notes=f"[{pct}%] Processing frame {current}/{total}...")
+
         dataset = await prep_svc.prepare_dataset(
             acquisition_path=acq_path,
             acquisition_id=request.acquisition_id,
             bone_type=request.bone_type,
             pipeline_preset=pipeline,
+            on_progress=_on_frame_progress,
         )
         task_db.update_task(
             task_id,

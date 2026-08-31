@@ -103,8 +103,12 @@ class DatasetPreparationService:
         pipeline_preset: str | None = None,
         custom_pipeline: list[dict[str, Any]] | None = None,
         image_size: int | None = None,
+        on_progress: Any | None = None,
     ) -> PreparedDataset:
         """Prepare annotation dataset from raw .b2nd frames.
+
+        Runs the CPU-bound frame processing in a thread to avoid blocking
+        the asyncio event loop.
 
         Args:
             acquisition_path: Path to acquisition directory.
@@ -113,6 +117,44 @@ class DatasetPreparationService:
             pipeline_preset: Imaging-sdk preset name.
             custom_pipeline: Custom pipeline config (overrides preset).
             image_size: Optional resize (None = keep original).
+            on_progress: Optional callback(current, total) for progress.
+
+        Returns:
+            PreparedDataset with path and metadata.
+        """
+        import asyncio
+
+        return await asyncio.to_thread(
+            self._prepare_dataset_sync,
+            acquisition_path,
+            acquisition_id,
+            bone_type,
+            pipeline_preset,
+            custom_pipeline,
+            image_size,
+            on_progress,
+        )
+
+    def _prepare_dataset_sync(
+        self,
+        acquisition_path: Path,
+        acquisition_id: str,
+        bone_type: str,
+        pipeline_preset: str | None = None,
+        custom_pipeline: list[dict[str, Any]] | None = None,
+        image_size: int | None = None,
+        on_progress: Any | None = None,
+    ) -> PreparedDataset:
+        """Synchronous dataset preparation (runs in thread pool).
+
+        Args:
+            acquisition_path: Path to acquisition directory.
+            acquisition_id: Acquisition identifier.
+            bone_type: Bone type for anatomy-aware processing.
+            pipeline_preset: Imaging-sdk preset name.
+            custom_pipeline: Custom pipeline config (overrides preset).
+            image_size: Optional resize (None = keep original).
+            on_progress: Optional callback(current, total) for progress.
 
         Returns:
             PreparedDataset with path and metadata.
@@ -135,8 +177,9 @@ class DatasetPreparationService:
         pipeline_config = custom_pipeline or self._load_preset(pipeline_preset, bone_type)
 
         # Process frames
+        total = len(frame_files)
         count = 0
-        for frame_path in frame_files:
+        for i, frame_path in enumerate(frame_files):
             try:
                 raw = _read_b2nd_frame(frame_path)
                 processed = self._apply_pipeline(
@@ -152,6 +195,8 @@ class DatasetPreparationService:
                 count += 1
             except Exception as e:
                 logger.warning("Failed to process %s: %s", frame_path.name, e)
+            if on_progress and (i % 20 == 0 or i == total - 1):
+                on_progress(i + 1, total)
 
         # Save metadata
         metadata = {
