@@ -191,20 +191,10 @@
         </div>
         <div class="form-row">
             <div class="form-group">
-                <label>Imaging treatment</label>
-                <select id="presetSelect">
-                    <option value="">Chargement...</option>
-                </select>
-            </div>
-            <div class="form-group">
                 <label>Assignee CVAT</label>
                 <select id="assigneeSelect">
                     <option value="">Chargement...</option>
                 </select>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="preAnnotate">
-                <label for="preAnnotate" style="font-size:0.9em;">Pre-annotation ML (bone-ml)</label>
             </div>
         </div>
         <div style="margin-top:12px; display:flex; gap:8px;">
@@ -301,7 +291,7 @@
     <div class="task-table">
         <table>
             <thead><tr>
-                <th>ID</th><th>Acquisition</th><th>Os</th><th>Profil</th><th>Pipeline</th>
+                <th>ID</th><th>Acquisition</th><th>Os</th><th>Profil</th>
                 <th>Status</th><th>Assignee</th><th>Frames</th><th>Actions</th>
             </tr></thead>
             <tbody id="taskBody">
@@ -511,7 +501,7 @@ async function loadTasks() {
         renderStats(d.tasks || [], d.total || 0);
     } catch(e) {
         document.getElementById('taskBody').innerHTML =
-            '<tr><td colspan="9" class="empty-state">Erreur de chargement</td></tr>';
+            '<tr><td colspan="8" class="empty-state">Erreur de chargement</td></tr>';
     }
 }
 
@@ -584,7 +574,7 @@ function parentLink(t) {
 function renderTasks(tasks) {
     const body = document.getElementById('taskBody');
     if (!tasks.length) {
-        body.innerHTML = '<tr><td colspan="9" class="empty-state">Aucune tache. Cliquez "+ Nouvelle Tache".</td></tr>';
+        body.innerHTML = '<tr><td colspan="8" class="empty-state">Aucune tache. Cliquez "+ Nouvelle Tache".</td></tr>';
         return;
     }
     body.innerHTML = tasks.map(t => `<tr>
@@ -592,7 +582,6 @@ function renderTasks(tasks) {
         <td>${t.acquisition_id}</td>
         <td>${t.bone_type}${t.region !== 'entire' ? ' ('+t.region+')' : ''}</td>
         <td>${profileBadge(t)}</td>
-        <td>${treatmentLabel(t.pipeline_preset)}</td>
         <td><span class="badge badge-${t.status}">${t.status}</span>
             ${t.progress ? `<div style="font-size:0.75em;color:#718096;margin-top:2px">${t.progress.step}: ${t.progress.detail||''}</div>` : ''}
             ${t.has_pre_annotations ? '<span class="badge" style="background:#e9d8fd;color:#6b46c1;margin-left:4px">ML</span>' : ''}
