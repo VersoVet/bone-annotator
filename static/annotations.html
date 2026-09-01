@@ -112,6 +112,24 @@
         .parent-link { font-size:0.75em;color:#7c3aed;text-decoration:none;font-weight:600; }
         .parent-link:hover { text-decoration:underline; }
 
+        /* Profile count badge in dropdown */
+        .acq-profiles { font-size:0.75em;color:#7c3aed;font-weight:600; }
+
+        /* Batch create modal */
+        .profile-check { display:flex;align-items:center;gap:10px;padding:12px;margin:6px 0;
+            background:#f7fafc;border-radius:8px;border:1px solid #e2e8f0; }
+        .profile-check.exists { opacity:0.6;border-color:#c6f6d5; }
+        .profile-check.cvat-missing { border-color:#fed7d7; }
+        .profile-check input[type="checkbox"] { width:18px;height:18px; }
+        .profile-check .profile-info { flex:1; }
+        .profile-check .profile-name { font-weight:600;color:#2d3748; }
+        .profile-check .profile-desc { font-size:0.8em;color:#718096; }
+        .profile-check .profile-status { font-size:0.75em;padding:2px 8px;border-radius:10px; }
+        .profile-status-missing { background:#edf2f7;color:#4a5568; }
+        .profile-status-created { background:#c6f6d5;color:#276749; }
+        .profile-status-cvat_missing { background:#fed7d7;color:#c53030; }
+        .profile-status-preparing { background:#fefcbf;color:#975a16; }
+
         /* Campaigns section */
         .campaigns-section { background:white;border-radius:8px;padding:15px 20px;margin-bottom:15px;
             box-shadow:0 2px 8px rgba(0,0,0,0.1); }
@@ -227,6 +245,22 @@
         </select>
     </div>
 
+    <!-- Batch Create Profiles Modal -->
+    <div class="modal-overlay" id="batchCreateModal">
+        <div class="modal" style="max-width:600px;">
+            <h3>Creer les jeux de donnees</h3>
+            <div id="batchAcqInfo" style="font-size:0.85em;color:#4a5568;margin-bottom:12px;"></div>
+            <div id="batchProfilesList" style="min-height:80px;">
+                <div style="color:#a0aec0;padding:20px;text-align:center;">Chargement des profils...</div>
+            </div>
+            <div class="modal-progress" id="batchProgress"></div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closeBatchModal()">Annuler</button>
+                <button class="btn btn-primary" id="batchCreateBtn" onclick="runBatchCreate()" disabled>Creer les jeux selectionnes</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MedSAM2 Propagation Modal -->
     <div class="modal-overlay" id="medsam2Modal">
         <div class="modal">
@@ -306,11 +340,17 @@ async function loadAcquisitions() {
     try {
         let url = `${API}/api/sources/${source}/acquisitions?limit=500`;
         if (bone) url += `&bone_type=${bone}`;
-        const r = await fetch(url);
-        const d = await r.json();
+        const [acqR, countsR] = await Promise.all([
+            fetch(url),
+            fetch(`${API}/api/annotation/acquisition-profile-counts`),
+        ]);
+        const d = await acqR.json();
+        const counts = (await countsR.json()).counts || {};
         sel.innerHTML = '<option value="">Selectionnez...</option>';
         (d.acquisitions || []).forEach(a => {
-            sel.innerHTML += `<option value="${a.id}" data-bone="${a.bone_type}">${a.id} (${a.bone_type} ${a.side} - ${a.frame_count} frames)</option>`;
+            const c = counts[a.id];
+            const badge = c ? ` [${c} profil${c>1?'s':''}]` : '';
+            sel.innerHTML += `<option value="${a.id}" data-bone="${a.bone_type}">${a.id} (${a.bone_type} ${a.side} - ${a.frame_count} frames)${badge}</option>`;
         });
     } catch(e) {
         sel.innerHTML = '<option value="">Erreur chargement</option>';
@@ -324,28 +364,98 @@ async function createTask() {
     const opt = acq.options[acq.selectedIndex];
     if (!acq.value) { alert('Selectionnez une acquisition'); return; }
     const bone = opt.dataset.bone || document.getElementById('boneTypeSelect').value;
-    const body = {
-        source_name: document.getElementById('sourceSelect').value,
-        acquisition_id: acq.value,
-        bone_type: bone,
-        pipeline_preset: document.getElementById('presetSelect').value,
-        assignee: document.getElementById('assigneeSelect').value || null,
-        pre_annotate: document.getElementById('preAnnotate').checked,
-    };
-    const status = document.getElementById('createStatus');
-    status.textContent = 'Creation en cours...';
+    // Open batch modal instead of creating a single task
+    openBatchModal(acq.value, bone);
+}
+
+let batchAcqId = null, batchBoneType = null;
+
+function openBatchModal(acqId, boneType) {
+    batchAcqId = acqId;
+    batchBoneType = boneType;
+    document.getElementById('batchAcqInfo').textContent = `${acqId} — ${boneType}`;
+    document.getElementById('batchProfilesList').innerHTML = '<div style="color:#a0aec0;padding:20px;text-align:center;">Chargement...</div>';
+    document.getElementById('batchCreateBtn').disabled = true;
+    document.getElementById('batchProgress').style.display = 'none';
+    document.getElementById('batchCreateModal').classList.add('show');
+    loadBatchProfiles(acqId, boneType);
+}
+
+function closeBatchModal() {
+    document.getElementById('batchCreateModal').classList.remove('show');
+    batchAcqId = null;
+}
+
+async function loadBatchProfiles(acqId, boneType) {
+    const el = document.getElementById('batchProfilesList');
     try {
-        const r = await fetch(`${API}/api/annotation/task`, {
-            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
-        });
+        const r = await fetch(`${API}/api/annotation/acquisition/${acqId}/profiles?bone_type=${boneType}`);
         const d = await r.json();
-        if (r.ok) {
-            status.innerHTML = `<span style="color:green">Tache ${d.task?.id} creee!</span>`;
-            toggleForm(); loadTasks();
-        } else {
-            status.innerHTML = `<span style="color:red">Erreur: ${d.detail || 'Inconnu'}</span>`;
+        if (!d.profiles || !d.profiles.length) {
+            el.innerHTML = '<div style="color:#e53e3e;">Aucun profil defini dans annotation-profiles.yaml</div>';
+            return;
         }
-    } catch(e) { status.innerHTML = `<span style="color:red">${e}</span>`; }
+        let html = `<div style="font-size:0.8em;color:#718096;margin-bottom:8px;">${d.created}/${d.total} profils crees</div>`;
+        d.profiles.forEach(p => {
+            const isMissing = p.status === 'missing' || p.status === 'cvat_missing';
+            const cls = isMissing ? (p.status === 'cvat_missing' ? 'cvat-missing' : '') : 'exists';
+            const statusCls = 'profile-status-' + p.status;
+            const statusLabel = p.status === 'missing' ? 'A creer' : p.status === 'cvat_missing' ? 'CVAT supprime' : p.status;
+            html += `<label class="profile-check ${cls}">
+                <input type="checkbox" value="${p.id}" data-pipeline="${p.pipeline}" ${isMissing ? 'checked' : ''}>
+                <div class="profile-info">
+                    <div class="profile-name">${p.icon || ''} ${p.name}</div>
+                    <div class="profile-desc">${p.description} — pipeline: ${p.pipeline}</div>
+                </div>
+                <span class="profile-status ${statusCls}">${statusLabel}</span>
+            </label>`;
+        });
+        el.innerHTML = html;
+        document.getElementById('batchCreateBtn').disabled = false;
+    } catch(e) {
+        el.innerHTML = `<div style="color:#e53e3e;">Erreur: ${e}</div>`;
+    }
+}
+
+async function runBatchCreate() {
+    const checks = document.querySelectorAll('#batchProfilesList input[type="checkbox"]:checked');
+    const profiles = Array.from(checks).map(c => ({id: c.value, pipeline: c.dataset.pipeline}));
+    if (!profiles.length) { alert('Selectionnez au moins un profil'); return; }
+
+    const btn = document.getElementById('batchCreateBtn');
+    const progress = document.getElementById('batchProgress');
+    btn.disabled = true;
+    progress.style.display = 'block';
+    progress.style.color = '#4299e1';
+
+    const source = document.getElementById('sourceSelect').value;
+    const assignee = document.getElementById('assigneeSelect').value || null;
+    let created = 0, errors = 0;
+
+    for (const p of profiles) {
+        progress.textContent = `Creation ${p.id} (${created+1}/${profiles.length})...`;
+        try {
+            const r = await fetch(`${API}/api/annotation/task`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    source_name: source,
+                    acquisition_id: batchAcqId,
+                    bone_type: batchBoneType,
+                    pipeline_preset: p.pipeline,
+                    profile_id: p.id,
+                    objective: p.id,
+                    assignee: assignee,
+                }),
+            });
+            if (r.ok) { created++; } else { errors++; }
+        } catch(e) { errors++; }
+    }
+
+    progress.textContent = `${created} profil(s) cree(s)${errors ? `, ${errors} erreur(s)` : ''}`;
+    progress.style.color = errors ? '#e53e3e' : '#48bb78';
+    btn.textContent = 'Termine !';
+    setTimeout(() => { closeBatchModal(); toggleForm(); loadTasks(); loadAcquisitions(); }, 2000);
 }
 
 async function loadTasks() {

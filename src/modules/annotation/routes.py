@@ -118,6 +118,91 @@ async def check_cvat_exists(task_id: int) -> dict[str, Any]:
     return {"task_id": task_id, "cvat_exists": exists}
 
 
+@router.get("/profiles/schema")
+async def get_profiles_schema() -> dict[str, Any]:
+    """Return annotation profiles from YAML config."""
+    from pathlib import Path
+
+    import yaml
+
+    config_path = Path(__file__).parent.parent.parent.parent / "config" / "annotation-profiles.yaml"
+    try:
+        with open(config_path) as f:
+            data = yaml.safe_load(f)
+        return {"profiles": data.get("profiles", [])}
+    except Exception as e:
+        logger.error("Failed to load profiles: %s", e)
+        return {"profiles": []}
+
+
+@router.get("/acquisition/{acquisition_id}/profiles")
+async def get_acquisition_profiles(
+    acquisition_id: str,
+    bone_type: str = Query(..., description="Bone type"),
+) -> dict[str, Any]:
+    """Get profile status for an acquisition — which exist, which are missing."""
+    from pathlib import Path
+
+    import yaml
+
+    service = get_service()
+
+    # Load schema
+    config_path = Path(__file__).parent.parent.parent.parent / "config" / "annotation-profiles.yaml"
+    try:
+        with open(config_path) as f:
+            schema_profiles = yaml.safe_load(f).get("profiles", [])
+    except Exception:
+        schema_profiles = []
+
+    # Get existing profiles from DB
+    existing = service.task_db.get_acquisition_profiles(acquisition_id, bone_type)
+    existing_map = {p["profile_id"]: p for p in existing}
+
+    # Check CVAT existence for each
+    profiles = []
+    for sp in schema_profiles:
+        pid = sp["id"]
+        ex = existing_map.get(pid)
+        status = "missing"
+        cvat_exists = None
+        if ex:
+            status = ex["status"]
+            if ex.get("cvat_task_id"):
+                try:
+                    await service.cvat.authenticate()
+                    cvat_exists = await service.cvat.task_exists(ex["cvat_task_id"])
+                    if not cvat_exists:
+                        status = "cvat_missing"
+                except Exception:
+                    pass
+        profiles.append(
+            {
+                **sp,
+                "status": status,
+                "task_id": ex["task_id"] if ex else None,
+                "cvat_task_id": ex["cvat_task_id"] if ex else None,
+                "cvat_exists": cvat_exists,
+            }
+        )
+
+    return {
+        "acquisition_id": acquisition_id,
+        "bone_type": bone_type,
+        "profiles": profiles,
+        "total": len(schema_profiles),
+        "created": sum(1 for p in profiles if p["status"] not in ("missing", "cvat_missing")),
+    }
+
+
+@router.get("/acquisition-profile-counts")
+async def get_acquisition_profile_counts() -> dict[str, Any]:
+    """Get profile count per acquisition for dropdown display."""
+    service = get_service()
+    counts = service.task_db.get_acquisition_profile_counts()
+    return {"counts": counts}
+
+
 @router.get("/tasks")
 async def list_annotation_tasks(
     limit: int = Query(50, ge=1, le=500),

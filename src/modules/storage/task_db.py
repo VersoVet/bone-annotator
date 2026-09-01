@@ -272,6 +272,60 @@ class AnnotationTaskDB:
             "profile_id": row[5] if len(row) > 5 else None,
         }
 
+    def get_acquisition_profiles(self, acquisition_id: str, bone_type: str) -> list[dict[str, Any]]:
+        """Get all profile tasks for an acquisition (active + terminal).
+
+        Args:
+            acquisition_id: Acquisition identifier.
+            bone_type: Bone type.
+
+        Returns:
+            List of task dicts with profile info.
+        """
+        conn = self._get_conn()
+        rows = conn.execute(
+            f"""SELECT id, profile_id, status, cvat_task_id, pipeline_preset, objective
+                FROM {SCHEMA}.annotation_tasks
+                WHERE acquisition_id=%s AND bone_type=%s AND profile_id IS NOT NULL
+                ORDER BY profile_id, id DESC""",
+            (acquisition_id, bone_type),
+        ).fetchall()
+        seen: set[str] = set()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            pid = row[1]
+            if pid in seen:
+                continue
+            seen.add(pid)
+            result.append(
+                {
+                    "task_id": row[0],
+                    "profile_id": pid,
+                    "status": row[2],
+                    "cvat_task_id": row[3],
+                    "pipeline_preset": row[4],
+                    "objective": row[5],
+                }
+            )
+        return result
+
+    def get_acquisition_profile_counts(self) -> dict[str, int]:
+        """Get profile count per acquisition (for dropdown display).
+
+        Returns:
+            Dict of acquisition_id -> count of active profile tasks.
+        """
+        conn = self._get_conn()
+        placeholders = ", ".join(["%s"] * len(ACTIVE_TASK_STATUSES))
+        rows = conn.execute(
+            f"""SELECT acquisition_id, COUNT(DISTINCT profile_id)
+                FROM {SCHEMA}.annotation_tasks
+                WHERE profile_id IS NOT NULL AND status IN ({placeholders})
+                GROUP BY acquisition_id""",
+            ACTIVE_TASK_STATUSES,
+        ).fetchall()
+        return {row[0]: row[1] for row in rows}
+
     def validate_task(self, task_id: int, validated_by: str, decision: str) -> None:
         """Validate or reject a task and its annotations.
 

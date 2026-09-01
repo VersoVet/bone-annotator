@@ -1,0 +1,27 @@
+# Annotation profiles — defines the datasets to create per acquisition
+# Each profile produces a separate CVAT task with its own imaging pipeline and labels
+
+profiles:
+  - id: morphologie
+    name: "Morphologie osseuse"
+    objective: segmentation
+    pipeline: morphologie_contour
+    description: "Segmentation globale diaphyse/epiphyse — fort contraste os/fond"
+    icon: "🦴"
+    order: 1
+
+  - id: detail_osseux
+    name: "Detail osseux"
+    objective: measurement
+    pipeline: detail_osseux
+    description: "Structure interne — cortex, trabecule, canal medullaire (auto bone mask)"
+    icon: "🔬"
+    order: 2
+
+  - id: lesions
+    name: "Detection lesions"
+    objective: classification
+    pipeline: lesion_detection
+    description: "Fractures, osteolyse, reactions periostees"
+    icon: "⚠"
+    order: 3
