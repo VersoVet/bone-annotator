@@ -135,6 +135,25 @@ async def get_profiles_schema() -> dict[str, Any]:
         return {"profiles": []}
 
 
+@router.put("/profiles/schema")
+async def save_profiles_schema(profiles: list[dict[str, Any]]) -> dict[str, Any]:
+    """Save annotation profiles to YAML config."""
+    from pathlib import Path
+
+    import yaml
+
+    config_path = Path(__file__).parent.parent.parent.parent / "config" / "annotation-profiles.yaml"
+    try:
+        data = {"profiles": profiles}
+        with open(config_path, "w") as f:
+            yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+        logger.info("Profiles schema saved: %d profiles", len(profiles))
+        return {"status": "saved", "count": len(profiles)}
+    except Exception as e:
+        logger.error("Failed to save profiles: %s", e)
+        raise HTTPException(status_code=500, detail=f"Failed to save: {e}")
+
+
 @router.get("/acquisition/{acquisition_id}/profiles")
 async def get_acquisition_profiles(
     acquisition_id: str,

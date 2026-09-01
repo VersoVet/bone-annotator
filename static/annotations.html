@@ -153,6 +153,7 @@
         <div class="header-actions">
             <a class="icon-btn" href="/annotate/learning" title="Suivi apprentissage BoneSeg">📊</a>
             <a class="icon-btn" href="/annotate/settings" title="Paramètres imaging treatment">⚙</a>
+            <button class="icon-btn" onclick="openProfilesConfig()" title="Configurer les profils d'annotation">📋</button>
             <button class="btn btn-outline" onclick="loadTasks()">Rafraichir</button>
             <button class="btn btn-primary" onclick="toggleForm()">+ Nouvelle Tache</button>
         </div>
@@ -243,6 +244,22 @@
         <select id="filterProfile" onchange="loadTasks()">
             <option value="">Tous les profils</option>
         </select>
+    </div>
+
+    <!-- Profiles Config Modal -->
+    <div class="modal-overlay" id="profilesConfigModal">
+        <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto;">
+            <h3>Configuration des profils d'annotation</h3>
+            <div id="profilesConfigList"></div>
+            <div style="margin-top:12px;border-top:2px dashed #e2e8f0;padding-top:12px;">
+                <button class="btn btn-outline" onclick="addProfileRow()">+ Ajouter un profil</button>
+            </div>
+            <div class="modal-actions" style="margin-top:16px;">
+                <button class="btn btn-outline" onclick="closeProfilesConfig()">Annuler</button>
+                <button class="btn btn-primary" id="saveProfilesBtn" onclick="saveProfilesConfig()">Sauvegarder</button>
+            </div>
+            <div id="profilesConfigStatus" style="margin-top:8px;font-size:0.85em;"></div>
+        </div>
     </div>
 
     <!-- Batch Create Profiles Modal -->
@@ -771,6 +788,111 @@ async function loadPageConfig() {
         pollIntervalMs = cfg.dashboard?.poll_interval_ms || 5000;
         defaultTreatment = cfg.imaging?.default_treatment || defaultTreatment;
     } catch(e) { console.error('Config:', e); }
+}
+
+let availablePipelines = [];
+
+async function openProfilesConfig() {
+    document.getElementById('profilesConfigModal').classList.add('show');
+    document.getElementById('profilesConfigStatus').textContent = '';
+    const el = document.getElementById('profilesConfigList');
+    el.innerHTML = '<div style="color:#a0aec0;text-align:center;padding:20px;">Chargement...</div>';
+
+    // Load pipelines and profiles in parallel
+    try {
+        const [pipeR, profR] = await Promise.all([
+            fetch(`${API}/api/preparation/pipelines`),
+            fetch(`${API}/api/annotation/profiles/schema`),
+        ]);
+        const pipes = await pipeR.json();
+        availablePipelines = (pipes.pipelines || []).map(p => ({name: p.name, display: p.display_name || p.name}));
+
+        const profiles = (await profR.json()).profiles || [];
+        el.innerHTML = '';
+        profiles.forEach((p, i) => el.appendChild(createProfileRow(p, i)));
+        if (!profiles.length) el.innerHTML = '<div style="color:#a0aec0;text-align:center;padding:20px;">Aucun profil. Cliquez "+ Ajouter".</div>';
+    } catch(e) {
+        el.innerHTML = `<div style="color:#e53e3e;padding:10px;">Erreur: ${e}</div>`;
+    }
+}
+
+function closeProfilesConfig() {
+    document.getElementById('profilesConfigModal').classList.remove('show');
+}
+
+function createProfileRow(p, idx) {
+    const div = document.createElement('div');
+    div.className = 'profile-check';
+    div.dataset.idx = idx;
+    const pipeOptions = availablePipelines.map(pp =>
+        `<option value="${pp.name}" ${pp.name === p.pipeline ? 'selected' : ''}>${pp.display}</option>`
+    ).join('');
+    div.innerHTML = `
+        <div style="flex:1;">
+            <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;">
+                <input type="text" value="${p.id || ''}" placeholder="id" style="width:120px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85em;" data-field="id">
+                <input type="text" value="${p.name || ''}" placeholder="Nom" style="flex:1;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85em;" data-field="name">
+                <input type="text" value="${p.icon || ''}" placeholder="Icone" style="width:50px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85em;text-align:center;" data-field="icon">
+                <button class="btn btn-sm btn-danger" onclick="this.closest('.profile-check').remove()" title="Supprimer">x</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:4px;align-items:center;">
+                <select data-field="objective" style="padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85em;">
+                    <option value="segmentation" ${p.objective==='segmentation'?'selected':''}>segmentation</option>
+                    <option value="measurement" ${p.objective==='measurement'?'selected':''}>measurement</option>
+                    <option value="classification" ${p.objective==='classification'?'selected':''}>classification</option>
+                </select>
+                <select data-field="pipeline" style="flex:1;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85em;">${pipeOptions}</select>
+                <input type="number" value="${p.order || 0}" placeholder="Ordre" style="width:60px;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85em;" data-field="order">
+            </div>
+            <input type="text" value="${p.description || ''}" placeholder="Description" style="width:100%;padding:4px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:0.85em;" data-field="description">
+        </div>`;
+    return div;
+}
+
+function addProfileRow() {
+    const el = document.getElementById('profilesConfigList');
+    const empty = el.querySelector('.empty-state, div[style*="color:#a0aec0"]');
+    if (empty) empty.remove();
+    const idx = el.children.length;
+    el.appendChild(createProfileRow({id:'', name:'', objective:'segmentation', pipeline:'', description:'', icon:'', order: idx+1}, idx));
+}
+
+async function saveProfilesConfig() {
+    const rows = document.querySelectorAll('#profilesConfigList .profile-check');
+    const profiles = [];
+    for (const row of rows) {
+        const p = {};
+        row.querySelectorAll('[data-field]').forEach(el => {
+            const field = el.dataset.field;
+            const val = el.tagName === 'SELECT' ? el.value : el.value.trim();
+            if (field === 'order') p[field] = parseInt(val) || 0;
+            else p[field] = val;
+        });
+        if (!p.id) continue;
+        profiles.push(p);
+    }
+    const status = document.getElementById('profilesConfigStatus');
+    status.textContent = 'Sauvegarde...';
+    status.style.color = '#4299e1';
+    try {
+        const r = await fetch(`${API}/api/annotation/profiles/schema`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(profiles),
+        });
+        const d = await r.json();
+        if (r.ok) {
+            status.textContent = `${d.count} profils sauvegardes`;
+            status.style.color = '#48bb78';
+            setTimeout(closeProfilesConfig, 1500);
+        } else {
+            status.textContent = `Erreur: ${d.detail || 'Inconnu'}`;
+            status.style.color = '#e53e3e';
+        }
+    } catch(e) {
+        status.textContent = `Erreur: ${e}`;
+        status.style.color = '#e53e3e';
+    }
 }
 
 function updateProfileFilter(tasks) {
