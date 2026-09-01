@@ -385,11 +385,11 @@ Schema: `bone_annotations`
 | imaging.service | ✅ | - | - | medium |
 | annotation.service | ⚠️ | - | - | complex |
 
-### API Endpoints Implemented: 57+
+### API Endpoints Implemented: 75+
 - Health/Status: 4 endpoints
 - Ingestion: 4 endpoints
 - BoneStore: 3 endpoints
-- Annotation: 5 endpoints
+- Annotation: 15 endpoints (CRUD + profiles + batch + MedSAM2 + CVAT sync)
 - Prediction: 3 endpoints
 - Dataset/Training: 7 endpoints
 - Embeddings: 4 endpoints
@@ -398,15 +398,16 @@ Schema: `bone_annotations`
 - Analysis/Post-Processing: 5 endpoints
 - CVAT/Workflow: 8 endpoints
 - Imaging: 7 endpoints
+- Admin: 5 endpoints (reset, tracking, cancel, retry, settings)
 
 Tests: 85 passing (unit + module)
 Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-08-30
-**Phase**: Intégration BoneSeg (active learning, quality tiers, test set)
-**Version**: v0.1.61
-**Status**: Dashboard admin, imaging treatment config, tracking BoneSeg
-**Coverage**: All modules have REST API routes (67+ endpoints)
-**Test Coverage**: 90+ passing
+**Dernière mise à jour**: 2026-09-01
+**Phase**: Multi-objective annotation pipeline (profiles, Glia preprocessing, MedSAM2)
+**Version**: v0.1.83
+**Status**: Batch profile creation, dashboard enrichi, auto_bone_mask, preprocessing distribué (Glia)
+**Coverage**: All modules have REST API routes (75+ endpoints)
+**Test Coverage**: 22+ annotation, 6 preparation, 8 integration

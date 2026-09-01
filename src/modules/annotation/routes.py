@@ -118,40 +118,61 @@ async def check_cvat_exists(task_id: int) -> dict[str, Any]:
     return {"task_id": task_id, "cvat_exists": exists}
 
 
-@router.get("/profiles/schema")
-async def get_profiles_schema() -> dict[str, Any]:
-    """Return annotation profiles from YAML config."""
+def _profiles_config_path() -> Any:
+    """Return path to the active annotation-profiles YAML."""
     from pathlib import Path
 
+    from src.config import _CFG
+
+    config_dir = Path(__file__).parent.parent.parent.parent / "config"
+    filename = _CFG.get("annotation", {}).get("profile_schema", "annotation-profiles.yaml")
+    return config_dir / filename
+
+
+@router.get("/profiles/schema")
+async def get_profiles_schema() -> dict[str, Any]:
+    """Return annotation profiles from active YAML config."""
     import yaml
 
-    config_path = Path(__file__).parent.parent.parent.parent / "config" / "annotation-profiles.yaml"
+    config_path = _profiles_config_path()
     try:
         with open(config_path) as f:
             data = yaml.safe_load(f)
-        return {"profiles": data.get("profiles", [])}
+        return {"profiles": data.get("profiles", []), "schema_file": config_path.name}
     except Exception as e:
         logger.error("Failed to load profiles: %s", e)
-        return {"profiles": []}
+        return {"profiles": [], "schema_file": config_path.name}
 
 
 @router.put("/profiles/schema")
 async def save_profiles_schema(profiles: list[dict[str, Any]]) -> dict[str, Any]:
-    """Save annotation profiles to YAML config."""
-    from pathlib import Path
-
+    """Save annotation profiles to active YAML config."""
     import yaml
 
-    config_path = Path(__file__).parent.parent.parent.parent / "config" / "annotation-profiles.yaml"
+    config_path = _profiles_config_path()
     try:
         data = {"profiles": profiles}
         with open(config_path, "w") as f:
             yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-        logger.info("Profiles schema saved: %d profiles", len(profiles))
-        return {"status": "saved", "count": len(profiles)}
+        logger.info("Profiles schema saved: %d profiles to %s", len(profiles), config_path.name)
+        return {"status": "saved", "count": len(profiles), "schema_file": config_path.name}
     except Exception as e:
         logger.error("Failed to save profiles: %s", e)
         raise HTTPException(status_code=500, detail=f"Failed to save: {e}")
+
+
+@router.get("/profiles/schemas")
+async def list_profile_schemas() -> dict[str, Any]:
+    """List available profile schema files in config/."""
+    from pathlib import Path
+
+    config_dir = Path(__file__).parent.parent.parent.parent / "config"
+    files = sorted(config_dir.glob("*-profiles*.yaml")) + sorted(config_dir.glob("profiles-*.yaml"))
+    active = _profiles_config_path().name
+    return {
+        "schemas": [{"name": f.name, "active": f.name == active} for f in files],
+        "active": active,
+    }
 
 
 @router.get("/acquisition/{acquisition_id}/profiles")
@@ -160,14 +181,13 @@ async def get_acquisition_profiles(
     bone_type: str = Query(..., description="Bone type"),
 ) -> dict[str, Any]:
     """Get profile status for an acquisition — which exist, which are missing."""
-    from pathlib import Path
 
     import yaml
 
     service = get_service()
 
     # Load schema
-    config_path = Path(__file__).parent.parent.parent.parent / "config" / "annotation-profiles.yaml"
+    config_path = _profiles_config_path()
     try:
         with open(config_path) as f:
             schema_profiles = yaml.safe_load(f).get("profiles", [])

@@ -74,6 +74,11 @@ preprocessing:
   timeout_seconds: 600         # Timeout max par acquisition
   shared_output_root: /mnt/cortex-bone-share/datasets  # NFS partagé Synapse+Glia
 
+# Annotation profiles — schema de creation des jeux de donnees
+annotation:
+  profile_schema: annotation-profiles.yaml   # Fichier YAML actif (dans config/)
+  # Schemas disponibles: annotation-profiles.yaml, profiles-os-nus.yaml, profiles-radio.yaml, ...
+
 # Dashboard — valeurs par défaut UI
 dashboard:
   title: "Gestion des Annotations"
