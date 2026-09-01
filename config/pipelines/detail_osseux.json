@@ -1,62 +1,15 @@
 {
   "name": "Detail osseux",
-  "version": "1.0",
+  "version": "2.0",
   "context": "detail_osseux",
-  "description": "Contraste intra-osseux fin pour annotation cortex, trabecule, canal medullaire",
-  "description_long": "Pipeline haute resolution pour structures osseuses internes. CLAHE adaptatif revele le trabecule, bilateral denoise reduit le bruit sans perdre les bords, unsharp masking renforce les contours. Optimise pour les crops d'os isolés (post-segmentation morphologie).",
+  "description": "Detourage auto + contraste intra-osseux fin pour annotation cortex, trabecule, canal medullaire",
   "category": "bone",
-  "target_pathologies": ["bone_detail", "cortical_thickness", "trabecular_pattern"],
-  "anatomy_compatible": ["FEMUR", "HUMERUS", "RADIUS", "ULNA", "TIBIA", "FIBULA", "PELVIS", "SPINE"],
-  "species": ["DOG", "CAT", "HORSE", "EXOTIC"],
-  "clinical_note": "A utiliser sur des ROI croppees depuis la segmentation morphologie. Le CLAHE et l'unsharp ne sont efficaces que sur l'os isole.",
-  "gpu_cost": "low",
-  "realtime_compatible": true,
-  "execution": {
-    "use_gpu": false
-  },
+  "execution": {"use_gpu": false},
   "filters": [
-    {
-      "name": "mask_crop",
-      "enabled": true,
-      "params": {
-        "padding_percent": 10,
-        "background": "black",
-        "min_size": 64
-      }
-    },
-    {
-      "name": "window_level",
-      "enabled": true,
-      "params": {
-        "window": 2000.0,
-        "level": 1200.0,
-        "apply_to_pixels": true
-      }
-    },
-    {
-      "name": "bilateral_denoise",
-      "enabled": true,
-      "params": {
-        "diameter": 5,
-        "sigma_color": 40,
-        "sigma_space": 40
-      }
-    },
-    {
-      "name": "clahe",
-      "enabled": true,
-      "params": {
-        "clip_limit": 3.0,
-        "grid_size": 8
-      }
-    },
-    {
-      "name": "unsharp",
-      "enabled": true,
-      "params": {
-        "strength": 0.8,
-        "radius": 2
-      }
-    }
+    {"name": "auto_bone_mask", "enabled": true, "params": {"method": "otsu", "kernel_size": 15, "padding_percent": 15, "background": "white", "invert": true, "min_area_ratio": 0.05, "mask_dilate": 30}},
+    {"name": "window_level", "enabled": true, "params": {"window": 3200.0, "level": 1500.0, "apply_to_pixels": true}},
+    {"name": "bilateral_denoise", "enabled": true, "params": {"diameter": 5, "sigma_color": 40, "sigma_space": 40}},
+    {"name": "clahe", "enabled": true, "params": {"clip_limit": 3.5, "grid_size": 8}},
+    {"name": "unsharp", "enabled": true, "params": {"strength": 1.2, "radius": 2}}
   ]
 }
