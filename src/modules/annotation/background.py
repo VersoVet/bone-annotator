@@ -121,7 +121,8 @@ async def prepare_and_upload(
 
         profile_suffix = f"_{request.profile_id}" if request.profile_id else ""
         task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}{profile_suffix}"
-        cvat_task = await cvat.create_task(task_name, project_id=project_id)
+        subset = request.objective or request.profile_id or None
+        cvat_task = await cvat.create_task(task_name, project_id=project_id, subset=subset)
         if not cvat_task:
             task_db.update_task(task_id, status="failed", notes="CVAT task creation failed")
             await cvat.close()

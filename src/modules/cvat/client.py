@@ -81,7 +81,13 @@ class CVATClient:
             logger.error("Error fetching task %d: %s", task_id, e)
             return None
 
-    async def create_task(self, name: str, project_id: int | None = None) -> dict[str, Any] | None:
+    async def create_task(
+        self,
+        name: str,
+        project_id: int | None = None,
+        subset: str | None = None,
+        description: str | None = None,
+    ) -> dict[str, Any] | None:
         """Create a new CVAT task, optionally in a project."""
         try:
             if self.client is None:
@@ -89,6 +95,8 @@ class CVATClient:
             payload: dict[str, Any] = {"name": name}
             if project_id:
                 payload["project_id"] = project_id
+            if subset:
+                payload["subset"] = subset
 
             response = await self.client.post(
                 f"{self.api_base}/tasks",
