@@ -196,3 +196,4 @@ est simplement servi via une API réseau — exactement ce que fait bone-ml.
 
 **Dernière mise à jour**: 2026-08-17
 **État**: v0.1.34 — Workflow annotation complet, active learning, CVAT opérationnel
+ 
