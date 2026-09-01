@@ -419,7 +419,7 @@ async function loadBatchProfiles(acqId, boneType) {
             const statusCls = 'profile-status-' + p.status;
             const statusLabel = p.status === 'missing' ? 'A creer' : p.status === 'cvat_missing' ? 'CVAT supprime' : p.status;
             html += `<label class="profile-check ${cls}">
-                <input type="checkbox" value="${p.id}" data-pipeline="${p.pipeline}" ${isMissing ? 'checked' : ''}>
+                <input type="checkbox" value="${p.id}" data-pipeline="${p.pipeline}" data-objective="${p.objective}" ${isMissing ? 'checked' : ''}>
                 <div class="profile-info">
                     <div class="profile-name">${p.icon || ''} ${p.name}</div>
                     <div class="profile-desc">${p.description} — pipeline: ${p.pipeline}</div>
@@ -436,7 +436,7 @@ async function loadBatchProfiles(acqId, boneType) {
 
 async function runBatchCreate() {
     const checks = document.querySelectorAll('#batchProfilesList input[type="checkbox"]:checked');
-    const profiles = Array.from(checks).map(c => ({id: c.value, pipeline: c.dataset.pipeline}));
+    const profiles = Array.from(checks).map(c => ({id: c.value, pipeline: c.dataset.pipeline, objective: c.dataset.objective}));
     if (!profiles.length) { alert('Selectionnez au moins un profil'); return; }
 
     const btn = document.getElementById('batchCreateBtn');
@@ -463,7 +463,7 @@ async function runBatchCreate() {
                     bone_type: batchBoneType,
                     pipeline_preset: p.pipeline,
                     profile_id: p.id,
-                    objective: p.id,
+                    objective: p.objective || p.id,
                     assignee: assignee,
                 }),
             });
