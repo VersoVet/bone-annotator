@@ -119,7 +119,8 @@ async def prepare_and_upload(
             await cvat.sync_project_labels(project_id, cvat_labels)
             task_db.save_project_mapping(request.bone_type, project_id)
 
-        task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}"
+        profile_suffix = f"_{request.profile_id}" if request.profile_id else ""
+        task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}{profile_suffix}"
         cvat_task = await cvat.create_task(task_name, project_id=project_id)
         if not cvat_task:
             task_db.update_task(task_id, status="failed", notes="CVAT task creation failed")
