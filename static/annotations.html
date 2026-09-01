@@ -449,8 +449,10 @@ async function runBatchCreate() {
     const assignee = document.getElementById('assigneeSelect').value || null;
     let created = 0, errors = 0;
 
-    for (const p of profiles) {
-        progress.textContent = `Creation ${p.id} (${created+1}/${profiles.length})...`;
+    for (let i = 0; i < profiles.length; i++) {
+        const p = profiles[i];
+        progress.textContent = `[${i+1}/${profiles.length}] ${p.id} — creation...`;
+
         try {
             const r = await fetch(`${API}/api/annotation/task`, {
                 method: 'POST',
@@ -465,7 +467,26 @@ async function runBatchCreate() {
                     assignee: assignee,
                 }),
             });
-            if (r.ok) { created++; } else { errors++; }
+            if (!r.ok) { errors++; continue; }
+            const d = await r.json();
+            const taskId = d.task?.id;
+            if (!taskId) { errors++; continue; }
+
+            // Poll until this task is created or failed before starting the next
+            let attempts = 0;
+            while (attempts < 120) {
+                await new Promise(res => setTimeout(res, 5000));
+                attempts++;
+                try {
+                    const sr = await fetch(`${API}/api/annotation/task/${taskId}`);
+                    const sd = await sr.json();
+                    const st = sd.task?.status;
+                    const pp = sd.task?.progress || {};
+                    progress.textContent = `[${i+1}/${profiles.length}] ${p.id} — ${st} [${pp.percent||0}%] ${(pp.detail||'').substring(0,40)}`;
+                    if (st === 'created' || st === 'annotating') { created++; break; }
+                    if (st === 'failed') { errors++; break; }
+                } catch(e) { /* retry */ }
+            }
         } catch(e) { errors++; }
     }
 
