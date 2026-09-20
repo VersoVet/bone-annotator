@@ -1,6 +1,6 @@
 # Bibliographie
 
-*387 article(s) — généré le 2026-09-17 12:50 UTC*
+*388 article(s) — généré le 2026-09-19 15:48 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|
@@ -16,6 +16,7 @@
 | [Article](fiches/2KSF733K.md) | `2KSF733K` | 11b |
 | [Toward automatic C-arm positioning for standard projections ](fiches/2KW9VHPC.md) | `2KW9VHPC` | 2k |
 | [Marker-Less Lung Tumor Tracking from Real-Time Color X-Ray F](fiches/2MHV765Z.md) | `2MHV765Z` | 8k |
+| [Methods and frameworks of annotation cost optimization for d](fiches/2MJE3NC8.md) | `2MJE3NC8` | 29k |
 | [A Comprehensive Survey on Segment Anything Model for Vision ](fiches/2PAV7PUR.md) | `2PAV7PUR` | 4k |
 | [A novel approach for automatic annotation of human actions i](fiches/2PKV8PPP.md) | `2PKV8PPP` | 11k |
 | [Article](fiches/2S64KRC5.md) | `2S64KRC5` | 11b |

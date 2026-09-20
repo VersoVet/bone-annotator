@@ -92,7 +92,7 @@ bone-annotator/
   },
   "heart": {
     "deployment": {
-      "target_host": "OnyxSynapse"
+      "target_host": "onyxsynapse"
     }
   }
 }
@@ -539,7 +539,7 @@ Voir `cron.json.example` pour un template complet avec tous les champs.
 | **Type** | python |
 | **Port** | 9468 |
 | **Brain Area** | cortex-visuel |
-| **Target** | OnyxSynapse |
+| **Target** | onyxsynapse |
 
 ---
 
