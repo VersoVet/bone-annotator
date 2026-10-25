@@ -6,9 +6,9 @@ import pytest
 class TestEmbeddingsModule:
     """Tests for embeddings module."""
 
-    def test_import_qdrant_store(self) -> None:
-        """Test qdrant_store module import."""
-        from ..qdrant_store import BoneAtlasStore
+    def test_import_pg_store(self) -> None:
+        """Test pg_store module import."""
+        from ..pg_store import BoneAtlasStore
 
         assert BoneAtlasStore is not None
 
@@ -29,8 +29,8 @@ class TestEmbeddingsModule:
 
     def test_bone_atlas_store(self) -> None:
         """Test BoneAtlasStore initialization."""
-        from ..qdrant_store import BoneAtlasStore
+        from ..pg_store import BoneAtlasStore
 
         store = BoneAtlasStore()
         assert store.collection == "bone_atlas"
-        assert store.vector_size == 512
+        assert store.vector_size == 1024

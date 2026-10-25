@@ -1,29 +1,33 @@
 # Configuration centralisée bone-annotator
 # Tous les endpoints, credentials et paramètres en un seul fichier
 
-# PostgreSQL — annotations, tâches, training runs
+# PostgreSQL — annotations, tâches, training runs (OnyxPlex)
 postgres:
-  host: 10.0.0.59
+  host: 10.0.0.8
   port: 5432
-  user: bone
-  password: yhoc2MKfKe6CHQe2oLoW
+  user: onyx
+  password: ""
   dbname: bone_recognition
   schema: bone_annotations
+  vault_key: onyxplex_password
 
-# Qdrant — embeddings vectoriels
-qdrant:
-  host: 10.0.0.59
-  port: 6333
-  collections:
-    - bone_atlas
-    - bone_annotations
+# pgvector — embeddings vectoriels (OnyxPlex onyx_vectors)
+pgvector:
+  host: 10.0.0.8
+  port: 5432
+  database: onyx_vectors
+  user: onyx
+  vault_key: onyxplex_password
+  collection: bone_atlas
+  vector_size: 1024
 
 # CVAT — annotation collaborative
 cvat:
   host: 10.0.0.59
   port: 8080
   username: admin
-  password: cvat_admin_2026
+  password: ""
+  # password chargé depuis Vault: cvat_admin_password
 
 # ml-compute — Ray cluster, training GPU
 ml_compute:
@@ -65,14 +69,14 @@ imaging:
   default_pre_annotate: false
   default_active_learning_pipeline: os_nu_medsam_user
 
-# Preprocessing — machine dédiée au traitement batch
+# Preprocessing — traitement batch local sur Synapse
 preprocessing:
-  mode: remote                # "local" ou "remote" (Glia)
-  remote_host: 10.0.0.8       # OnyxGlia (configurable)
-  remote_port: 9480            # Port du service bone-preprocessor
-  n_workers: 12                # Workers parallèles (12 sur 24 cores Glia)
-  timeout_seconds: 600         # Timeout max par acquisition
-  shared_output_root: /mnt/cortex-bone-share/datasets  # NFS partagé Synapse+Glia
+  mode: local                  # "local" (Synapse) — OnyxPlex = PG only
+  remote_host: 10.0.0.59      # OnyxSynapse (fallback si mode=remote)
+  remote_port: 9480
+  n_workers: 12
+  timeout_seconds: 600
+  shared_output_root: /mnt/cortex-bone-share/datasets
 
 # Annotation profiles — schema de creation des jeux de donnees
 annotation:

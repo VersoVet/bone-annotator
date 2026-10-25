@@ -17,13 +17,13 @@ router = APIRouter()
 # This will be injected by the app initialization
 _app_state: Any = None
 
-# Preprocessing status cache (avoid spamming Glia on every poll)
+# Preprocessing status cache (avoid spamming preprocessor on every poll)
 _preproc_cache: dict[str, Any] = {"data": None, "ts": 0.0}
 _PREPROC_CACHE_TTL = 15.0  # seconds
 
 
 async def _get_preprocessing_status() -> dict[str, Any]:
-    """Probe Glia preprocessor health with short cache."""
+    """Probe preprocessor health with short cache."""
     import time
 
     now = time.monotonic()
@@ -86,18 +86,18 @@ async def health() -> dict:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")
 
     # Toutes les dépendances manquantes → unhealthy
-    if not (_app_state.postgres_ready or _app_state.qdrant_ready or _app_state.bonestore_ready):
+    if not (_app_state.postgres_ready or _app_state.pgvector_ready or _app_state.bonestore_ready):
         raise HTTPException(status_code=503, detail="no_dependencies_ready")
 
     status = "healthy"
 
     # Au moins une dépendance critique manquante → degraded
-    if not (_app_state.postgres_ready and _app_state.qdrant_ready):
+    if not (_app_state.postgres_ready and _app_state.pgvector_ready):
         status = "degraded"
 
     from . import __version__
 
-    # Probe Glia preprocessor (non-blocking, cached)
+    # Probe preprocessor (non-blocking, cached)
     preprocessing = await _get_preprocessing_status()
 
     return {
@@ -106,7 +106,7 @@ async def health() -> dict:
         "dependencies": {
             "bonestore": _app_state.bonestore_ready,
             "postgres": _app_state.postgres_ready,
-            "qdrant": _app_state.qdrant_ready,
+            "pgvector": _app_state.pgvector_ready,
             "cvat": _app_state.cvat_ready,
             "redis": _app_state.redis_ready,
         },
@@ -128,7 +128,7 @@ async def ready() -> dict:
         [
             _app_state.bonestore_ready,
             _app_state.postgres_ready,
-            _app_state.qdrant_ready,
+            _app_state.pgvector_ready,
         ]
     )
     status = "ready" if all_ready else "not_ready"
@@ -154,7 +154,7 @@ async def status() -> dict:
         "dependencies": {
             "bonestore": "✓" if _app_state.bonestore_ready else "✗",
             "postgres": "✓" if _app_state.postgres_ready else "✗",
-            "qdrant": "✓" if _app_state.qdrant_ready else "✗",
+            "pgvector": "✓" if _app_state.pgvector_ready else "✗",
             "cvat": "✓" if _app_state.cvat_ready else "✗",
             "redis": "✓" if _app_state.redis_ready else "✗",
         },
@@ -236,8 +236,8 @@ async def config_endpoint() -> dict:
         get_dashboard_config,
         get_imaging_config,
         get_ml_compute_config,
+        get_pgvector_config,
         get_postgres_config,
-        get_qdrant_config,
         get_redis_config,
     )
 
@@ -248,7 +248,7 @@ async def config_endpoint() -> dict:
         "version": __version__,
         "bonestore": {"root": BONESTORE_ROOT},
         "postgres": get_postgres_config(),
-        "qdrant": get_qdrant_config(),
+        "pgvector": get_pgvector_config(),
         "cvat": {**get_cvat_config(), "password": "***"},
         "ml_compute": get_ml_compute_config(),
         "redis": get_redis_config(),
@@ -270,7 +270,7 @@ async def dependencies_endpoint() -> dict:
     from src.config import check_all_dependencies
 
     deps_status = await check_all_dependencies()
-    critical = ["postgres", "qdrant"]
+    critical = ["postgres", "pgvector"]
     critical_ready = all(deps_status.get(dep) for dep in critical)
 
     return {
@@ -279,7 +279,7 @@ async def dependencies_endpoint() -> dict:
         "dependencies": {
             "bonestore": {"ready": _app_state.bonestore_ready, "critical": False},
             "postgres": {"ready": _app_state.postgres_ready, "critical": True},
-            "qdrant": {"ready": _app_state.qdrant_ready, "critical": True},
+            "pgvector": {"ready": _app_state.pgvector_ready, "critical": True},
             "cvat": {"ready": _app_state.cvat_ready, "critical": False},
             "redis": {"ready": _app_state.redis_ready, "critical": False},
         },

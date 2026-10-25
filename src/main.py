@@ -30,7 +30,7 @@ class AppState:
 
     bonestore_ready: bool = False
     postgres_ready: bool = False
-    qdrant_ready: bool = False
+    pgvector_ready: bool = False
     cvat_ready: bool = False
     redis_ready: bool = False
     onyx_client: object | None = None
@@ -102,8 +102,8 @@ async def lifespan(app: FastAPI):
     from src.config import (
         check_bonestore,
         check_cvat,
+        check_pgvector,
         check_postgres,
-        check_qdrant,
         load_credentials_from_vault,
     )
 
@@ -125,9 +125,9 @@ async def lifespan(app: FastAPI):
         retries=3,
         base_delay=1.0,
     )
-    app_state.qdrant_ready = await wait_for_dependency(
-        "Qdrant",
-        check_qdrant,
+    app_state.pgvector_ready = await wait_for_dependency(
+        "pgvector",
+        check_pgvector,
         retries=3,
         base_delay=1.0,
     )

@@ -405,7 +405,7 @@ Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-09-01
+**Dernière mise à jour**: 2026-10-25
 **Phase**: Multi-objective annotation pipeline (profiles, Glia preprocessing, MedSAM2)
 **Version**: v0.1.83
 **Status**: Batch profile creation, dashboard enrichi, auto_bone_mask, preprocessing distribué (Glia)

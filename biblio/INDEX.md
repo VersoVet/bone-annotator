@@ -1,6 +1,6 @@
 # Bibliographie
 
-*388 article(s) — généré le 2026-09-19 15:48 UTC*
+*392 article(s) — généré le 2026-10-01 22:31 UTC*
 
 | Fichier | Clé Zotero | Taille |
 |---------|------------|--------|
@@ -77,6 +77,7 @@
 | [VIBESegmentator: full body MRI segmentation for the NAKO and](fiches/6DXG7IMM.md) | `6DXG7IMM` | 10k |
 | [Osteoporosis prediction from hand X-ray images using segment](fiches/6NFGRG8I.md) | `6NFGRG8I` | 10k |
 | [The VIA Annotation Software for Images, Audio and Video](fiches/6PAWFK6P.md) | `6PAWFK6P` | 5k |
+| [Semantic Annotation of Image Resources in Digital Humanities](fiches/6SB2FVUR.md) | `6SB2FVUR` | 33k |
 | [Article](fiches/6T493KJK.md) | `6T493KJK` | 11b |
 | [YOLO (YOU ONLY LOOK ONCE) Making Object detection work in Me](fiches/6W9STQXW.md) | `6W9STQXW` | 2k |
 | [The caBIG annotation and image Markup project.](fiches/6XP9PAMI.md) | `6XP9PAMI` | 5k |
@@ -150,6 +151,7 @@
 | [Veterinary fracture diagnosis: a deep learning model for dog](fiches/DXSD2BN9.md) | `DXSD2BN9` | 12k |
 | [Enhancing lung segmentation in chest X-rays via SAM with ana](fiches/DZQQWHUW.md) | `DZQQWHUW` | 11k |
 | [Article](fiches/E3ZWSU8Z.md) | `E3ZWSU8Z` | 11b |
+| [Automated anatomical landmark detection ondistal femur surfa](fiches/E4GIBXF8.md) | `E4GIBXF8` | 31k |
 | [Article](fiches/E4UFUZP5.md) | `E4UFUZP5` | 11b |
 | [Article](fiches/E8IS36IM.md) | `E8IS36IM` | 11b |
 | [Deep Learning-Based Automated Anatomical Landmark Detection ](fiches/E9KTS4V2.md) | `E9KTS4V2` | 10k |
@@ -348,6 +350,7 @@
 | [InstaDam: Open-Source Platform for Rapid Semantic Segmentati](fiches/UUEZN2QK.md) | `UUEZN2QK` | 3k |
 | [Fine-Tuned Segment Anything Model with Low-Rank Adaptation f](fiches/UXD5U7RT.md) | `UXD5U7RT` | 6k |
 | [Smart Osteology: An AI-Powered Two-Stage System for Multi-Sp](fiches/UXM3E8W5.md) | `UXM3E8W5` | 6k |
+| [Machine learning for aerial image labeling](fiches/V5ZWREJG.md) | `V5ZWREJG` | 23k |
 | [Transductive Kernel Map Learning and Its Application Image A](fiches/V666796G.md) | `V666796G` | 6k |
 | [Assessing the reproducibility of a subject-specific finite e](fiches/V698768Z.md) | `V698768Z` | 11k |
 | [Enhancing automatic landmark localization in X-ray images us](fiches/V8MTBGC5.md) | `V8MTBGC5` | 1k |
@@ -391,4 +394,5 @@
 | [Iterative Loop Method Combining Active and Semi-Supervised L](fiches/ZRSVUGB3.md) | `ZRSVUGB3` | 14k |
 | [Embracing Imperfect Datasets: A Review of Deep Learning Solu](fiches/ZRSWCZE4.md) | `ZRSWCZE4` | 19k |
 | [LVM-Med: Learning Large-Scale Self-Supervised Vision Models ](fiches/ZSISCZ9J.md) | `ZSISCZ9J` | 19k |
+| [Automatic annotation of cervical vertebrae in videofluorosco](fiches/ZTBE2WJA.md) | `ZTBE2WJA` | 23k |
 | [Article](fiches/ZWTIHKRV.md) | `ZWTIHKRV` | 11b |

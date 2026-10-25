@@ -42,16 +42,21 @@ def _get(section: str, key: str, env_var: str, default: Any = "") -> Any:
 
 BONESTORE_ROOT = _get("bonestore", "root", "BONESTORE_ROOT", "/mnt/bonestore")
 
-POSTGRES_HOST = _get("postgres", "host", "POSTGRES_HOST", "10.0.0.59")
+POSTGRES_HOST = _get("postgres", "host", "POSTGRES_HOST", "10.0.0.8")
 POSTGRES_PORT = int(_get("postgres", "port", "POSTGRES_PORT", 5432))
-POSTGRES_USER = _get("postgres", "user", "POSTGRES_USER", "bone")
+POSTGRES_USER = _get("postgres", "user", "POSTGRES_USER", "onyx")
 POSTGRES_DBNAME = _get("postgres", "dbname", "POSTGRES_DBNAME", "bone_recognition")
 POSTGRES_PASSWORD = _get("postgres", "password", "POSTGRES_PASSWORD", "")
 POSTGRES_SCHEMA = _get("postgres", "schema", "POSTGRES_SCHEMA", "bone_annotations")
+POSTGRES_VAULT_KEY = _get("postgres", "vault_key", "POSTGRES_VAULT_KEY", "onyxplex_password")
 
-QDRANT_HOST = _get("qdrant", "host", "QDRANT_HOST", "10.0.0.59")
-QDRANT_PORT = int(_get("qdrant", "port", "QDRANT_PORT", 6333))
-QDRANT_COLLECTIONS = _CFG.get("qdrant", {}).get("collections", ["bone_atlas", "bone_annotations"])
+PGVECTOR_HOST = _get("pgvector", "host", "PGVECTOR_HOST", "10.0.0.8")
+PGVECTOR_PORT = int(_get("pgvector", "port", "PGVECTOR_PORT", 5432))
+PGVECTOR_DATABASE = _get("pgvector", "database", "PGVECTOR_DATABASE", "onyx_vectors")
+PGVECTOR_USER = _get("pgvector", "user", "PGVECTOR_USER", "onyx")
+PGVECTOR_VAULT_KEY = _get("pgvector", "vault_key", "PGVECTOR_VAULT_KEY", "onyxplex_password")
+PGVECTOR_COLLECTION = _get("pgvector", "collection", "PGVECTOR_COLLECTION", "bone_atlas")
+PGVECTOR_VECTOR_SIZE = int(_get("pgvector", "vector_size", "PGVECTOR_VECTOR_SIZE", 1024))
 
 CVAT_HOST = _get("cvat", "host", "CVAT_HOST", "10.0.0.59")
 CVAT_PORT = int(_get("cvat", "port", "CVAT_PORT", 8080))
@@ -98,7 +103,7 @@ EMAIL_BASE_URL = _get("endpoints", "email", "EMAIL_BASE_URL", "http://10.0.0.44:
 # ===== PREPROCESSING (remote offload) =====
 
 PREPROC_MODE = _get("preprocessing", "mode", "PREPROC_MODE", "local")
-PREPROC_REMOTE_HOST = _get("preprocessing", "remote_host", "PREPROC_REMOTE_HOST", "10.0.0.8")
+PREPROC_REMOTE_HOST = _get("preprocessing", "remote_host", "PREPROC_REMOTE_HOST", "10.0.0.59")
 PREPROC_REMOTE_PORT = int(_get("preprocessing", "remote_port", "PREPROC_REMOTE_PORT", "9480"))
 PREPROC_N_WORKERS = int(_get("preprocessing", "n_workers", "PREPROC_N_WORKERS", "12"))
 PREPROC_TIMEOUT = int(_get("preprocessing", "timeout_seconds", "PREPROC_TIMEOUT", "600"))
@@ -157,17 +162,20 @@ async def check_postgres() -> bool:
         return False
 
 
-async def check_qdrant() -> bool:
-    """Vérifier la connexion à Qdrant."""
+async def check_pgvector() -> bool:
+    """Vérifier la connexion à pgvector (OnyxPlex onyx_vectors)."""
     try:
-        from qdrant_client import QdrantClient
+        import psycopg
 
-        client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT, timeout=5)
-        collections = [c.name for c in client.get_collections().collections]
-        logger.info("✓ Qdrant connected: %s:%d (%d collections)", QDRANT_HOST, QDRANT_PORT, len(collections))
+        conninfo = f"host={PGVECTOR_HOST} port={PGVECTOR_PORT} user={PGVECTOR_USER} dbname={PGVECTOR_DATABASE}"
+        if POSTGRES_PASSWORD:
+            conninfo += f" password={POSTGRES_PASSWORD}"
+        conn = psycopg.connect(conninfo, connect_timeout=5)
+        conn.close()
+        logger.info("✓ pgvector connected: %s:%d/%s", PGVECTOR_HOST, PGVECTOR_PORT, PGVECTOR_DATABASE)
         return True
     except Exception as e:
-        logger.error("Qdrant check failed: %s", e)
+        logger.error("pgvector check failed: %s", e)
         return False
 
 
@@ -254,9 +262,16 @@ def get_postgres_config() -> dict[str, Any]:
     }
 
 
-def get_qdrant_config() -> dict[str, Any]:
-    """Obtenir la configuration Qdrant complète."""
-    return {"host": QDRANT_HOST, "port": QDRANT_PORT, "collections": QDRANT_COLLECTIONS}
+def get_pgvector_config() -> dict[str, Any]:
+    """Obtenir la configuration pgvector complète."""
+    return {
+        "host": PGVECTOR_HOST,
+        "port": PGVECTOR_PORT,
+        "database": PGVECTOR_DATABASE,
+        "user": PGVECTOR_USER,
+        "collection": PGVECTOR_COLLECTION,
+        "vector_size": PGVECTOR_VECTOR_SIZE,
+    }
 
 
 def get_cvat_config() -> dict[str, Any]:
@@ -325,8 +340,13 @@ def get_dataset_pacs_config() -> dict[str, Any]:
 
 
 async def load_credentials_from_vault() -> None:
-    """Load credentials from Vault for services not configured in YAML."""
-    global CVAT_PASSWORD, DATASET_PACS_USER, DATASET_PACS_PASSWORD
+    """Load all credentials from Vault (PG, CVAT, PACS)."""
+    global POSTGRES_PASSWORD, CVAT_PASSWORD, DATASET_PACS_USER, DATASET_PACS_PASSWORD
+    if not POSTGRES_PASSWORD:
+        pg_pass = await load_vault_secret(POSTGRES_VAULT_KEY)
+        if pg_pass:
+            POSTGRES_PASSWORD = pg_pass
+            logger.info("PostgreSQL password loaded from Vault (key=%s)", POSTGRES_VAULT_KEY)
     if not CVAT_PASSWORD:
         cvat_pass = await load_vault_secret("cvat_admin_password")
         if cvat_pass:
@@ -349,7 +369,7 @@ async def check_all_dependencies() -> dict[str, bool]:
     return {
         "bonestore": await check_bonestore(),
         "postgres": await check_postgres(),
-        "qdrant": await check_qdrant(),
+        "pgvector": await check_pgvector(),
         "cvat": await check_cvat(),
         "ml_compute": await check_ml_compute(),
         "redis": await check_redis(),

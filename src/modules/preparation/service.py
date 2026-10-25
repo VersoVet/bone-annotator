@@ -114,7 +114,7 @@ class DatasetPreparationService:
     ) -> PreparedDataset:
         """Prepare annotation dataset from raw .b2nd frames.
 
-        Routes to remote preprocessing (Glia) or local depending on config.
+        Routes to remote preprocessing or local depending on config.
         Falls back to local if remote is unavailable.
 
         Args:

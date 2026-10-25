@@ -1,12 +1,13 @@
 """Embeddings service for vector storage and similarity search.
 
-Manages Qdrant collection, embeddings storage, and bone atlas operations.
+Manages pgvector collection on OnyxPlex, embeddings storage,
+and bone atlas operations with 1024D bge-m3 vectors.
 """
 
 import logging
 from typing import Any
 
-from .qdrant_store import BoneAtlasStore
+from .pg_store import BoneAtlasStore
 
 logger = logging.getLogger(__name__)
 
@@ -16,22 +17,28 @@ class EmbeddingsService:
 
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 6333,
+        host: str = "10.0.0.8",
+        port: int = 5432,
+        database: str = "onyx_vectors",
+        user: str = "onyx",
+        password: str = "",
         collection: str = "bone_atlas",
-        vector_size: int = 512,
+        vector_size: int = 1024,
     ) -> None:
         """Initialize embeddings service.
 
         Args:
-            host: Qdrant host.
-            port: Qdrant port.
+            host: PostgreSQL host (OnyxPlex).
+            port: PostgreSQL port.
+            database: Database name.
+            user: Database user.
+            password: Database password.
             collection: Collection name.
-            vector_size: Embedding dimension.
+            vector_size: Embedding dimension (1024 for bge-m3).
         """
-        self.store = BoneAtlasStore(host, port, collection, vector_size)
+        self.store = BoneAtlasStore(host, port, database, user, password, collection, vector_size)
         self.store.ensure_collection()
-        logger.info("EmbeddingsService initialized")
+        logger.info("EmbeddingsService initialized (pgvector)")
 
     async def upsert_bone(
         self,
@@ -153,6 +160,7 @@ class EmbeddingsService:
         """
         return {
             "status": "ready",
+            "backend": "pgvector",
             "collection": self.store.collection,
             "vector_size": self.store.vector_size,
         }
@@ -162,16 +170,29 @@ class EmbeddingsService:
 _service: EmbeddingsService | None = None
 
 
-def get_service(
-    host: str = "localhost",
-    port: int = 6333,
-    collection: str = "bone_atlas",
-    vector_size: int = 512,
-) -> EmbeddingsService:
-    """Get or create the embeddings service instance."""
+def get_service() -> EmbeddingsService:
+    """Get or create the embeddings service from config."""
     global _service
     if _service is None:
-        _service = EmbeddingsService(host, port, collection, vector_size)
+        from src.config import (
+            PGVECTOR_COLLECTION,
+            PGVECTOR_DATABASE,
+            PGVECTOR_HOST,
+            PGVECTOR_PORT,
+            PGVECTOR_USER,
+            PGVECTOR_VECTOR_SIZE,
+            POSTGRES_PASSWORD,
+        )
+
+        _service = EmbeddingsService(
+            host=PGVECTOR_HOST,
+            port=PGVECTOR_PORT,
+            database=PGVECTOR_DATABASE,
+            user=PGVECTOR_USER,
+            password=POSTGRES_PASSWORD,
+            collection=PGVECTOR_COLLECTION,
+            vector_size=PGVECTOR_VECTOR_SIZE,
+        )
     return _service
 
 
@@ -186,7 +207,7 @@ async def search_bone_atlas(
     """Search bone atlas with embedding vector.
 
     Args:
-        embedding: Query embedding (512D vector).
+        embedding: Query embedding (1024D vector for bge-m3).
         limit: Max results.
         min_confidence: Min similarity score.
 
@@ -220,8 +241,6 @@ async def get_similar_bones(
         List of similar bones or empty if not found.
     """
     try:
-        # Note: Qdrant query by ID would require fetching the vector first
-        # This is a placeholder - full implementation in Phase 7+
         logger.warning("Similar bones query not fully implemented (Phase 7+)")
         return []
     except Exception as e:

@@ -85,7 +85,7 @@ Synchronisation des acquisitions BoneStore → registre ingestion.
   "synced": 5,
   "new": 2,
   "pending": 12,
-  "timestamp": "2026-08-10T10:30:00Z"
+  "timestamp": "2026-10-25T10:30:00Z"
 }
 ```
 
@@ -113,7 +113,7 @@ Statut global de l'ingestion.
   "status": "ready",
   "total_acquisitions": 312,
   "pending": 45,
-  "last_sync": "2026-08-10T00:00:00Z"
+  "last_sync": "2026-10-25T00:00:00Z"
 }
 ```
 
@@ -434,7 +434,7 @@ Soumettre un job training YOLO à ml-compute.
 {
   "job_id": "ray_job_xyz789",
   "status": "submitted",
-  "submission_time": "2026-08-08T10:40:00Z",
+  "submission_time": "2026-10-25T10:40:00Z",
   "eta_minutes": 120
 }
 ```
@@ -499,7 +499,7 @@ Lister les datasets disponibles.
   "datasets": [
     {
       "yaml": "dataset_20260808.yaml",
-      "created": "2026-08-08T10:00:00Z",
+      "created": "2026-10-25T10:00:00Z",
       "images": 240,
       "train": 192,
       "val": 48,
@@ -572,7 +572,7 @@ Current pipeline state snapshot.
 ```json
 {
   "status": "success",
-  "timestamp": "2026-08-10T12:30:00Z",
+  "timestamp": "2026-10-25T12:30:00Z",
   "pipeline_state": {
     "ingestion": {"status": "idle", "pending": 12},
     "prediction": {"status": "running", "progress": 45},
@@ -596,7 +596,7 @@ Recent event history (up to 1000 events).
   "events": [
     {
       "type": "ingestion_started",
-      "timestamp": "2026-08-10T12:25:00Z",
+      "timestamp": "2026-10-25T12:25:00Z",
       "data": {...}
     }
   ]
@@ -1477,7 +1477,7 @@ curl -X POST http://10.0.0.59:9468/api/annotation/propagate/1?seed_frame=0
 
 ---
 
-**Dernière mise à jour**: 2026-08-26
+**Dernière mise à jour**: 2026-10-25
 **Phase**: MedSAM2 temporal propagation
 **Version**: v0.1.47
 **Endpoints**: 68+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 6, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7, SAM 5, MedSAM2 4)

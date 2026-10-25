@@ -188,7 +188,7 @@ graph LR
 
 ---
 
-**Dernière mise à jour**: 2026-08-30
+**Dernière mise à jour**: 2026-10-25
 **Phase**: Dashboard admin + imaging-sdk pipelines
 **Version**: v0.1.61
 

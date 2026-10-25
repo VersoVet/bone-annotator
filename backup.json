@@ -2,31 +2,12 @@
   "strategy": "active",
   "entries": [
     {
-      "data_type": "postgresql",
-      "container": "postgres_bone_annotations",
-      "host": "10.0.0.59",
-      "port": 5433,
-      "database": "bone_annotations",
-      "description": "Base PostgreSQL annotations OS — schéma acquisitions, annotations (zones, landmarks, measurements, lesions). Données irremplaçables métier.",
-      "level": 1
-    },
-    {
-      "data_type": "qdrant",
-      "host": "10.0.0.59",
-      "port": 6333,
-      "collections": [
-        "bone_atlas",
-        "bone_annotations"
-      ],
-      "description": "Collections Qdrant — bone_atlas (512D embeddings), bone_annotations (768D labels). Vectorisation des annotations.",
-      "level": 2
-    },
-    {
       "data_type": "config_files",
       "paths": [
         "/opt/onyx/skills/bone-annotator/config/"
       ],
-      "description": "Configuration du skill — paramètres YOLO, seuils détection, connexions services.",
+      "target_host": "10.0.0.59",
+      "description": "Configuration du skill — paramètres, connexions services, profils annotation.",
       "level": 3
     },
     {
@@ -34,9 +15,11 @@
       "paths": [
         "/opt/onyx/skills/bone-annotator/data/ingestion_registry.db"
       ],
-      "description": "Registre d'ingestion SQLite — suivi des acquisitions BoneStore ingérées et traitées.",
+      "target_host": "10.0.0.59",
+      "description": "Registre d'ingestion SQLite — suivi des acquisitions BoneStore ingérées.",
       "level": 3
     }
   ],
+  "notes": "Base PostgreSQL bone_recognition.bone_annotations et collection pgvector bone_atlas (1024D) sur OnyxPlex (10.0.0.8) — backupées via le backup global PostgreSQL OnyxPlex.",
   "version": 2
 }

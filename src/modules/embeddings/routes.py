@@ -1,6 +1,6 @@
 """FastAPI routes for semantic search on bone annotations.
 
-Provides endpoints for querying the Qdrant vector store
+Provides endpoints for querying the pgvector store (OnyxPlex)
 and performing similarity search on bone atlas and annotations.
 """
 
@@ -37,8 +37,8 @@ async def search_atlas(
         HTTPException: If search fails.
     """
     try:
-        if len(embedding) != 512:
-            raise ValueError("Embedding must be 512D vector")
+        if len(embedding) != 1024:
+            raise ValueError("Embedding must be 1024D vector (bge-m3)")
 
         results = await search_bone_atlas(embedding, limit, min_confidence)
         return {
@@ -101,21 +101,17 @@ async def embedding_stats() -> dict[str, Any]:
         HTTPException: If stat collection fails.
     """
     try:
+        from .service import get_service
+
+        service = get_service()
+        stats = await service.status()
+        pop = await service.get_population_stats()
         return {
-            "status": "ready",
-            "collections": {
-                "bone_atlas": {
-                    "vector_size": 512,
-                    "distance_metric": "cosine",
-                    "description": "Reference bone anatomy embeddings",
-                },
-                "bone_annotations": {
-                    "vector_size": 768,
-                    "distance_metric": "cosine",
-                    "description": "Annotation labels and criteria embeddings",
-                },
-            },
-            "note": "Point counts loaded from Qdrant on query",
+            "status": stats.get("status", "ready"),
+            "backend": "pgvector",
+            "collection": stats.get("collection", "bone_atlas"),
+            "vector_size": stats.get("vector_size", 1024),
+            "population": pop,
         }
     except Exception as e:
         logger.error("Error fetching embedding stats: %s", e)
@@ -133,7 +129,7 @@ async def refresh_embeddings() -> dict[str, Any]:
         HTTPException: If refresh fails.
     """
     try:
-        # TODO: Implement in Phase 7+ after Qdrant integration is complete
+        # TODO: Implement in Phase 7+ after pgvector integration is complete
         return {
             "status": "pending_implementation",
             "message": "Embedding refresh coming in Phase 7+",

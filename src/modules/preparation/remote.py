@@ -1,4 +1,4 @@
-"""Remote preprocessing client — delegates batch processing to Glia."""
+"""Remote preprocessing client — delegates batch processing to remote host."""
 
 import asyncio
 import logging

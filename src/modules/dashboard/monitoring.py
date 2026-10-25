@@ -48,7 +48,7 @@ class Monitor:
     TRACKED_STAGES: ClassVar[list[str]] = [
         "generate_pseudo_labels",
         "train",
-        "populate_qdrant",
+        "populate_pgvector",
         "build_shape_model",
     ]
 
