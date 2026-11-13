@@ -1,6 +1,7 @@
 """Ingestion utility functions for frame selection and preprocessing."""
 
 import hashlib
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +12,7 @@ def select_frames(
     frame_files: list[Path],
     timecodes: list[dict[str, Any]] | None,
     angle_step_deg: float,
-) -> list[tuple[Path, float | None]]:
+) -> Sequence[tuple[Path, float | None]]:
     """Select frames by angular spacing.
 
     Args:
@@ -34,7 +35,7 @@ def select_frames(
         angle = tc.get("angle_deg", 0.0)
         tc_by_idx[idx] = angle
 
-    selected = []
+    selected: list[tuple[Path, float | None]] = []
     current_angle = 0.0
     for fp in frame_files:
         idx = extract_frame_index(fp.stem)
@@ -54,6 +55,9 @@ def read_b2nd_frame(frame_path: Path) -> np.ndarray:
 
     Returns:
         Image as uint16 numpy array.
+
+    Raises:
+        Exception: If the .b2nd file cannot be read.
     """
     try:
         import blosc2
@@ -81,7 +85,7 @@ def preprocess_image(image: np.ndarray, target_size: int) -> np.ndarray:
     from PIL import Image
 
     pil_img = Image.fromarray(image)
-    pil_img = pil_img.resize((target_size, target_size), Image.LANCZOS)
+    pil_img = pil_img.resize((target_size, target_size), Image.Resampling.LANCZOS)
     return np.asarray(pil_img, dtype=np.float32)
 
 

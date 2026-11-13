@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 import psycopg
+from psycopg.types.json import Json
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ class BoneAtlasStore:
                    VALUES (%s, %s, %s::vector, %s::jsonb)
                    ON CONFLICT (collection, point_id)
                    DO UPDATE SET vector = EXCLUDED.vector, payload = EXCLUDED.payload""",
-                (self.collection, pid, embedding, psycopg.types.json.Json(payload)),
+                (self.collection, pid, embedding, Json(payload)),
             )
         except Exception as e:
             logger.error("pgvector upsert failed for %s: %s", point_id, e)
@@ -126,7 +127,7 @@ class BoneAtlasStore:
                        VALUES (%s, %s, %s::vector, %s::jsonb)
                        ON CONFLICT (collection, point_id)
                        DO UPDATE SET vector = EXCLUDED.vector, payload = EXCLUDED.payload""",
-                    (self.collection, pid, p["embedding"], psycopg.types.json.Json(p["payload"])),
+                    (self.collection, pid, p["embedding"], Json(p["payload"])),
                 )
             logger.info("Upserted %d points to '%s'", len(points), self.collection)
         except Exception as e:

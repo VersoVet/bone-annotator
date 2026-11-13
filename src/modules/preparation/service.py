@@ -125,6 +125,7 @@ class DatasetPreparationService:
             custom_pipeline: Custom pipeline config (overrides preset).
             image_size: Optional resize (None = keep original).
             on_progress: Optional callback(current, total) for progress.
+            crop_params: Optional cropping parameters for frame extraction.
 
         Returns:
             PreparedDataset with path and metadata.
@@ -261,6 +262,9 @@ class DatasetPreparationService:
 
         Returns:
             PreparedDataset with path and metadata.
+
+        Raises:
+            ValueError: If pipeline configuration is invalid.
         """
         if pipeline_preset is None:
             pipeline_preset = get_imaging_config()["default_treatment"]
@@ -423,7 +427,7 @@ class DatasetPreparationService:
         from PIL import Image
 
         pil = Image.fromarray(image)
-        pil = pil.resize((size, size), Image.LANCZOS)
+        pil = pil.resize((size, size), Image.Resampling.LANCZOS)
         return np.array(pil)
 
     def list_datasets(self) -> list[dict[str, Any]]:

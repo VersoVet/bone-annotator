@@ -1,0 +1,106 @@
+# Njobvu-AI: An open-source tool for collaborative image labeling and implementation of computer vision models
+
+
+
+## Raw_Introduction
+
+
+Currently there are many cloud-based and desktop tools to help users label images and frames of video (e.g., Label Studio [1], OpenLabeling [2], CVAT [3], PowerAI Vision [4]). These tools often have limits around file size, multiple users, and proprietary software, and many have costs for using them. These restrictions limit the usefulness of such tools and offer few options for working outside the cloud or web environment. Additionally, few tools allow users to train a custom computer vision model while retaining control over the training parameters and ownership of their data. Training custom models is therefore limited to users with experience in command-line programming or those using paid services. Here, we present Njobvu-AI (pronounced N-joh-voo AI), a free open-source tool that can be used both offline and online.
+
+Currently there are many cloud-based and desktop tools to help users label images and frames of video (e.g., Label Studio [1], OpenLabeling [2], CVAT [3], PowerAI Vision [4]). These tools often have limits around file size, multiple users, and proprietary software, and many have costs for using them. These restrictions limit the usefulness of such tools and offer few options for working outside the cloud or web environment. Additionally, few tools allow users to train a custom computer vision model while retaining control over the training parameters and ownership of their data. Training custom models is therefore limited to users with experience in command-line programming or those using paid services. Here, we present Njobvu-AI (pronounced N-joh-voo AI), a free open-source tool that can be used both offline and online.
+
+
+## Raw_Conclusion
+
+
+Njobvu-AI is a new browser-based tool for image annotation, model training, and object detection that aims to fill current gaps in available tools. Our tool is designed to work as both a cross-platform standalone app and a cloud-based service that empowers teams to work together. With the ability to download and merge projects, group members who are working at the edge can easily upload their progress to the cloud or transfer their project data to other local machines, keeping the rest of the team up to date with the latest images and labels. To help maintain highquality data, Njobvu-AI supports a review button which flags the specified image for team members to review, which allows for error checking and expert review if needed. After labeling is complete, users can train their model from within the tool or download their dataset in either TensorFlow or YOLO Darknet format. When training from within the tool, users can upload a pre-trained model and select the Python installation to r
+
+Njobvu-AI is a new browser-based tool for image annotation, model training, and object detection that aims to fill current gaps in available tools. Our tool is designed to work as both a cross-platform standalone app and a cloud-based service that empowers teams to work together. With the ability to download and merge projects, group members who are working at the edge can easily upload their progress to the cloud or transfer their project data to other local machines, keeping the rest of the team up to date with the latest images and labels. To help maintain highquality data, Njobvu-AI supports a review button which flags the specified image for team members to review, which allows for error checking and expert review if needed. After labeling is complete, users can train their model from within the tool or download their dataset in either TensorFlow or YOLO Darknet format. When training from within the tool, users can upload a pre-trained model and select the Python installation to r
+
+un it with. Finally, users can apply trained models to classify new data within the tool and use the Validation mode to review object detection predictions. Few other available tools provide a complete pipeline from tagging to inference using custom-trained models. This gives the user complete control and customizability over their neural network algorithms. Njobvu-AI is completely open source, allowing users to add custom formats and guarantee privacy.
+
+un it with. Finally, users can apply trained models to classify new data within the tool and use the Validation mode to review object detection predictions. Few other available tools provide a complete pipeline from tagging to inference using custom-trained models. This gives the user complete control and customizability over their neural network algorithms. Njobvu-AI is completely open source, allowing users to add custom formats and guarantee privacy.
+
+
+## Discussion
+
+
+La conclusion présente Njobvu-AI comme un outil open source, navigateur et multiplateforme, destiné à l’annotation d’images, à l’entraînement de modèles et à la détection d’objets, utilisable en application autonome ou en service cloud collaboratif. Les auteurs soulignent la continuité de travail entre machines locales et cloud via le téléchargement et la fusion de projets, ainsi qu’un mécanisme de revue par drapeau d’images pour le contrôle qualité et la relecture experte. Après l’annotation, le jeu de données peut être exporté aux formats TensorFlow ou YOLO Darknet, ou servir à un entraînement interne avec modèle préentraîné et sélection de l’installation Python. L’outil permet ensuite d’appliquer les modèles entraînés à de nouvelles données et de reviser les prédictions en mode Validation, dans une chaîne allant de l’étiquetage à l’inférence. Aucun résultat empirique de performance ni comparaison statistique n’est rapporté dans cette section ; la conclusion reste descriptive des fonctionnalités et des usages prévus.
+
+La conclusion présente Njobvu-AI comme un outil open source, navigateur et multiplateforme, destiné à l’annotation d’images, à l’entraînement de modèles et à la détection d’objets, utilisable en application autonome ou en service cloud collaboratif. Les auteurs soulignent la continuité de travail entre machines locales et cloud via le téléchargement et la fusion de projets, ainsi qu’un mécanisme de revue par drapeau d’images pour le contrôle qualité et la relecture experte. Après l’annotation, le jeu de données peut être exporté aux formats TensorFlow ou YOLO Darknet, ou servir à un entraînement interne avec modèle préentraîné et sélection de l’installation Python. L’outil permet ensuite d’appliquer les modèles entraînés à de nouvelles données et de reviser les prédictions en mode Validation, dans une chaîne allant de l’étiquetage à l’inférence. Aucun résultat empirique de performance ni comparaison statistique n’est rapporté dans cette section ; la conclusion reste descriptive des fonctionnalités et des usages prévus.
+
+
+## Insight
+
+
+methodology: Njobvu-AI est présenté comme un outil open source couvrant, dans un même environnement, l’annotation collaborative, la revue, l’exportation, la fusion de projets, l’entraînement et l’inférence avec modèles personnalisés.
+
+methodology: Njobvu-AI est présenté comme un outil open source couvrant, dans un même environnement, l’annotation collaborative, la revue, l’exportation, la fusion de projets, l’entraînement et l’inférence avec modèles personnalisés.
+
+fonctionnalités logicielles: Njobvu-AI est présenté comme un outil libre et gratuit pouvant fonctionner en ligne ou hors ligne; l’article décrit une plateforme intégrée couvrant notamment l’annotation collaborative, la revue, l’exportation, la fusion de projets, l’entraînement et l’inférence, sans rapporter d’évaluation expérimentale de performance.
+
+fonctionnalités logicielles: Njobvu-AI est présenté comme un outil libre et gratuit pouvant fonctionner en ligne ou hors ligne; l’article décrit une plateforme intégrée couvrant notamment l’annotation collaborative, la revue, l’exportation, la fusion de projets, l’entraînement et l’inférence, sans rapporter d’évaluation expérimentale de performance.
+
+
+## Quote
+
+
+Njobvu-AI is a new browser-based tool for image annotation, model training, and object detection that aims to fill current gaps in available tools.
+
+Njobvu-AI is a new browser-based tool for image annotation, model training, and object detection that aims to fill current gaps in available tools.
+
+Here, we present Njobvu-AI (pronounced N-joh-voo AI), a free open-source tool that can be used both offline and online.
+
+Here, we present Njobvu-AI (pronounced N-joh-voo AI), a free open-source tool that can be used both offline and online.
+
+Few other available tools provide a complete pipeline from tagging to inference using custom-trained models. This gives the user complete control and customizability over their neural network algorithms. Njobvu-AI is completely open source, allowing users to add custom formats and guarantee privacy.
+
+Few other available tools provide a complete pipeline from tagging to inference using custom-trained models. This gives the user complete control and customizability over their neural network algorithms. Njobvu-AI is completely open source, allowing users to add custom formats and guarantee privacy.
+
+
+## Conclusion
+
+
+Selon les auteurs, Njobvu-AI comble des lacunes des outils existants en réunissant l’annotation d’images, l’entraînement de modèles et la détection d’objets dans une interface de navigateur. L’outil est conçu pour fonctionner à la fois comme application autonome multiplateforme et comme service cloud collaboratif. L’exportation et la fusion des projets doivent permettre aux équipes travaillant sur des machines ou sites différents de synchroniser leurs images et annotations. La fonction de revue doit faciliter le contrôle des erreurs et la validation par des experts. Les utilisateurs peuvent entraîner des modèles dans l’outil ou exporter les données aux formats compatibles avec TensorFlow ou YOLO/Darknet. Les modèles entraînés peuvent être appliqués à de nouvelles données et leurs prédictions peuvent être vérifiées dans le mode Validation. Les auteurs considèrent que le caractère entièrement open source du logiciel permet la personnalisation des formats, le contrôle des algorithmes et la protection de la confidentialité. Ces conclusions sont descriptives: elles ne sont étayées par aucune évaluation quantitative comparative de l’utilisabilité, des performances informatiques ou de l’exactitude des modèles.
+
+Selon les auteurs, Njobvu-AI comble des lacunes des outils existants en réunissant l’annotation d’images, l’entraînement de modèles et la détection d’objets dans une interface de navigateur. L’outil est conçu pour fonctionner à la fois comme application autonome multiplateforme et comme service cloud collaboratif. L’exportation et la fusion des projets doivent permettre aux équipes travaillant sur des machines ou sites différents de synchroniser leurs images et annotations. La fonction de revue doit faciliter le contrôle des erreurs et la validation par des experts. Les utilisateurs peuvent entraîner des modèles dans l’outil ou exporter les données aux formats compatibles avec TensorFlow ou YOLO/Darknet. Les modèles entraînés peuvent être appliqués à de nouvelles données et leurs prédictions peuvent être vérifiées dans le mode Validation. Les auteurs considèrent que le caractère entièrement open source du logiciel permet la personnalisation des formats, le contrôle des algorithmes et la protection de la confidentialité. Ces conclusions sont descriptives: elles ne sont étayées par aucune évaluation quantitative comparative de l’utilisabilité, des performances informatiques ou de l’exactitude des modèles.
+
+
+## Synthese
+
+
+L’essor de la vision par ordinateur et de l’apprentissage automatique favorise leur utilisation dans des recherches exploitant des images, des vidéos ou des données acoustiques converties en spectrogrammes. Leur mise en œuvre exige toutefois une préparation substantielle des données, notamment l’annotation manuelle d’un sous-ensemble destiné à l’entraînement de modèles de reconnaissance d’objets. Les outils existants peuvent présenter des contraintes relatives à la taille des fichiers, au travail multiutilisateur, aux coûts, aux logiciels propriétaires et à la dépendance aux environnements infonuagiques, tandis que l’entraînement personnalisé demeure souvent réservé aux utilisateurs maîtrisant la ligne de commande ou recourant à des services payants. Njobvu-AI est présenté comme un outil libre et gratuit, utilisable en ligne ou hors ligne, qui réunit l’annotation collaborative, la revue, les statistiques descriptives, l’exportation et la fusion de projets, ainsi que l’entraînement et l’inférence de modèles; l’article étant descriptif, aucune évaluation expérimentale comparative de ses performances n’est rapportée [Unknown](zotero://select/library/items/W977FZCQ). La conclusion présente Njobvu-AI comme un outil open source, navigateur et multiplateforme, destiné à l’annotation d’images, à l’entraînement de modèles et à la détection d’objets, utilisable en application autonome ou en service cloud collaboratif. Les auteurs soulignent la continuité de travail entre machines locales et cloud via le téléchargement et la fusion de projets, ainsi qu’un mécanisme de revue par drapeau d’images pour le contrôle qualité et la relecture experte. Après l’annotation, le jeu de données peut être exporté aux formats TensorFlow ou YOLO Darknet, ou servir à un entraînement interne avec modèle préentraîné et sélection de l’installation Python. L’outil permet ensuite d’appliquer les modèles entraînés à de nouvelles données et de reviser les prédictions en mode Validation, dans une chaîne allant de l’étiquetage à l’inférence. Aucun résultat empirique de performance ni comparaison statistique n’est rapporté dans cette section ; la conclusion reste descriptive des fonctionnalités et des usages prévus.
+
+L’essor de la vision par ordinateur et de l’apprentissage automatique favorise leur utilisation dans des recherches exploitant des images, des vidéos ou des données acoustiques converties en spectrogrammes. Leur mise en œuvre exige toutefois une préparation substantielle des données, notamment l’annotation manuelle d’un sous-ensemble destiné à l’entraînement de modèles de reconnaissance d’objets. Les outils existants peuvent présenter des contraintes relatives à la taille des fichiers, au travail multiutilisateur, aux coûts, aux logiciels propriétaires et à la dépendance aux environnements infonuagiques, tandis que l’entraînement personnalisé demeure souvent réservé aux utilisateurs maîtrisant la ligne de commande ou recourant à des services payants. Njobvu-AI est présenté comme un outil libre et gratuit, utilisable en ligne ou hors ligne, qui réunit l’annotation collaborative, la revue, les statistiques descriptives, l’exportation et la fusion de projets, ainsi que l’entraînement et l’inférence de modèles; l’article étant descriptif, aucune évaluation expérimentale comparative de ses performances n’est rapportée [Unknown](zotero://select/library/items/W977FZCQ). La conclusion présente Njobvu-AI comme un outil open source, navigateur et multiplateforme, destiné à l’annotation d’images, à l’entraînement de modèles et à la détection d’objets, utilisable en application autonome ou en service cloud collaboratif. Les auteurs soulignent la continuité de travail entre machines locales et cloud via le téléchargement et la fusion de projets, ainsi qu’un mécanisme de revue par drapeau d’images pour le contrôle qualité et la relecture experte. Après l’annotation, le jeu de données peut être exporté aux formats TensorFlow ou YOLO Darknet, ou servir à un entraînement interne avec modèle préentraîné et sélection de l’installation Python. L’outil permet ensuite d’appliquer les modèles entraînés à de nouvelles données et de reviser les prédictions en mode Validation, dans une chaîne allant de l’étiquetage à l’inférence. Aucun résultat empirique de performance ni comparaison statistique n’est rapporté dans cette section ; la conclusion reste descriptive des fonctionnalités et des usages prévus.
+
+
+## Raw_Performing_Object_Detection
+
+
+Once training is completed, users can apply their trained computer vision model to locate and identify objects in new images within Njobvu-AI. This can be accomplished similarly to the process for creating a new project (see 2.2.2). In addition to uploading a .zip file of images, users should select the box titled "Check to Enable Image Classification" and upload a .zip file containing the model weights file and setup files used to generate the weights file from the trained model (2.2.9). Njobvu-AI will then upload, process, and label the set of new images. This will create a new project in which each image contains bounding box(es) around every predicted object within it. The resulting labels around each object will behave exactly as if the user had labeled each image manually, and users can review and modify the predicted labels if needed.
+
+Once training is completed, users can apply their trained computer vision model to locate and identify objects in new images within Njobvu-AI. This can be accomplished similarly to the process for creating a new project (see 2.2.2). In addition to uploading a .zip file of images, users should select the box titled "Check to Enable Image Classification" and upload a .zip file containing the model weights file and setup files used to generate the weights file from the trained model (2.2.9). Njobvu-AI will then upload, process, and label the set of new images. This will create a new project in which each image contains bounding box(es) around every predicted object within it. The resulting labels around each object will behave exactly as if the user had labeled each image manually, and users can review and modify the predicted labels if needed.
+
+
+## Raw_Software_Architecture
+
+
+Njobvu-AI leverages open-source neural network frameworks to enable in-house computer vision model training and image classification. The two frameworks utilized are Darknet [1] and TensorFlow [2]. Darknet is a computer vision framework predominantly used for object detection, with an emphasis on performance through accuracy and speed using the YOLO algorithm [3]. TensorFlow functions as a more general-purpose framework which supports a large range of applications. Njobvu-AI utilizes Darknet and TensorFlow scripts to train custom models from annotated data, but users can also leverage existing YOLO models to classify new images.
+
+Njobvu-AI leverages open-source neural network frameworks to enable in-house computer vision model training and image classification. The two frameworks utilized are Darknet [1] and TensorFlow [2]. Darknet is a computer vision framework predominantly used for object detection, with an emphasis on performance through accuracy and speed using the YOLO algorithm [3]. TensorFlow functions as a more general-purpose framework which supports a large range of applications. Njobvu-AI utilizes Darknet and TensorFlow scripts to train custom models from annotated data, but users can also leverage existing YOLO models to classify new images.
+
+
+## Raw_Impact
+
+
+subscription lapses. Many researchers will be unable to afford labeling tools such as PowerAI and in turn the software becomes limited to those who have the budget to afford it. Because Njobvu-AI is open source, there is little-to-no barrier to entry for researchers and conservationists to have access to a high-quality labeling and model training tool. Even outside of research, people with any interest in machine learning can use Njobvu-AI.
+
+subscription lapses. Many researchers will be unable to afford labeling tools such as PowerAI and in turn the software becomes limited to those who have the budget to afford it. Because Njobvu-AI is open source, there is little-to-no barrier to entry for researchers and conservationists to have access to a high-quality labeling and model training tool. Even outside of research, people with any interest in machine learning can use Njobvu-AI.
+
+
+## Raw_Software_Description
+
+
+Njobvu-AI provides a platform that enables users to annotate image datasets in a team environment either via a shared server or as a standalone desktop application, including devices that are not equipped with a reliable internet connection. The ability to annotate, train, and classify images anywhere on any machine while maintaining team cohesion allows for greater flexibility, significantly lowering the barrier to entry into the computer vision side of data science.
+
+Njobvu-AI provides a platform that enables users to annotate image datasets in a team environment either via a shared server or as a standalone desktop application, including devices that are not equipped with a reliable internet connection. The ability to annotate, train, and classify images anywhere on any machine while maintaining team cohesion allows for greater flexibility, significantly lowering the barrier to entry into the computer vision side of data science.

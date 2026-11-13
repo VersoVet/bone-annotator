@@ -71,6 +71,26 @@ class AnnotationTaskDB:
     ) -> int:
         """Insert a new annotation task.
 
+        Args:
+            acquisition_id: Acquisition identifier.
+            bone_type: Bone type for the task.
+            author: Username creating the task.
+            cvat_task_id: Linked CVAT task ID, if already created.
+            source_name: Data source name (default: bonestore).
+            region: Anatomical region (default: entire).
+            status: Initial task status (default: created).
+            assignee: Optional CVAT assignee username.
+            frame_count: Number of frames in the dataset.
+            dataset_path: Path to the prepared dataset directory.
+            pipeline_preset: Imaging-sdk preset used for preparation.
+            pipeline_config: Custom pipeline config steps.
+            has_pre_annotations: Whether pre-annotations were applied.
+            cvat_url: Direct URL to the CVAT task.
+            profile_id: Annotation profile ID.
+            objective: Optional task objective description.
+            labels_filter: Subset of label keys to include.
+            crop_from_task_id: Source task ID when cropping from an existing task.
+
         Returns:
             Created task ID.
         """
@@ -161,7 +181,8 @@ class AnnotationTaskDB:
         row = conn.execute(f"SELECT * FROM {SCHEMA}.annotation_tasks WHERE id=%s", (task_id,)).fetchone()
         if not row:
             return None
-        cols = [d[0] for d in conn.execute(f"SELECT * FROM {SCHEMA}.annotation_tasks LIMIT 0").description]
+        desc = conn.execute(f"SELECT * FROM {SCHEMA}.annotation_tasks LIMIT 0").description or []
+        cols = [d[0] for d in desc]
         return dict(zip(cols, row, strict=False))
 
     def delete_task(self, task_id: int) -> bool:
@@ -184,6 +205,7 @@ class AnnotationTaskDB:
         status: str | None = None,
         bone_type: str | None = None,
         profile_id: str | None = None,
+        region: str | None = None,
     ) -> tuple[list[dict[str, Any]], int]:
         """List annotation tasks with filters.
 
@@ -193,6 +215,7 @@ class AnnotationTaskDB:
             status: Filter by status.
             bone_type: Filter by bone type.
             profile_id: Filter by annotation profile.
+            region: Filter by portion (proximal, distal, entire).
 
         Returns:
             Tuple of (task list, total count).
@@ -209,15 +232,20 @@ class AnnotationTaskDB:
         if profile_id:
             where_parts.append("profile_id=%s")
             params.append(profile_id)
+        if region:
+            where_parts.append("region=%s")
+            params.append(region)
         where = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
 
-        total = conn.execute(f"SELECT COUNT(*) FROM {SCHEMA}.annotation_tasks {where}", params).fetchone()[0]
+        count_row = conn.execute(f"SELECT COUNT(*) FROM {SCHEMA}.annotation_tasks {where}", params).fetchone()
+        total = count_row[0] if count_row is not None else 0
 
         rows = conn.execute(
             f"SELECT * FROM {SCHEMA}.annotation_tasks {where} ORDER BY created_at DESC LIMIT %s OFFSET %s",
             [*params, limit, offset],
         ).fetchall()
-        cols = [d[0] for d in conn.execute(f"SELECT * FROM {SCHEMA}.annotation_tasks LIMIT 0").description]
+        list_desc = conn.execute(f"SELECT * FROM {SCHEMA}.annotation_tasks LIMIT 0").description or []
+        cols = [d[0] for d in list_desc]
         tasks = [dict(zip(cols, row, strict=False)) for row in rows]
         return tasks, total
 
@@ -344,15 +372,16 @@ class AnnotationTaskDB:
         if decision == "validated":
             task = self.get_task(task_id)
             if task:
+                # Human validation of the task = GOLD ground truth for BoneSeg S0.
                 conn.execute(
                     f"""UPDATE {SCHEMA}.frame_annotations
                     SET validated_by=%s, validated_at=NOW(),
-                        quality_tier = CASE
-                            WHEN source = 'manual' THEN 'gold'
-                            WHEN source IN ('corrected_ml', 'import') THEN 'silver'
-                            ELSE quality_tier
-                        END
-                    WHERE acquisition_id=%s AND task_id=%s AND validated_by IS NULL""",
+                        source = CASE
+                            WHEN source = 'ml' THEN 'corrected_ml'
+                            ELSE COALESCE(NULLIF(source, ''), 'manual')
+                        END,
+                        quality_tier = 'gold'
+                    WHERE acquisition_id=%s AND task_id=%s""",
                     (validated_by, task["acquisition_id"], task_id),
                 )
 

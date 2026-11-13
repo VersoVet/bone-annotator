@@ -289,12 +289,16 @@ bone-preprocessor (Glia :9480)            ← service dédié
 
 ## Segmentation et propagation
 
-Le serveur SAM legacy sur OnyxCortex `:9470` fournit les embeddings `/api/embed`
-utilisés par les fonctions Nuclio interactor CVAT, y compris MedSAM ViT-B.
-MedSAM2 sur `:9473` expose un contrat différent (`/segment`, `/propagate`) et
-est appelé exclusivement par le module `annotation.medsam2_bridge`. Le bridge
-reconstruit les masques CVAT en pleine image et propage toutes les frames par
-lots chevauchants, sans rééchantillonnage ni perte d'indices.
+Le serveur SAM sur OnyxTensor GPU 2 (RTX 2060S, `10.0.0.73:9470`) fournit les
+embeddings `/api/embed` utilisés par les fonctions Nuclio interactor CVAT,
+y compris MedSAM ViT-B. MedSAM2 sur `10.0.0.73:9473` (même GPU) expose un
+contrat différent (`/segment`, `/propagate`) et est appelé exclusivement par
+le module `annotation.medsam2_bridge`. Le bridge reconstruit les masques CVAT
+en pleine image et propage toutes les frames par lots chevauchants, sans
+rééchantillonnage ni perte d'indices.
+
+OnyxCortex (10.0.0.26, RTX 4070S) est désormais dédié exclusivement au
+training bone-learning (label Ray `bone_training`).
 
 ## Dépendances Externes
 
@@ -405,11 +409,11 @@ Validation Forge: VALID (0E/4W)
 
 ---
 
-**Dernière mise à jour**: 2026-10-25
-**Phase**: Multi-objective annotation pipeline (profiles, Glia preprocessing, MedSAM2)
-**Version**: v0.1.83
-**Status**: Batch profile creation, dashboard enrichi, auto_bone_mask, preprocessing distribué (Glia)
+**Dernière mise à jour**: 2026-11-04
+**Phase**: S0 zones GOLD — pré-annotation CPU/MedSAM2 + dashboard workflow
+**Version**: v0.1.95+
+**Status**: Task #4 / CVAT #28 opérationnelle; fallback Otsu si bone-ml sans modèle; validate→gold
+**Modules S0**: `cpu_preannotate.py`, `workflow_ops.py`, `workflow_routes.py`, dashboard annotations
 **Coverage**: All modules have REST API routes (75+ endpoints)
-**Test Coverage**: 22+ annotation, 6 preparation, 8 integration
- 
+
  

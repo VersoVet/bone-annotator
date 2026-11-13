@@ -26,7 +26,7 @@ def list_acquisitions(
     Returns:
         List of dicts with id, bone_type, side, region, frame_count.
     """
-    acquisitions = []
+    acquisitions: list[dict[str, Any]] = []
     if bonestore_root is None:
         bonestore_root = Path(BONESTORE_ROOT)
     else:

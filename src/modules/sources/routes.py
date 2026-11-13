@@ -73,12 +73,14 @@ async def list_acquisitions(
 async def list_frames(
     source_name: str,
     acquisition_id: str,
+    with_paths: bool = Query(False, description="Include full .b2nd file paths"),
 ) -> dict[str, Any]:
     """List frames for a specific acquisition.
 
     Args:
         source_name: Source name.
         acquisition_id: Acquisition ID.
+        with_paths: Include full filesystem paths for direct imaging access.
 
     Returns:
         Frame list with index, filename, angle.
@@ -89,6 +91,12 @@ async def list_frames(
     try:
         service = get_service()
         frames = service.get_frames(source_name, acquisition_id)
+        if with_paths:
+            acq_path = service.get_acquisition_path(source_name, acquisition_id)
+            if acq_path:
+                raw_dir = acq_path / "raw"
+                for f in frames:
+                    f["path"] = str(raw_dir / f["filename"])
         return {
             "status": "ok",
             "source": source_name,

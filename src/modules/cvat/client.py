@@ -30,7 +30,7 @@ class CVATClient:
         self.api_base = f"{self.base_url}/api"
         self.username = username
         self.password = password
-        self.client = None
+        self.client: httpx.AsyncClient | None = None
         logger.info("CVATClient initialized for %s:%d", host, port)
 
     async def authenticate(self) -> bool:
@@ -159,7 +159,11 @@ class CVATClient:
             if response.status_code in (200, 201):
                 logger.info("Annotations updated for task %d", task_id)
                 return True
-            logger.error("Error updating annotations: %s", response.status_code)
+            logger.error(
+                "Error updating annotations: %s %s",
+                response.status_code,
+                response.text[:400],
+            )
             return False
         except Exception as e:
             logger.error("Error updating annotations: %s", e)
@@ -171,7 +175,7 @@ class CVATClient:
             if self.client is None:
                 return False
             files = [(f"client_files[{index}]", (name, data, "image/png")) for index, (name, data) in enumerate(images)]
-            return await self._post_image_files(task_id, files, len(images))
+            return await self._post_image_files(task_id, files, len(images))  # type: ignore[arg-type]
         except Exception as e:
             logger.error("Error uploading images to task %d: %s", task_id, e)
             return False
@@ -197,7 +201,7 @@ class CVATClient:
                     )
                     for index, path in enumerate(image_paths)
                 ]
-                if not await self._post_image_files(task_id, files, len(image_paths)):
+                if not await self._post_image_files(task_id, files, len(image_paths)):  # type: ignore[arg-type]
                     return False
                 return await self._wait_for_task_size(task_id, len(image_paths))
         except Exception as e:
@@ -366,6 +370,9 @@ class CVATClient:
     ) -> int:
         """Sync labels on a CVAT project (add-only, never delete).
 
+        CVAT 2.x exposes project labels via GET /api/labels?project_id=...
+        (project.labels is a URL object, not an embedded array).
+
         Args:
             project_id: CVAT project ID.
             labels: Desired labels from label-generator.
@@ -376,19 +383,47 @@ class CVATClient:
         try:
             if self.client is None:
                 return 0
-            resp = await self.client.get(f"{self.api_base}/projects/{project_id}")
+            resp = await self.client.get(f"{self.api_base}/labels?project_id={project_id}&page_size=500")
             if resp.status_code != 200:
                 return 0
-            existing = {lbl["name"] for lbl in resp.json().get("labels", [])}
-            new_labels = [lbl for lbl in labels if lbl["name"] not in existing]
+            existing_rows = resp.json().get("results", [])
+            existing_names = {lbl["name"] for lbl in existing_rows}
+            new_labels = [lbl for lbl in labels if lbl.get("name") and lbl["name"] not in existing_names]
             if not new_labels:
                 return 0
-            # PATCH: add new labels to existing
-            all_labels = resp.json().get("labels", []) + new_labels
-            await self.client.patch(
+            # Keep existing labels (with id) and append new ones (without id)
+            payload: list[dict[str, Any]] = []
+            for row in existing_rows:
+                payload.append(
+                    {
+                        "id": row["id"],
+                        "name": row["name"],
+                        "color": row.get("color") or "#00FF00",
+                        "attributes": row.get("attributes") or [],
+                        "type": row.get("type") or "any",
+                    }
+                )
+            for lbl in new_labels:
+                payload.append(
+                    {
+                        "name": lbl["name"],
+                        "color": (lbl.get("color") or "").strip() or "#00FF00",
+                        "attributes": lbl.get("attributes") or [],
+                        "type": lbl.get("type") or "any",
+                    }
+                )
+            patch = await self.client.patch(
                 f"{self.api_base}/projects/{project_id}",
-                json={"labels": all_labels},
+                json={"labels": payload},
             )
+            if patch.status_code not in (200, 201):
+                logger.error(
+                    "Project label sync failed for %d: %s %s",
+                    project_id,
+                    patch.status_code,
+                    patch.text[:300],
+                )
+                return 0
             logger.info("Added %d labels to project %d", len(new_labels), project_id)
             return len(new_labels)
         except Exception as e:

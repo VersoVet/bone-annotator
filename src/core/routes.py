@@ -81,6 +81,9 @@ async def health() -> dict:
 
     Returns:
         Dictionnaire avec statut et état des dépendances.
+
+    Raises:
+        HTTPException: Si app_state non initialisé ou aucune dépendance disponible.
     """
     if not _app_state:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")
@@ -120,6 +123,9 @@ async def ready() -> dict:
 
     Returns:
         Statut de disponibilité du service.
+
+    Raises:
+        HTTPException: Si app_state non initialisé.
     """
     if not _app_state:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")
@@ -141,6 +147,9 @@ async def status() -> dict:
 
     Returns:
         État détaillé de l'application et des modules.
+
+    Raises:
+        HTTPException: Si app_state non initialisé.
     """
     if not _app_state:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")
@@ -181,6 +190,9 @@ async def working_signal() -> dict:
 
     Returns:
         Confirmation du signal WORKING.
+
+    Raises:
+        HTTPException: Si app_state non initialisé.
     """
     if not _app_state:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")
@@ -263,6 +275,9 @@ async def dependencies_endpoint() -> dict:
 
     Returns:
         État de chaque dépendance avec détails.
+
+    Raises:
+        HTTPException: Si app_state non initialisé.
     """
     if not _app_state:
         raise HTTPException(status_code=503, detail="app_state_not_initialized")

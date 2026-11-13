@@ -251,7 +251,7 @@ class IngestionRegistry:
             query = """SELECT * FROM acquisitions
                        WHERE status IN (?, ?)
                        ORDER BY discovered_at"""
-            params = [IngestionStatus.DISCOVERED, IngestionStatus.FAILED]
+            params: list[Any] = [IngestionStatus.DISCOVERED, IngestionStatus.FAILED]
 
             if limit > 0:
                 query += " LIMIT ?"

@@ -20,7 +20,7 @@ class TestLabelsToSvat:
         labels = labels_to_cvat_format(anatomy)
         assert len(labels) == 2
         assert labels[0]["name"] == "metaphysis"
-        assert labels[0]["type"] == "rectangle"
+        assert labels[0]["type"] == "any"
         assert labels[0]["color"] == "#00FF00"
 
     def test_landmarks_only(self) -> None:
@@ -46,7 +46,7 @@ class TestLabelsToSvat:
         labels = labels_to_cvat_format(anatomy)
         assert len(labels) == 2
         types = {lbl["name"]: lbl["type"] for lbl in labels}
-        assert types["proximal"] == "rectangle"
+        assert types["proximal"] == "any"
         assert types["epicondyle"] == "points"
 
     def test_dedup(self) -> None:

@@ -212,3 +212,68 @@ class TestImagingService:
         stats = await service.get_cache_stats()
         assert "raw_cache_size" in stats
         assert "processed_cache_size" in stats
+
+
+class TestLoadFrameAsPng:
+    """Tests for load_frame_as_png with two-level cache."""
+
+    def test_png_cached_on_second_call(self) -> None:
+        """Second call returns cached PNG without re-converting."""
+        from ..imaging import _processed_cache, _raw_cache, load_frame_as_png
+
+        _raw_cache.clear()
+        _processed_cache.clear()
+
+        # Inject a fake raw frame into the raw cache
+        fake = np.random.randint(0, 65535, (50, 50), dtype=np.uint16)
+        _raw_cache.put("/fake/frame.b2nd", fake)
+
+        png1 = load_frame_as_png("/fake/frame.b2nd", size=64)
+        assert png1[:4] == b"\x89PNG"
+        assert _processed_cache.size == 1
+
+        png2 = load_frame_as_png("/fake/frame.b2nd", size=64)
+        assert png1 == png2  # exact same bytes from cache
+
+    def test_different_sizes_cache_separately(self) -> None:
+        """Different output sizes produce separate cache entries."""
+        from ..imaging import _processed_cache, _raw_cache, load_frame_as_png
+
+        _raw_cache.clear()
+        _processed_cache.clear()
+
+        fake = np.random.randint(0, 65535, (50, 50), dtype=np.uint16)
+        _raw_cache.put("/fake/sizes.b2nd", fake)
+
+        png_64 = load_frame_as_png("/fake/sizes.b2nd", size=64)
+        png_128 = load_frame_as_png("/fake/sizes.b2nd", size=128)
+        assert _processed_cache.size == 2
+        assert png_64 != png_128  # different sizes
+
+
+class TestPreloadFrames:
+    """Tests for preload_frames batch function."""
+
+    def test_preload_with_missing_files(self) -> None:
+        """Preload gracefully skips missing files."""
+        from ..imaging import preload_frames
+
+        loaded = preload_frames(["/nonexistent/a.b2nd", "/nonexistent/b.b2nd"], size=64)
+        assert loaded == 0
+
+    def test_preload_with_cached_raw(self) -> None:
+        """Preload works when raw frames are already cached."""
+        from ..imaging import _processed_cache, _raw_cache, preload_frames
+
+        _raw_cache.clear()
+        _processed_cache.clear()
+
+        fake = np.random.randint(0, 65535, (50, 50), dtype=np.uint16)
+        _raw_cache.put("/fake/preload_a.b2nd", fake)
+        _raw_cache.put("/fake/preload_b.b2nd", fake)
+
+        loaded = preload_frames(
+            ["/fake/preload_a.b2nd", "/fake/preload_b.b2nd"], size=64,
+        )
+        assert loaded == 2
+        assert _processed_cache.size == 2

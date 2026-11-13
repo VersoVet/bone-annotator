@@ -21,14 +21,15 @@ def labels_to_cvat_format(anatomy: dict[str, Any]) -> list[dict[str, Any]]:
     labels: list[dict[str, Any]] = []
     seen: set[str] = set()
 
-    # Zones → rectangle labels
+    # Zones → segmentation classes (any shape: mask/polygon/box)
     for zone in anatomy.get("zones", []):
         name = zone.get("id", zone.get("label", ""))
         if name and name not in seen:
+            color = (zone.get("color") or "").strip() or "#00FF00"
             labels.append(
                 {
                     "name": name,
-                    "color": zone.get("color", "#00FF00"),
+                    "color": color,
                     "type": "any",
                     "attributes": [],
                 }

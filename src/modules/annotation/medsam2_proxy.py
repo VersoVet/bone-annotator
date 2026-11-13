@@ -1,6 +1,6 @@
 """MedSAM2 temporal propagation proxy.
 
-Forwards propagation requests to MedSAM2 GPU server on OnyxCortex.
+Forwards propagation requests to MedSAM2 GPU server on OnyxTensor.
 Used for bone annotation: annotate 1 frame, propagate to entire series.
 """
 
@@ -23,9 +23,9 @@ def _load_medsam2_url() -> str:
     try:
         with open(config_path) as f:
             config = yaml.safe_load(f)
-        return config.get("medsam2", {}).get("gpu_direct", "http://10.0.0.26:9473")
+        return config.get("medsam2", {}).get("gpu_direct", "http://10.0.0.73:9473")
     except Exception:
-        return "http://10.0.0.26:9473"
+        return "http://10.0.0.73:9473"
 
 
 MEDSAM2_URL = _load_medsam2_url()

@@ -1,18 +1,28 @@
 # bone-annotator - Diagramme Architecture
 
+> Mis à jour 2026-11-13 — Migration GPU: SAM/MedSAM2 sur OnyxTensor GPU 2, Cortex training-only. AMP fp16 + RLE.
+
 ## Vue Générale des Composants
 
 ```mermaid
 graph TB
     subgraph External["Services Externes"]
         BS["BoneStore NFS<br/>/mnt/bonestore<br/>Raw .b2nd"]
-        PG["PostgreSQL<br/>10.0.0.44:5432<br/>bone_annotations"]
-        QD["Qdrant<br/>10.0.0.59:6333<br/>bone_atlas"]
+        PG["PostgreSQL<br/>10.0.0.8:5432<br/>bone_annotations"]
         CVAT["CVAT v2.72<br/>10.0.0.59:8080<br/>Annotation UI"]
         BONEML["bone-ml<br/>10.0.0.59:9463<br/>BoneSeg + YOLO"]
         MC["ml-compute<br/>10.0.0.44:9469<br/>GPU Jobs"]
         LG["label-generator<br/>10.0.0.59:9466<br/>Labels anatomiques"]
         PACS["OnyxBoneDatasetTraining<br/>10.0.0.90:8042<br/>PNG 16-bit datasets"]
+    end
+
+    subgraph GPUInference["OnyxTensor GPU 2 (RTX 2060S)"]
+        SAM["SAM Server<br/>10.0.0.73:9470<br/>vit_b/medsam"]
+        MEDSAM2["MedSAM2 Server<br/>10.0.0.73:9473<br/>AMP fp16 + RLE"]
+    end
+
+    subgraph GPUTraining["OnyxCortex GPU (RTX 4070S)"]
+        TRAIN["bone-learning<br/>Training exclusif<br/>Ray bone_training"]
     end
 
     subgraph BoneAnnotator["bone-annotator (FastAPI)<br/>Port 9468 - OnyxSynapse"]
@@ -32,6 +42,8 @@ graph TB
             LabelsM["labels<br/>label-generator Cache"]
             AnalysisM["analysis<br/>Morphometrics"]
             BoneSegM["boneseg<br/>Active Learning<br/>Test Set + GPU"]
+            SAMProxy["sam_proxy<br/>SAM Embed/Segment"]
+            MedSAM2Bridge["medsam2_bridge<br/>Propagation temporelle"]
         end
     end
 
@@ -49,11 +61,16 @@ graph TB
     AnnotationM -->|Store tasks| StorageM
     CVATModuleM -->|Sync annotations| StorageM
 
+    %% GPU inference
+    SAMProxy -->|Embed/Segment| SAM
+    MedSAM2Bridge -->|Propagate RLE| MEDSAM2
+    AnnotationM --> SAMProxy
+    AnnotationM --> MedSAM2Bridge
+
     %% External connections
     LabelsM --> LG
     CVATModuleM --> CVAT
     StorageM --> PG
-    StorageM --> QD
     DatasetM --> StorageM
     IngestionM --> BS
     DashboardM --> Modules
@@ -62,6 +79,8 @@ graph TB
     style BoneAnnotator fill:#e8f4f8
     style External fill:#fff4e6
     style Modules fill:#f0f8ff
+    style GPUInference fill:#e6ffe6
+    style GPUTraining fill:#ffe6e6
 ```
 
 ## Workflow Annotation Complet
@@ -188,9 +207,9 @@ graph LR
 
 ---
 
-**Dernière mise à jour**: 2026-10-25
-**Phase**: Dashboard admin + imaging-sdk pipelines
-**Version**: v0.1.61
+**Dernière mise à jour**: 2026-11-13
+**Phase**: S0 zones GOLD — SAM/MedSAM2 sur OnyxTensor, AMP fp16, RLE masks
+**Version**: v0.1.96+
 
 
 

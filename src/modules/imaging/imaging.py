@@ -16,8 +16,8 @@ from .frame_cache import LRUCache
 
 logger = logging.getLogger(__name__)
 
-FRAME_CACHE_SIZE = 100
-RAW_CACHE_SIZE = 50
+FRAME_CACHE_SIZE = 500
+RAW_CACHE_SIZE = 200
 
 # Global caches
 _raw_cache = LRUCache(RAW_CACHE_SIZE)
@@ -92,7 +92,7 @@ def _raw_to_png(image: np.ndarray, size: int = 768) -> bytes:
         img_u8 = image.astype(np.uint8)
 
     pil_img = Image.fromarray(img_u8, mode="L")
-    pil_img = pil_img.resize((size, size), Image.LANCZOS)
+    pil_img = pil_img.resize((size, size), Image.Resampling.LANCZOS)
     buf = io.BytesIO()
     pil_img.save(buf, format="PNG")
     return buf.getvalue()
@@ -109,7 +109,7 @@ def load_frame(path: str) -> np.ndarray:
     """
     cached = _raw_cache.get(path)
     if cached is not None:
-        return cached
+        return cached  # type: ignore[return-value]
     frame = _read_b2nd_frame(Path(path))
     _raw_cache.put(path, frame)
     return frame
@@ -126,6 +126,50 @@ def frame_to_png(image: np.ndarray, size: int = 768) -> bytes:
         PNG bytes.
     """
     return _raw_to_png(image, size)
+
+
+def load_frame_as_png(path: str, size: int = 768) -> bytes:
+    """Load a frame and return cached PNG bytes.
+
+    Combines raw loading and PNG conversion with two-level caching:
+    raw array cache and processed PNG cache.
+
+    Args:
+        path: Path to .b2nd frame file.
+        size: Output size in pixels.
+
+    Returns:
+        PNG bytes.
+    """
+    cache_key = f"{path}:{size}"
+    cached_png = _processed_cache.get(cache_key)
+    if cached_png is not None:
+        return cached_png  # type: ignore[return-value]
+    raw = load_frame(path)
+    png = _raw_to_png(raw, size)
+    _processed_cache.put(cache_key, png)
+    return png
+
+
+def preload_frames(paths: list[str], size: int = 768) -> int:
+    """Preload multiple frames into both raw and PNG caches.
+
+    Args:
+        paths: List of .b2nd file paths.
+        size: Output size in pixels.
+
+    Returns:
+        Number of frames successfully loaded.
+    """
+    loaded = 0
+    for path in paths:
+        try:
+            load_frame_as_png(path, size)
+            loaded += 1
+        except Exception as e:
+            logger.warning("Preload failed for %s: %s", path, e)
+    logger.info("Preloaded %d/%d frames (size=%d)", loaded, len(paths), size)
+    return loaded
 
 
 def clear_frame_cache() -> None:

@@ -23,11 +23,11 @@ dataset_storage_fallback:
 imaging:
   pipeline_dir: /opt/onyx/imaging-sdk/pipelines/users
 
-# MedSAM2 — propagation temporelle sur OnyxCortex
+# MedSAM2 — propagation temporelle sur OnyxTensor GPU 2 (RTX 2060S)
 medsam2:
-  gpu_direct: http://10.0.0.26:9473
+  gpu_direct: http://10.0.0.73:9473
 
-# SAM (Segment Anything) — serveur GPU direct sur OnyxCortex
+# SAM (Segment Anything) — serveur GPU direct sur OnyxTensor GPU 2 (RTX 2060S)
 sam:
-  gpu_direct: http://10.0.0.26:9470
+  gpu_direct: http://10.0.0.73:9470
   default_model: vit_b

@@ -225,13 +225,19 @@
                 <div id="statsContent" class="loading">Chargement...</div>
             </div>
 
+            <!-- Active tasks Card -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>Tâches d'annotation (S0)</h2>
+                <div id="tasksContent" class="loading">Chargement...</div>
+            </div>
+
             <!-- Quick Links Card -->
             <div class="card">
                 <h2>Navigation</h2>
                 <div class="nav-links">
                     <a href="/annotate/annotations">Gestion Annotations</a>
-                    <a href="/annotate/">Dashboard</a>
-                    <a href="/docs">API Docs</a>
+                    <a href="/annotate/learning">Learning BoneSeg</a>
+                    <a href="/annotate/settings">Settings</a>
                     <a href="/docs">API Docs</a>
                 </div>
             </div>
@@ -251,10 +257,94 @@
 
                 // Preprocessing status (Glia)
                 updateGlia(health);
+
+                await loadTasksSummary();
             } catch (error) {
                 console.error('Error loading dashboard:', error);
                 showError('Erreur lors du chargement du dashboard');
             }
+        }
+
+        async function loadTasksSummary() {
+            const el = document.getElementById('tasksContent');
+            try {
+                const r = await fetch('/api/annotation/tasks?limit=20');
+                const d = await r.json();
+                const tasks = d.tasks || [];
+                if (!tasks.length) {
+                    el.innerHTML = '<div style="color:#7f8c8d;">Aucune tâche. Ouvrez <a href="/annotate/annotations">Gestion Annotations</a>.</div>';
+                    document.getElementById('statsContent').innerHTML = '<div class="stat-item"><div class="stat-value">0</div><div class="stat-label">Tâches</div></div>';
+                    return;
+                }
+                const counts = {};
+                tasks.forEach(t => { counts[t.status] = (counts[t.status]||0)+1; });
+                document.getElementById('statsContent').innerHTML = Object.entries(counts).map(([k,v]) =>
+                    `<div class="stat-item"><div class="stat-value">${v}</div><div class="stat-label">${k}</div></div>`
+                ).join('');
+
+                const failed = tasks.filter(t => t.status === 'failed').length;
+                let html = '';
+                if (failed > 0) {
+                    html += `<div style="margin-bottom:10px;"><button onclick="cleanupFailed()" style="background:#e74c3c;color:#fff;border:0;padding:6px 12px;border-radius:4px;cursor:pointer;">Nettoyer ${failed} échec(s)</button></div>`;
+                }
+                html += '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+                html += '<tr style="text-align:left;color:#7f8c8d;"><th>#</th><th>Acquisition</th><th>Statut</th><th>Frames</th><th></th></tr>';
+                tasks.forEach(t => {
+                    const canAct = ['created','annotating','reviewing'].includes(t.status);
+                    html += `<tr style="border-top:1px solid #ecf0f1;">
+                        <td style="padding:8px 4px;"><strong>${t.id}</strong> ${t.cvat_task_id?`<span style="color:#95a5a6;">CVAT#${t.cvat_task_id}</span>`:''}</td>
+                        <td style="padding:8px 4px;">${t.acquisition_id||'-'}<div style="color:#95a5a6;font-size:11px;">${t.profile_id||''} ${t.bone_type||''}</div></td>
+                        <td style="padding:8px 4px;">${t.status}${t.has_pre_annotations?' · pré-annoté':''}</td>
+                        <td style="padding:8px 4px;">${t.annotated_frames||0}/${t.frame_count||0}</td>
+                        <td style="padding:8px 4px;white-space:nowrap;">
+                            ${t.cvat_url?`<a href="${t.cvat_url}" target="_blank" style="margin-right:6px;">CVAT</a>`:''}
+                            ${canAct?`<button onclick="preAnnotate(${t.id})" style="margin-right:4px;cursor:pointer;">Pré-annoter</button>`:''}
+                            ${canAct?`<button onclick="syncTask(${t.id})" style="margin-right:4px;cursor:pointer;">Sync</button>`:''}
+                            ${canAct?`<button onclick="validateGold(${t.id})" style="margin-right:4px;cursor:pointer;background:#27ae60;color:#fff;border:0;padding:2px 8px;border-radius:3px;">Valider GOLD</button>`:''}
+                            <a href="/annotate/annotations">Gérer</a>
+                        </td>
+                    </tr>`;
+                });
+                html += '</table>';
+                el.innerHTML = html;
+            } catch (e) {
+                el.innerHTML = `<div class="error">Impossible de charger les tâches: ${e}</div>`;
+            }
+        }
+
+        async function preAnnotate(id) {
+            if (!confirm('Pré-annoter #'+id+' (bone-ml ou CPU Otsu) ?')) return;
+            const r = await fetch('/api/annotation/pre-annotate/'+id+'?mode=auto&propagate=true', {method:'POST'});
+            const d = await r.json();
+            alert(r.ok ? ('OK: '+d.status+' — '+ (d.bone_ml_status||'')) : ('Erreur: '+(d.detail||JSON.stringify(d))));
+            loadTasksSummary();
+        }
+        async function syncTask(id) {
+            if (!confirm('Sync CVAT → PG pour #'+id+' ?')) return;
+            const r = await fetch('/api/annotation/sync/'+id, {method:'POST'});
+            const d = await r.json();
+            alert(r.ok ? ('Sync: '+d.synced_frames+' frames, '+d.zones_count+' zones') : ('Erreur: '+(d.detail||JSON.stringify(d))));
+            loadTasksSummary();
+        }
+        async function validateGold(id) {
+            const by = prompt('Validateur:');
+            if (!by) return;
+            if (!confirm('Valider #'+id+' → quality_tier=gold ?')) return;
+            try { await fetch('/api/annotation/sync/'+id, {method:'POST'}); } catch(_) {}
+            const r = await fetch('/api/annotation/validate/'+id, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({validated_by: by, decision: 'validated'})
+            });
+            const d = await r.json();
+            alert(r.ok ? ('Tâche #'+id+' validée GOLD') : ('Erreur: '+(d.detail||JSON.stringify(d))));
+            loadTasksSummary();
+        }
+        async function cleanupFailed() {
+            if (!confirm('Supprimer toutes les tâches failed ?')) return;
+            const r = await fetch('/api/annotation/tasks/failed', {method:'DELETE'});
+            const d = await r.json();
+            alert(r.ok ? ((d.count||0)+' failed supprimée(s)') : ('Erreur: '+(d.detail||JSON.stringify(d))));
+            loadTasksSummary();
         }
 
         function updateHealth(health) {

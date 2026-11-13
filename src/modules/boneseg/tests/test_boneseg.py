@@ -60,7 +60,7 @@ def test_learning_dashboard_import() -> None:
 
 def test_migrations_include_boneseg() -> None:
     """BoneSeg migrations are registered."""
-    from src.modules.storage.task_db import _MIGRATIONS
+    from src.modules.storage.task_db import MIGRATIONS as _MIGRATIONS
 
     sql = "\n".join(_MIGRATIONS)
     assert "quality_tier" in sql

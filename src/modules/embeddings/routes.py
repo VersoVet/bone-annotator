@@ -35,6 +35,7 @@ async def search_atlas(
 
     Raises:
         HTTPException: If search fails.
+        ValueError: If embedding is not a 1024D vector.
     """
     try:
         if len(embedding) != 1024:

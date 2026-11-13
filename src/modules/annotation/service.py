@@ -13,13 +13,13 @@ from src.modules.storage.task_db import AnnotationTaskDB, create_task_db
 from .exceptions import ActiveTaskExistsError
 from .models import (
     CreateTaskRequest,
-    PreAnnotateResponse,
     SyncResult,
     TaskListResponse,
     TaskProgress,
     TaskResponse,
     ValidateRequest,
 )
+from .workflow_ops import AnnotationWorkflowOps
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ def _task_row_to_response(row: dict[str, Any]) -> TaskResponse:
     )
 
 
-class AnnotationWorkflowService:
+class AnnotationWorkflowService(AnnotationWorkflowOps):
     """Orchestrates the complete annotation workflow."""
 
     def __init__(self) -> None:
@@ -148,6 +148,12 @@ class AnnotationWorkflowService:
             author=request.assignee or "system",
             assignee=request.assignee,
             pipeline_preset=pipeline,
+            cvat_task_id=None,
+            cvat_url=None,
+            dataset_path=None,
+            profile_id=request.profile_id,
+            objective=request.objective,
+            progress=None,
         )
 
     async def get_task(self, task_id: int) -> TaskResponse | None:
@@ -160,8 +166,14 @@ class AnnotationWorkflowService:
     async def delete_task(self, task_id: int) -> dict[str, Any]:
         """Delete a task and its CVAT counterpart.
 
+        Args:
+            task_id: Local annotation task ID to delete.
+
         Returns:
             Dict with deletion status and warnings.
+
+        Raises:
+            ValueError: If task not found.
         """
         task = self.task_db.get_task(task_id)
         if not task:
@@ -172,12 +184,21 @@ class AnnotationWorkflowService:
         cvat_task_id = task.get("cvat_task_id")
 
         if cvat_task_id:
-            try:
-                await self.cvat.authenticate()
-                cvat_deleted = await self.cvat.delete_task(cvat_task_id)
-            except Exception as e:
-                cvat_warning = f"CVAT delete failed: {e}"
-                logger.warning("Failed to delete CVAT task %d: %s", cvat_task_id, e)
+            # Do not destroy a CVAT task still referenced by another annotation task.
+            others = [
+                t
+                for t in (await self.list_tasks(limit=500)).tasks
+                if t.get("cvat_task_id") == cvat_task_id and int(t["id"]) != task_id
+            ]
+            if others:
+                cvat_warning = f"CVAT #{cvat_task_id} kept (still used by task {[t['id'] for t in others]})"
+            else:
+                try:
+                    await self.cvat.authenticate()
+                    cvat_deleted = await self.cvat.delete_task(cvat_task_id)
+                except Exception as e:
+                    cvat_warning = f"CVAT delete failed: {e}"
+                    logger.warning("Failed to delete CVAT task %d: %s", cvat_task_id, e)
 
         self.task_db.delete_task(task_id)
         logger.info("Deleted task %d (CVAT %s)", task_id, cvat_task_id)
@@ -193,6 +214,9 @@ class AnnotationWorkflowService:
 
     async def check_cvat_exists(self, task_id: int) -> bool | None:
         """Check if the CVAT task for a given task still exists.
+
+        Args:
+            task_id: Local annotation task ID to check.
 
         Returns:
             True/False, or None if task not found.
@@ -210,9 +234,10 @@ class AnnotationWorkflowService:
         status: str | None = None,
         bone_type: str | None = None,
         profile_id: str | None = None,
+        region: str | None = None,
     ) -> TaskListResponse:
         """List annotation tasks with optional filters."""
-        tasks, total = self.task_db.list_tasks(limit, offset, status, bone_type, profile_id)
+        tasks, total = self.task_db.list_tasks(limit, offset, status, bone_type, profile_id, region)
         for t in tasks:
             for key in ("created_at", "updated_at", "validated_at"):
                 if t.get(key):
@@ -253,101 +278,6 @@ class AnnotationWorkflowService:
         if request.decision == "validated" and result.bone_type:
             await self._maybe_trigger_training(result.bone_type)
         return result
-
-    async def re_annotate_task(self, task_id: int, pre_annotate: bool = True) -> TaskResponse:
-        """Create a re-annotation task from a validated parent."""
-        parent = self.task_db.get_task(task_id)
-        if not parent:
-            raise ValueError(f"Task {task_id} not found")
-        if parent.get("status") != "validated":
-            raise ValueError(f"Task {task_id} not validated (status={parent.get('status')})")
-
-        from .models import CreateTaskRequest
-
-        request = CreateTaskRequest(
-            source_name=parent.get("source_name", "bonestore"),
-            acquisition_id=parent["acquisition_id"],
-            bone_type=parent["bone_type"],
-            region=parent.get("region", "entire"),
-            pipeline_preset=parent.get("pipeline_preset") or get_imaging_config()["default_treatment"],
-            pre_annotate=False,
-        )
-        result = await self.create_task(request)
-        self.task_db.update_task(result.id, parent_task_id=task_id)
-
-        # Copy validated annotations from parent into new CVAT task
-        if result.cvat_task_id and parent.get("cvat_task_id"):
-            await self._copy_parent_annotations(parent["cvat_task_id"], result.cvat_task_id)
-
-        # Optionally request ML pre-annotations on top
-        if pre_annotate and result.cvat_task_id:
-            from .ml_bridge import call_bone_ml_annotate
-
-            await call_bone_ml_annotate(result.cvat_task_id, parent.get("bone_type"))
-            self.task_db.update_task(result.id, has_pre_annotations=True, status="annotating")
-            from .catalog_notify import notify_catalog_task_status
-
-            await notify_catalog_task_status(parent["acquisition_id"], result.id, "annotating")
-
-        return result
-
-    async def _copy_parent_annotations(self, parent_cvat_id: int, new_cvat_id: int) -> None:
-        """Copy annotations from parent CVAT task to new task."""
-        try:
-            parent_anns = await self.cvat.get_annotations(parent_cvat_id)
-            if parent_anns and parent_anns.get("shapes"):
-                payload = {"version": 0, "shapes": parent_anns["shapes"], "tracks": [], "tags": []}
-                await self.cvat.update_annotations(new_cvat_id, payload)
-        except Exception as e:
-            logger.warning("Failed to copy parent annotations: %s", e)
-
-    async def request_pre_annotation(self, task_id: int) -> PreAnnotateResponse:
-        """Request ML pre-annotations from bone-ml."""
-        from .ml_bridge import call_bone_ml_annotate
-
-        task = self.task_db.get_task(task_id)
-        if not task or not task.get("cvat_task_id"):
-            raise ValueError(f"Task {task_id} not found or no CVAT task")
-        ml_status = await call_bone_ml_annotate(task["cvat_task_id"], task.get("bone_type"))
-        self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
-        from .catalog_notify import notify_catalog_task_status
-
-        await notify_catalog_task_status(task["acquisition_id"], task_id, "annotating")
-        return PreAnnotateResponse(
-            task_id=task_id,
-            cvat_task_id=task["cvat_task_id"],
-            status="pre_annotation_requested",
-            bone_ml_status=ml_status,
-        )
-
-    async def _maybe_trigger_training(self, bone_type: str) -> None:
-        """Trigger fine-tuning if enough validated tasks."""
-        from .ml_bridge import maybe_trigger_training
-
-        await maybe_trigger_training(self.task_db._get_conn(), bone_type)
-
-    async def propagate_medsam2(
-        self,
-        task_id: int,
-        seed_frame_idx: int = 0,
-        label_ids: list[int] | None = None,
-    ) -> dict[str, Any]:
-        """Propagate bone masks with MedSAM2 temporal propagation."""
-        from .medsam2_bridge import propagate
-
-        task = self.task_db.get_task(task_id)
-        if not task or not task.get("cvat_task_id"):
-            raise ValueError(f"Task {task_id} not found or no CVAT task")
-        if not task.get("dataset_path"):
-            raise ValueError(f"Task {task_id} has no dataset_path")
-        await self.cvat.authenticate()
-        result = await propagate(self.cvat, task, seed_frame_idx, label_ids)
-        self.task_db.update_task(task_id, has_pre_annotations=True, status="annotating")
-        from .catalog_notify import notify_catalog_task_status
-
-        await notify_catalog_task_status(task["acquisition_id"], task_id, "annotating")
-        return result
-
 
 _service: AnnotationWorkflowService | None = None
 

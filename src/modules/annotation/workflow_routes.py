@@ -1,0 +1,244 @@
+"""Annotation workflow routes: sync, validate, pre-annotate, MedSAM2, export."""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, Query
+
+from .models import PropagateRequest, ValidateRequest
+from .service import get_service
+
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/api/annotation", tags=["annotation"])
+
+
+@router.post("/sync/{task_id}")
+async def sync_task_annotations(task_id: int) -> dict[str, Any]:
+    """Sync annotations from CVAT back to PostgreSQL.
+
+    Args:
+        task_id: Internal task ID.
+
+    Returns:
+        Sync result with counts.
+
+    Raises:
+        HTTPException: 404 if task not found, 500 on sync failure.
+    """
+    try:
+        service = get_service()
+        result = await service.sync_task(task_id)
+        return {"status": "synced", **result.model_dump()}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Error syncing task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Failed to sync annotations")
+
+
+@router.post("/validate/{task_id}")
+async def validate_task(task_id: int, request: ValidateRequest) -> dict[str, Any]:
+    """Validate or reject a task (validated → quality_tier=gold).
+
+    Args:
+        task_id: Internal task ID.
+        request: Validation decision and notes.
+
+    Returns:
+        Updated task status.
+
+    Raises:
+        HTTPException: 400 if decision invalid, 404 if task not found, 500 on failure.
+    """
+    try:
+        if request.decision not in ("validated", "rejected"):
+            raise HTTPException(status_code=400, detail="Decision must be 'validated' or 'rejected'")
+        service = get_service()
+        result = await service.validate_task(task_id, request)
+        return {"status": request.decision, "task": result.model_dump()}
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Error validating task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Failed to validate task")
+
+
+@router.post("/pre-annotate/{task_id}")
+async def request_pre_annotation(
+    task_id: int,
+    mode: str = Query("auto", description="auto|ml|cpu"),
+    propagate: bool = Query(True, description="After CPU seeds, try MedSAM2 propagate"),
+) -> dict[str, Any]:
+    """Request pre-annotations (bone-ml, else CPU Otsu, optional MedSAM2).
+
+    Args:
+        task_id: Internal task ID.
+        mode: Backend selection (auto, ml, cpu).
+        propagate: Enable MedSAM2 fill after CPU seeds.
+
+    Returns:
+        Pre-annotation request status.
+
+    Raises:
+        HTTPException: 400 if mode invalid, 404 if task not found, 500 on failure.
+    """
+    try:
+        if mode not in ("auto", "ml", "cpu"):
+            raise HTTPException(status_code=400, detail="mode must be auto|ml|cpu")
+        service = get_service()
+        result = await service.request_pre_annotation(task_id, mode=mode, propagate=propagate)
+        return {"status": result.status, **result.model_dump()}
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error("Error requesting pre-annotation for task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail=f"Failed to request pre-annotation: {e}")
+
+
+@router.post("/re-annotate/{task_id}")
+async def re_annotate_task(
+    task_id: int,
+    pre_annotate: bool = True,
+) -> dict[str, Any]:
+    """Create a re-annotation task from a validated parent.
+
+    Args:
+        task_id: Parent task ID (must be validated).
+        pre_annotate: Request ML pre-annotations with latest model.
+
+    Returns:
+        New task info.
+
+    Raises:
+        HTTPException: 400 if parent task invalid, 500 on failure.
+    """
+    try:
+        service = get_service()
+        result = await service.re_annotate_task(task_id, pre_annotate)
+        return {"status": "created", "task": result.model_dump(), "parent_task_id": task_id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Error re-annotating task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail="Failed to re-annotate")
+
+
+@router.get("/task/{task_id}/seed-annotations")
+async def get_seed_annotations(
+    task_id: int,
+    frame: int = Query(0, ge=0, description="Frame index to inspect"),
+) -> dict[str, Any]:
+    """List annotations on a specific frame for MedSAM2 propagation UI.
+
+    Args:
+        task_id: Internal task ID.
+        frame: Frame index to inspect.
+
+    Returns:
+        List of annotations with label_id and label_name.
+
+    Raises:
+        HTTPException: 404 if task not found or has no CVAT task.
+    """
+    service = get_service()
+    task = service.task_db.get_task(task_id)
+    if not task or not task.get("cvat_task_id"):
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found or no CVAT task")
+    await service.cvat.authenticate()
+    annotations = await service.cvat.get_annotations(task["cvat_task_id"])
+    labels = await service.cvat.get_task_labels(task["cvat_task_id"])
+    label_map = {lbl["id"]: lbl["name"] for lbl in labels}
+
+    seed_shapes = []
+    for shape in (annotations or {}).get("shapes", []):
+        if shape.get("frame") == frame:
+            lid = shape.get("label_id", 0)
+            seed_shapes.append(
+                {
+                    "label_id": lid,
+                    "label_name": label_map.get(lid, f"label_{lid}"),
+                    "type": shape.get("type", "unknown"),
+                }
+            )
+    return {"frame": frame, "annotations": seed_shapes, "total": len(seed_shapes)}
+
+
+@router.post("/propagate/{task_id}")
+async def propagate_medsam2(
+    task_id: int,
+    request: PropagateRequest | None = None,
+    seed_frame: int = Query(0, ge=0, description="Frame index with the seed mask"),
+) -> dict[str, Any]:
+    """Propagate bone masks with MedSAM2 temporal propagation.
+
+    Args:
+        task_id: Internal task ID.
+        request: Optional body with seed_frame and label_ids.
+        seed_frame: Frame index (query param fallback).
+
+    Returns:
+        Propagation result with mask counts per label.
+
+    Raises:
+        HTTPException: 400 if request invalid, 500 on propagation failure.
+    """
+    try:
+        sf = request.seed_frame if request else seed_frame
+        lids = request.label_ids if request else None
+        service = get_service()
+        result = await service.propagate_medsam2(task_id, sf, lids)
+        return {"status": "propagated", **result}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Error propagating MedSAM2 for task %d: %s", task_id, e)
+        raise HTTPException(status_code=500, detail=f"Propagation failed: {e}")
+
+
+@router.post("/export")
+async def export_annotations(
+    task_ids: list[int] | None = None,
+    export_format: str = "yolo",
+) -> dict[str, Any]:
+    """Export validated annotations to training format.
+
+    Args:
+        task_ids: Task IDs to export (None = all validated).
+        export_format: Export format (yolo).
+
+    Returns:
+        Export result with dataset path.
+
+    Raises:
+        HTTPException: 500 if export fails.
+    """
+    _ = export_format
+    try:
+        service = get_service()
+        result = await service.list_tasks(limit=1000, status="validated")
+        acq_ids = [t["acquisition_id"] for t in result.tasks]
+
+        if task_ids:
+            filtered = []
+            for tid in task_ids:
+                task = await service.get_task(tid)
+                if task:
+                    filtered.append(task.acquisition_id)
+            acq_ids = filtered
+
+        if not acq_ids:
+            return {"status": "warning", "message": "No validated tasks to export"}
+
+        from src.modules.ml.dataset.service import export_to_yolo
+
+        export = await export_to_yolo(acq_ids)
+        return {"status": "ok", "export": export}
+    except Exception as e:
+        logger.error("Error exporting annotations: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to export")

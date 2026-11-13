@@ -21,6 +21,9 @@ async def labels_status() -> dict[str, Any]:
 
     Returns:
         Service status with available bone types and label counts.
+
+    Raises:
+        HTTPException: If status cannot be fetched.
     """
     try:
         status = await service.get_status()
@@ -41,6 +44,9 @@ async def get_all_labels() -> dict[str, Any]:
 
     Returns:
         Complete label hierarchy keyed by bone type.
+
+    Raises:
+        HTTPException: If labels cannot be loaded.
     """
     try:
         labels = service.load_anatomy_labels()
@@ -222,6 +228,9 @@ async def validate_zone(
 
     Returns:
         Validation result.
+
+    Raises:
+        HTTPException: If validation fails or required params are missing.
     """
     try:
         if not bone_type or not zone_id:
@@ -253,6 +262,9 @@ async def validate_landmark(bone_type: str, landmark_id: str) -> dict[str, Any]:
 
     Returns:
         Validation result.
+
+    Raises:
+        HTTPException: If validation fails or required params are missing.
     """
     try:
         if not bone_type or not landmark_id:

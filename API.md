@@ -250,6 +250,41 @@ Proxy vers `bone-ml /api/boneseg/catalog/stats`.
 
 ## Annotation
 
+### S0 workflow (zones GOLD)
+
+```bash
+# 1. Pré-annoter (bone-ml → fallback CPU Otsu → MedSAM2 Cortex)
+curl -X POST 'http://10.0.0.59:9468/api/annotation/pre-annotate/4?mode=auto&propagate=true'
+
+# 2. Corriger dans CVAT puis sync PG
+curl -X POST http://10.0.0.59:9468/api/annotation/sync/4
+
+# 3. Valider → quality_tier=gold
+curl -X POST http://10.0.0.59:9468/api/annotation/validate/4 \
+  -H 'Content-Type: application/json' \
+  -d '{"validated_by":"jp","decision":"validated"}'
+
+# Nettoyer tâches failed
+curl -X DELETE http://10.0.0.59:9468/api/annotation/tasks/failed
+```
+
+Dashboard: `/annotate/annotations` — boutons Pré-annoter / CVAT / Sync / Valider GOLD / Suppr.
+
+### `POST /api/annotation/pre-annotate/{task_id}`
+Pré-annotation ML ou CPU.
+
+Query: `mode=auto|ml|cpu`, `propagate=true|false`.
+
+**Response** (200):
+```json
+{
+  "status": "pre_annotation_cpu_medsam2",
+  "task_id": 4,
+  "cvat_task_id": 28,
+  "bone_ml_status": "error:yolo_nonfinal:started|cpu:cpu_ok:5|medsam2:929"
+}
+```
+
 ### `POST /api/annotation/task`
 Créer une tâche CVAT pour une acquisition (asynchrone — retour immédiat).
 
@@ -973,6 +1008,9 @@ Validate that a landmark annotation is applicable for a bone type.
 ### `POST /api/labels/sync`
 Synchronize labels from label-generator service.
 
+Source GOLD zones/landmarks: `GET http://10.0.0.59:9466/labels/api/accepted-labels/{bone_type}`
+(écrase les zones/landmarks anatomy). Fallback: `GET /api/labels/anatomy`.
+
 **Response** (200):
 ```json
 {
@@ -980,6 +1018,17 @@ Synchronize labels from label-generator service.
   "bone_types_updated": 4
 }
 ```
+
+### `POST /api/cvat/projects/{bone_type}/sync-labels`
+Sync accepted-labels → projet CVAT `bone_{bone_type}` (add-only).
+
+Query: `zones_only=true` (défaut) pour S0 segmentation zones.
+
+```bash
+curl -X POST 'http://10.0.0.59:9468/api/cvat/projects/humerus/sync-labels?zones_only=true'
+```
+
+**S0 GOLD MVP (zones)**: CVAT task **#28**, 929 frames, 54 labels zones — voir `TODO.md`.
 
 ---
 
@@ -1314,6 +1363,35 @@ Load a .b2nd frame and return as PNG image.
 
 **Response** (200): PNG image bytes (`Content-Type: image/png`)
 
+### `GET /api/imaging/frame.png`
+Serve a frame as PNG via GET (usable as `<img src>`). Two-level cache (raw + PNG).
+
+**Query params**: `path` (required), `size` (default 768)
+
+**Response** (200): PNG image bytes with `Cache-Control: public, max-age=3600`
+
+### `POST /api/imaging/preload`
+Preload all frames for an acquisition into cache (runs in background).
+
+**Request**:
+```json
+{
+  "acquisition_id": "HUMERUS_B_20241014_153103_04159",
+  "source_name": "bonestore",
+  "size": 512
+}
+```
+
+**Response** (200):
+```json
+{
+  "status": "preloading",
+  "acquisition_id": "HUMERUS_B_20241014_153103_04159",
+  "frame_count": 929,
+  "size": 512
+}
+```
+
 ### `GET /api/imaging/frame/info`
 Get frame metadata (shape, dtype, size) without full loading.
 
@@ -1454,7 +1532,7 @@ décodeur ONNX SAM1 du navigateur CVAT.
 
 ## MedSAM2 (Propagation Temporelle)
 
-MedSAM2 est servi directement par OnyxCortex sur `10.0.0.26:9473`.
+MedSAM2 est servi directement par OnyxTensor GPU 2 (RTX 2060S) sur `10.0.0.73:9473`.
 Il est utilisé par bone-annotator, pas par l'interactor CVAT.
 
 ### `GET /api/medsam2/status`
@@ -1480,7 +1558,7 @@ curl -X POST http://10.0.0.59:9468/api/annotation/propagate/1?seed_frame=0
 **Dernière mise à jour**: 2026-10-25
 **Phase**: MedSAM2 temporal propagation
 **Version**: v0.1.47
-**Endpoints**: 68+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 6, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 7, SAM 5, MedSAM2 4)
+**Endpoints**: 70+ (Health/Status 4, Ingestion 4, BoneStore 3, Annotation 6, Prediction 3, Dataset/Training 7, Embeddings 4, Dashboard 7, Labels 10, Analysis 5, CVAT 8, Imaging 9, SAM 5, MedSAM2 4)
 
 
 

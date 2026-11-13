@@ -50,11 +50,10 @@ class StorageService:
             True if successful.
         """
         try:
-            self._pg_db.save_annotation(
-                acquisition_id=acquisition_id,
-                frame_id=frame_id,
-                annotation_type=annotation_type,
-                data=data,
+            self._pg_db.save_frame_annotations(
+                acquisition_id,
+                frame_id,
+                {annotation_type + "s": [data]},
             )
             return True
         except Exception as e:
@@ -76,8 +75,18 @@ class StorageService:
             List of annotation dicts.
         """
         try:
-            annotations = self._pg_db.get_annotations(acquisition_id, annotation_type)
-            return annotations if annotations else []
+            result = self._pg_db.load_acquisition_annotations(acquisition_id)
+            frames = result.get("frames", {})
+            annotations: list[dict[str, Any]] = []
+            for frame_data in frames.values():
+                if annotation_type:
+                    key = annotation_type + "s"
+                    annotations.extend(frame_data.get(key, []))
+                else:
+                    for items in frame_data.values():
+                        if isinstance(items, list):
+                            annotations.extend(items)
+            return annotations
         except Exception as e:
             logger.error("Failed to fetch annotations: %s", e)
             return []
@@ -92,8 +101,8 @@ class StorageService:
             True if successful.
         """
         try:
-            self._pg_db.delete_annotation(annotation_id)
-            return True
+            logger.warning("delete_annotation not supported by pg_db; annotation_id=%s", annotation_id)
+            return False
         except Exception as e:
             logger.error("Failed to delete annotation: %s", e)
             return False
@@ -108,7 +117,8 @@ class StorageService:
             Acquisition dict or None.
         """
         try:
-            return self._pg_db.get_acquisition(acquisition_id)
+            result = self._pg_db.load_acquisition_annotations(acquisition_id)
+            return result if result else None
         except Exception as e:
             logger.error("Failed to fetch acquisition: %s", e)
             return None

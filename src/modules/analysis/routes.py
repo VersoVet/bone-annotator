@@ -52,6 +52,9 @@ async def analysis_status() -> dict[str, Any]:
 
     Returns:
         Service status with available models.
+
+    Raises:
+        HTTPException: If fetching status fails.
     """
     try:
         service = get_service()

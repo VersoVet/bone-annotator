@@ -27,6 +27,7 @@ def test_cvat_mask_to_binary_restores_crop_offset() -> None:
 
     result = _cvat_mask_to_binary(shape, (8, 9))
 
+    assert result is not None
     assert result.shape == (9, 8)
     assert np.array_equal(result[4:6, 3:5], crop)
     assert int(result.sum()) == 3
@@ -40,6 +41,7 @@ def test_binary_mask_to_rle_preserves_bounds() -> None:
     encoded = _binary_mask_to_rle(mask)
     decoded = _cvat_mask_to_binary({"points": encoded}, (7, 6))
 
+    assert decoded is not None
     assert np.array_equal(decoded, mask)
 
 
@@ -114,7 +116,8 @@ def test_propagation_batches_keep_original_indices(tmp_path: Path) -> None:
 
     result = asyncio.run(run())
 
-    assert sorted(result) == [0, 1, 2, 3, 4]
+    frame_indices = sorted(k for k in result if isinstance(k, int))
+    assert frame_indices == [0, 1, 2, 3, 4]
     assert client.post.call_count == 2
 
 
@@ -132,6 +135,8 @@ def test_propagate_pushes_masks_with_true_frame_indices(tmp_path: Path) -> None:
     mask_b64 = base64.b64encode(mask_buffer.getvalue()).decode()
 
     class FakeCvat:
+        payload: dict[str, object] = {}
+
         async def get_annotations(self, task_id: int) -> dict[str, object]:
             return {"shapes": [{"frame": 0, "type": "mask", "points": seed_rle, "label_id": 7}]}
 
@@ -152,4 +157,6 @@ def test_propagate_pushes_masks_with_true_frame_indices(tmp_path: Path) -> None:
     result = asyncio.run(run())
 
     assert result["total_frames"] == 2
-    assert [shape["frame"] for shape in cvat.payload["shapes"]] == [0, 1]
+    shapes = cvat.payload["shapes"]
+    assert isinstance(shapes, list)
+    assert [shape["frame"] for shape in shapes] == [0, 1]  # type: ignore[index]

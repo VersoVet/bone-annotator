@@ -33,8 +33,25 @@ class AnnotationPgDB:
         dbname: Database name.
     """
 
-    def __init__(self, host: str, port: int, user: str, password: str, dbname: str) -> None:
-        """Initialize PostgreSQL connection parameters."""
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        user: str,
+        password: str,
+        dbname: str,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize PostgreSQL connection parameters.
+
+        Args:
+            host: PostgreSQL server address.
+            port: PostgreSQL port.
+            user: Database user.
+            password: Database password.
+            dbname: Database name.
+        """
+        _ = kwargs  # schema handled via SCHEMA constant
         self._conninfo = f"host={host} port={port} user={user} password={password} dbname={dbname}"
         self._conn: psycopg.Connection | None = None
 
@@ -237,7 +254,7 @@ class AnnotationPgDB:
             "SELECT pipeline_config, pipeline_preset FROM bone_annotations.acquisitions WHERE id=%s",
             (acq_id,),
         ).fetchone()
-        pipeline = acq[0] if isinstance(acq[0], list) else json.loads(acq[0]) if acq and acq[0] else []
+        pipeline = (acq[0] if isinstance(acq[0], list) else json.loads(acq[0])) if acq and acq[0] else []
         preset = acq[1] if acq else ""
 
         # Annotations by frame
@@ -287,7 +304,8 @@ class AnnotationPgDB:
         """
         conn = self._get_conn()
         rows = conn.execute("SELECT * FROM bone_annotations.stats").fetchall()
-        cols = [desc[0] for desc in conn.execute("SELECT * FROM bone_annotations.stats LIMIT 0").description]
+        stats_desc = conn.execute("SELECT * FROM bone_annotations.stats LIMIT 0").description or []
+        cols = [desc[0] for desc in stats_desc]
         stats = [dict(zip(cols, row, strict=False)) for row in rows]
         total = {
             "acquisitions": sum(s.get("acquisitions", 0) for s in stats),

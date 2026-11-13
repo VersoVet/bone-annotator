@@ -17,7 +17,7 @@ def test_create_task_db_import() -> None:
 
 def test_migrations_list() -> None:
     """Test migration SQL statements are defined."""
-    from src.modules.storage.task_db import _MIGRATIONS
+    from src.modules.storage.task_db import MIGRATIONS as _MIGRATIONS
 
     assert len(_MIGRATIONS) >= 7
     assert any("annotation_tasks" in m for m in _MIGRATIONS)

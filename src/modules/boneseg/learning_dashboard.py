@@ -49,7 +49,7 @@ def _build_progress_bars(gold_by_bone: dict[str, int], last_by_bone: dict[str, s
                 "last_annotation": last_by_bone.get(bone),
             }
         )
-    bars.sort(key=lambda x: x["gold_count"], reverse=True)
+    bars.sort(key=lambda x: x["gold_count"] if isinstance(x["gold_count"], int) else 0, reverse=True)
     return bars
 
 
@@ -108,7 +108,7 @@ async def get_learning_dashboard(bone_type: str | None = None) -> dict[str, Any]
         if isinstance(raw_hist, list):
             train_history = raw_hist
         elif isinstance(raw_hist, dict):
-            train_history = raw_hist.get("runs", raw_hist.get("history", []))
+            train_history = raw_hist.get("runs", raw_hist.get("history", [])) or []
 
         new_url = f"{ml_config['base_url']}/api/boneseg/catalog/new?limit=1"
         raw_new = await _fetch_json(client, new_url)
@@ -117,7 +117,7 @@ async def get_learning_dashboard(bone_type: str | None = None) -> dict[str, Any]
         if isinstance(raw_new, list) and not catalog_new_count:
             catalog_new_count = len(raw_new)
         elif isinstance(raw_new, dict) and not catalog_new_count:
-            catalog_new_count = raw_new.get("count", raw_new.get("total", 0))
+            catalog_new_count = int(raw_new.get("count", raw_new.get("total", 0)) or 0)
 
         al_suggest = await fetch_al_suggest(client, bone_type=bone_type or DEFAULT_AL_BONE, n_suggest=50)
 
@@ -133,7 +133,7 @@ async def get_learning_dashboard(bone_type: str | None = None) -> dict[str, Any]
         if isinstance(raw_jobs, list):
             ml_jobs = raw_jobs
         elif isinstance(raw_jobs, dict):
-            ml_jobs = raw_jobs.get("jobs", raw_jobs.get("results", []))
+            ml_jobs = raw_jobs.get("jobs", raw_jobs.get("results", [])) or []
 
     gpu = await check_gpu_available()
     comparison = await get_model_comparison(bone_type, limit=12)

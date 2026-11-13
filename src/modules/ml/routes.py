@@ -134,6 +134,9 @@ async def training_status(job_id: str | None = None) -> dict[str, Any]:
 
     Returns:
         Training job status or list of all active jobs.
+
+    Raises:
+        HTTPException: If status cannot be fetched.
     """
     try:
         result = await get_training_status(job_id)
@@ -152,6 +155,9 @@ async def list_jobs(limit: int = 50) -> dict[str, Any]:
 
     Returns:
         List of training jobs with metadata.
+
+    Raises:
+        HTTPException: If jobs cannot be listed.
     """
     try:
         result = await list_training_jobs(limit)

@@ -110,6 +110,7 @@ class ShapeModel:
 
         Raises:
             RuntimeError: If model not fitted (mean_shape is None).
+            ValueError: If shape_vector dimensions don't match the fitted model.
         """
         if self.mean_shape is None:
             msg = "Model not fitted"
@@ -118,6 +119,9 @@ class ShapeModel:
             msg = f"Shape mismatch: got {shape_vector.shape}, expected {self.mean_shape.shape}"
             raise ValueError(msg)
         centered = shape_vector - self.mean_shape
+        if self.components is None:
+            msg = "Model not fitted"
+            raise RuntimeError(msg)
         return centered @ self.components.T
 
     def reconstruct(self, shape_code: np.ndarray) -> np.ndarray:
@@ -142,6 +146,9 @@ class ShapeModel:
 
         High values indicate unusual morphology.
 
+        Args:
+            shape_vector: Flattened landmark coordinates for the specimen.
+
         Raises:
             RuntimeError: If model not fitted.
         """
@@ -154,6 +161,9 @@ class ShapeModel:
 
     def detect_deviation(self, shape_vector: np.ndarray) -> dict:
         """Analyze a specimen for morphological deviations.
+
+        Args:
+            shape_vector: Flattened landmark coordinates for the specimen.
 
         Returns:
             Dict with shape_code, Mahalanobis distance, flags, and
@@ -171,7 +181,7 @@ class ShapeModel:
 
         # Per-component z-scores
         component_deviations: list[dict] = []
-        if self.explained_variance is not None:
+        if self.explained_variance is not None and self.explained_variance_ratio is not None:
             stds = np.sqrt(self.explained_variance)
             for i, (c, s) in enumerate(zip(code, stds, strict=False)):
                 z = abs(c) / s if s > 1e-8 else 0.0

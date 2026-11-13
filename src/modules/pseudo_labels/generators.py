@@ -39,7 +39,7 @@ def generate_density_mask(
     # K-means clustering on intensity values
     pixels_f32 = bone_pixels.astype(np.float32).reshape(-1, 1)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
-    _, labels_km, centers = cv2.kmeans(pixels_f32, n_clusters, None, criteria, 10, cv2.KMEANS_PP_CENTERS)
+    _, labels_km, centers = cv2.kmeans(pixels_f32, n_clusters, None, criteria, 10, cv2.KMEANS_PP_CENTERS)  # type: ignore[call-overload]
     labels_km = labels_km.flatten()
     centers = centers.flatten()
 

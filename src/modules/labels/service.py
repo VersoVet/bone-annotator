@@ -2,7 +2,7 @@
 
 Manages anatomical labels, caching, and integration with label-generator.
 Provides hierarchical label structures for zone, landmark, and lesion annotations.
-Uses label-generator API as primary source with local JSON cache fallback.
+Uses accepted-labels (zones/landmarks GOLD) as primary source, anatomy as fallback.
 """
 
 import json
@@ -14,20 +14,23 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 LABEL_GENERATOR_URL = "http://10.0.0.59:9466/api/labels/anatomy"
+ACCEPTED_LABELS_URL = "http://10.0.0.59:9466/labels/api/accepted-labels/{bone_type}"
 CACHE_PATH = Path(__file__).resolve().parent.parent.parent.parent / "config" / "anatomy_zones.json"
 
 # Cache local pour les labels anatomiques
 _label_cache: dict[str, Any] = {}
 _cache_loaded: bool = False
+_accepted_cache: dict[str, dict[str, Any]] = {}
 
 
 def load_anatomy_labels(config_path: str | Path | None = None) -> dict[str, Any]:
     """Charger les labels anatomiques depuis label-generator API ou cache JSON.
 
     Stratégie:
-    1. Tenter de charger depuis API label-generator (http://10.0.0.59:9466/api/labels/anatomy)
-    2. Si API répond, sauvegarder en cache JSON local
-    3. Si API échoue, utiliser le cache JSON local
+    1. Tenter de charger depuis API label-generator anatomy
+    2. Enrichir chaque os avec accepted-labels (source GOLD zones/landmarks)
+    3. Si API répond, sauvegarder en cache JSON local
+    4. Si API échoue, utiliser le cache JSON local
 
     Args:
         config_path: Chemin vers le fichier de configuration anatomique (fallback).
@@ -44,9 +47,9 @@ def load_anatomy_labels(config_path: str | Path | None = None) -> dict[str, Any]
     # Étape 1: Tenter de charger depuis label-generator API
     labels = _load_from_api()
     if labels:
+        _enrich_with_accepted_labels(labels)
         _label_cache = labels
         _cache_loaded = True
-        # Sauvegarder en cache pour fallback
         _save_cache(labels, config_path)
         return _label_cache
 
@@ -63,22 +66,20 @@ def load_anatomy_labels(config_path: str | Path | None = None) -> dict[str, Any]
                 _cache_loaded = True
                 logger.info("Anatomy labels loaded from cache: %s", config_path)
                 return _label_cache
-        else:
-            logger.warning("Anatomy cache not found at %s", config_path)
-            return {}
+        logger.warning("Anatomy cache not found at %s", config_path)
+        return {}
     except Exception as e:
         logger.error("Failed to load anatomy labels from cache: %s", e)
         return {}
 
 
 def _load_from_api() -> dict[str, Any] | None:
-    """Charger les labels depuis label-generator API.
+    """Charger les labels depuis label-generator API anatomy.
 
     Returns:
         Dict avec labels ou None si échoue.
     """
     try:
-        # Utiliser synchrone pour compatibilité
         import urllib.request
 
         with urllib.request.urlopen(LABEL_GENERATOR_URL, timeout=10) as response:
@@ -86,12 +87,77 @@ def _load_from_api() -> dict[str, Any] | None:
                 data = json.loads(response.read().decode())
                 logger.info("Anatomy labels loaded from API: %s", LABEL_GENERATOR_URL)
                 return data
-            else:
-                logger.warning("API returned status %d", response.status)
-                return None
+            logger.warning("API returned status %d", response.status)
+            return None
     except Exception as e:
         logger.warning("Failed to load labels from API (%s): %s", LABEL_GENERATOR_URL, e)
         return None
+
+
+def fetch_accepted_labels(bone_type: str, *, use_cache: bool = True) -> dict[str, Any] | None:
+    """Fetch accepted zones/landmarks for one bone from label-generator.
+
+    Args:
+        bone_type: Bone type (e.g. humerus).
+        use_cache: Reuse in-memory accepted cache when True.
+
+    Returns:
+        Dict with zones and landmarks, or None if unavailable.
+    """
+    key = bone_type.strip().lower()
+    if not key:
+        return None
+    if use_cache and key in _accepted_cache:
+        return _accepted_cache[key]
+
+    url = ACCEPTED_LABELS_URL.format(bone_type=key)
+    try:
+        import urllib.request
+
+        with urllib.request.urlopen(url, timeout=15) as response:
+            if response.status != 200:
+                logger.warning("Accepted-labels returned status %d for %s", response.status, key)
+                return None
+            data = json.loads(response.read().decode())
+    except Exception as e:
+        logger.warning("Failed to load accepted-labels for %s (%s): %s", key, url, e)
+        return None
+
+    result = {
+        "bone_type": data.get("bone_type", key),
+        "zones": data.get("zones", []) or [],
+        "landmarks": data.get("landmarks", []) or [],
+        "source": "accepted-labels",
+    }
+    _accepted_cache[key] = result
+    logger.info(
+        "Accepted labels loaded for %s: %d zones + %d landmarks",
+        key,
+        len(result["zones"]),
+        len(result["landmarks"]),
+    )
+    return result
+
+
+def _enrich_with_accepted_labels(labels: dict[str, Any]) -> None:
+    """Overwrite zones/landmarks from accepted-labels when available.
+
+    Args:
+        labels: Anatomy dict keyed by bone type (mutated in place).
+    """
+    for bone_type in list(labels.keys()):
+        accepted = fetch_accepted_labels(str(bone_type))
+        if not accepted:
+            continue
+        entry = labels.get(bone_type)
+        if not isinstance(entry, dict):
+            entry = {}
+            labels[bone_type] = entry
+        if accepted.get("zones"):
+            entry["zones"] = accepted["zones"]
+        if accepted.get("landmarks"):
+            entry["landmarks"] = accepted["landmarks"]
+        entry["labels_source"] = "accepted-labels"
 
 
 def _save_cache(labels: dict[str, Any], config_path: str | Path | None = None) -> None:
@@ -118,14 +184,24 @@ def _save_cache(labels: dict[str, Any], config_path: str | Path | None = None) -
 def get_labels_for_bone(bone_type: str) -> dict[str, Any] | None:
     """Obtenir les labels pour un type d'os spécifique.
 
+    Prefers live accepted-labels (zones = seg classes) then anatomy cache.
+
     Args:
         bone_type: Type d'os (humerus, radius, etc.).
 
     Returns:
         Dict avec zones, landmarks, lesions ou None si non trouvé.
     """
-    labels = load_anatomy_labels()
-    return labels.get(bone_type)
+    key = bone_type.strip().lower()
+    accepted = fetch_accepted_labels(key)
+    base = load_anatomy_labels().get(key)
+    if accepted and (accepted.get("zones") or accepted.get("landmarks")):
+        merged: dict[str, Any] = dict(base) if isinstance(base, dict) else {}
+        merged["zones"] = accepted.get("zones", [])
+        merged["landmarks"] = accepted.get("landmarks", [])
+        merged["labels_source"] = "accepted-labels"
+        return merged
+    return base if isinstance(base, dict) else None
 
 
 def get_zones(bone_type: str, region: str = "") -> list[dict[str, Any]]:
@@ -146,7 +222,6 @@ def get_zones(bone_type: str, region: str = "") -> list[dict[str, Any]]:
     if not region or region == "entire":
         return zones
 
-    # Filtrer par région si applicable
     filtered = [z for z in zones if z.get("region") in ("entire", region)]
     return filtered
 
@@ -186,7 +261,7 @@ def validate_zone_annotation(
     zone_id: str,
     region: str = "",
 ) -> bool:
-    """Valider qu'une zone est applicale pour un os et région.
+    """Valider qu'une zone est applicable pour un os et région.
 
     Args:
         bone_type: Type d'os.
@@ -233,35 +308,66 @@ def get_label_hierarchy(bone_type: str) -> dict[str, Any]:
         "landmarks": labels.get("landmarks", []),
         "lesion_criteria": labels.get("lesion_criteria", {}),
         "regions": labels.get("regions", []),
+        "labels_source": labels.get("labels_source", "anatomy"),
     }
 
 
 async def sync_labels_from_generator() -> int:
     """Synchroniser les labels depuis label-generator skill.
 
-    Récupère les labels anatomiques du service label-generator
-    et met à jour le cache local.
+    Charge anatomy puis écrase zones/landmarks avec accepted-labels.
 
     Returns:
-        Nombre de labels synchronisés.
+        Nombre de bone types synchronisés.
     """
+    global _label_cache, _cache_loaded, _accepted_cache
+
     try:
         import httpx
 
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                LABEL_GENERATOR_URL,
-                timeout=10.0,
-            )
-            if response.status_code == 200:
-                labels = response.json()
-                _label_cache.update(labels)
-                _cache_loaded = True
-                logger.info("Labels synchronized from label-generator: %d types", len(labels))
-                return len(labels)
-            else:
+            response = await client.get(LABEL_GENERATOR_URL, timeout=10.0)
+            if response.status_code != 200:
                 logger.warning("label-generator returned status %d", response.status_code)
                 return 0
+            labels = response.json()
+            if not isinstance(labels, dict):
+                logger.warning("Unexpected anatomy payload type: %s", type(labels))
+                return 0
+
+            _accepted_cache.clear()
+            for bone_type in list(labels.keys()):
+                url = ACCEPTED_LABELS_URL.format(bone_type=str(bone_type).lower())
+                try:
+                    acc_resp = await client.get(url, timeout=15.0)
+                    if acc_resp.status_code != 200:
+                        continue
+                    data = acc_resp.json()
+                    entry = labels.get(bone_type) if isinstance(labels.get(bone_type), dict) else {}
+                    if not isinstance(entry, dict):
+                        entry = {}
+                        labels[bone_type] = entry
+                    zones = data.get("zones") or []
+                    landmarks = data.get("landmarks") or []
+                    if zones:
+                        entry["zones"] = zones
+                    if landmarks:
+                        entry["landmarks"] = landmarks
+                    entry["labels_source"] = "accepted-labels"
+                    _accepted_cache[str(bone_type).lower()] = {
+                        "bone_type": str(bone_type).lower(),
+                        "zones": zones,
+                        "landmarks": landmarks,
+                        "source": "accepted-labels",
+                    }
+                except Exception as e:
+                    logger.warning("Accepted-labels sync failed for %s: %s", bone_type, e)
+
+            _label_cache = labels
+            _cache_loaded = True
+            _save_cache(labels)
+            logger.info("Labels synchronized from label-generator: %d types", len(labels))
+            return len(labels)
     except Exception as e:
         logger.error("Failed to sync labels from generator: %s", e)
         return 0
@@ -280,4 +386,5 @@ async def get_status() -> dict[str, Any]:
         "bone_types_available": list(labels.keys()),
         "total_zones": sum(len(labels.get(bt, {}).get("zones", [])) for bt in labels),
         "total_landmarks": sum(len(labels.get(bt, {}).get("landmarks", [])) for bt in labels),
+        "accepted_labels_url": ACCEPTED_LABELS_URL,
     }

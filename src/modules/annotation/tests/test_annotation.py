@@ -8,7 +8,7 @@ class TestAnnotationModels:
         """Test CreateTaskRequest with defaults."""
         from src.modules.annotation.models import CreateTaskRequest
 
-        req = CreateTaskRequest(acquisition_id="acq_001", bone_type="humerus")
+        req = CreateTaskRequest(acquisition_id="acq_001", bone_type="humerus", assignee=None)
         assert req.source_name == "bonestore"
         assert req.region == "entire"
         assert req.pipeline_preset is None
@@ -51,6 +51,13 @@ class TestAnnotationModels:
             bone_type="humerus",
             frame_count=120,
             progress=TaskProgress(step="preparing", detail="Preparing dataset..."),
+            cvat_task_id=None,
+            cvat_url=None,
+            assignee=None,
+            pipeline_preset=None,
+            dataset_path=None,
+            profile_id=None,
+            objective=None,
         )
         d = resp.model_dump()
         assert d["id"] == 1
@@ -62,10 +69,13 @@ class TestAnnotationModels:
         """Test status/notes mapping for async task polling."""
         from src.modules.annotation.service import _build_task_progress
 
-        assert _build_task_progress("preparing", "Preparing dataset...").step == "preparing"
-        assert _build_task_progress("uploading", "Uploading 120 frames").detail == "Uploading 120 frames"
+        p1 = _build_task_progress("preparing", "Preparing dataset...")
+        assert p1 is not None and p1.step == "preparing"
+        p2 = _build_task_progress("uploading", "Uploading 120 frames")
+        assert p2 is not None and p2.detail == "Uploading 120 frames"
         assert _build_task_progress("created", "Ready") is None
-        assert _build_task_progress("failed", "CVAT timeout").step == "failed"
+        p4 = _build_task_progress("failed", "CVAT timeout")
+        assert p4 is not None and p4.step == "failed"
 
     def test_sync_result(self) -> None:
         """Test SyncResult model."""

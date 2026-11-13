@@ -155,6 +155,7 @@
             <a class="icon-btn" href="/annotate/settings" title="Paramètres imaging treatment">⚙</a>
             <button class="icon-btn" onclick="openProfilesConfig()" title="Configurer les profils d'annotation">📋</button>
             <button class="btn btn-outline" onclick="loadTasks()">Rafraichir</button>
+            <button class="btn btn-danger btn-sm" onclick="cleanupFailedTasks()" title="Supprimer toutes les tâches failed">Nettoyer échecs</button>
             <button class="btn btn-primary" onclick="toggleForm()">+ Nouvelle Tache</button>
         </div>
     </header>
@@ -231,6 +232,12 @@
             <option value="ulna">Ulna</option>
             <option value="femur">Femur</option>
         </select>
+        <select id="filterRegion" onchange="loadTasks()">
+            <option value="">Toutes portions</option>
+            <option value="proximal">Proximal</option>
+            <option value="distal">Distal</option>
+            <option value="entire">Entire</option>
+        </select>
         <select id="filterProfile" onchange="loadTasks()">
             <option value="">Tous les profils</option>
         </select>
@@ -291,7 +298,7 @@
     <div class="task-table">
         <table>
             <thead><tr>
-                <th>ID</th><th>Acquisition</th><th>Os</th><th>Profil</th>
+                <th>ID</th><th>Acquisition</th><th>Os</th><th>Portion</th><th>Profil</th>
                 <th>Status</th><th>Assignee</th><th>Frames</th><th>Actions</th>
             </tr></thead>
             <tbody id="taskBody">
@@ -339,6 +346,8 @@ async function loadSources() {
     } catch(e) { console.error('Sources:', e); }
 }
 
+let acquisitionsData = {};
+
 async function loadAcquisitions() {
     const source = document.getElementById('sourceSelect').value;
     const bone = document.getElementById('boneTypeSelect').value;
@@ -354,14 +363,33 @@ async function loadAcquisitions() {
         const d = await acqR.json();
         const counts = (await countsR.json()).counts || {};
         sel.innerHTML = '<option value="">Selectionnez...</option>';
+        acquisitionsData = {};
         (d.acquisitions || []).forEach(a => {
+            acquisitionsData[a.id] = a;
             const c = counts[a.id];
             const badge = c ? ` [${c} profil${c>1?'s':''}]` : '';
             sel.innerHTML += `<option value="${a.id}" data-bone="${a.bone_type}">${a.id} (${a.bone_type} ${a.side} - ${a.frame_count} frames)${badge}</option>`;
         });
+        sel.onchange = onAcquisitionSelected;
     } catch(e) {
         sel.innerHTML = '<option value="">Erreur chargement</option>';
     }
+}
+
+async function onAcquisitionSelected() {
+    const acqId = document.getElementById('acqSelect').value;
+    if (!acqId) return;
+    const source = document.getElementById('sourceSelect').value;
+    // Trigger cache preload in background for fluid frame navigation
+    try {
+        fetch(`${API}/api/imaging/preload`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({acquisition_id: acqId, source_name: source, size: 512}),
+        }).then(r => r.json()).then(d => {
+            console.log(`Preload started: ${d.frame_count} frames for ${acqId}`);
+        }).catch(() => {});
+    } catch(e) { /* non-blocking */ }
 }
 
 function filterAcquisitions() { loadAcquisitions(); }
@@ -489,10 +517,12 @@ async function runBatchCreate() {
 async function loadTasks() {
     const status = document.getElementById('filterStatus').value;
     const bone = document.getElementById('filterBone').value;
+    const region = document.getElementById('filterRegion').value;
     const profile = document.getElementById('filterProfile').value;
     let url = `${API}/api/annotation/tasks?limit=100`;
     if (status) url += `&status=${status}`;
     if (bone) url += `&bone_type=${bone}`;
+    if (region) url += `&region=${region}`;
     if (profile) url += `&profile_id=${profile}`;
     try {
         const r = await fetch(url);
@@ -574,48 +604,73 @@ function parentLink(t) {
 function renderTasks(tasks) {
     const body = document.getElementById('taskBody');
     if (!tasks.length) {
-        body.innerHTML = '<tr><td colspan="8" class="empty-state">Aucune tache. Cliquez "+ Nouvelle Tache".</td></tr>';
+        body.innerHTML = '<tr><td colspan="9" class="empty-state">Aucune tache. Cliquez "+ Nouvelle Tache".</td></tr>';
         return;
     }
-    body.innerHTML = tasks.map(t => `<tr>
+    body.innerHTML = tasks.map(t => {
+        const canAnnotate = ['created','annotating','reviewing'].includes(t.status);
+        const canValidate = ['created','annotating','reviewing'].includes(t.status) && (t.frame_count||0) > 0;
+        const isFailed = t.status === 'failed';
+        return `<tr style="${isFailed ? 'background:#fff5f5;' : ''}">
         <td><strong>#${t.id}</strong>${t.cvat_task_id ? ` <span style="font-size:0.7em;color:#a0aec0;">CVAT#${t.cvat_task_id}</span>` : ''} ${parentLink(t)}</td>
         <td>${t.acquisition_id}</td>
-        <td>${t.bone_type}${t.region !== 'entire' ? ' ('+t.region+')' : ''}</td>
+        <td>${t.bone_type}</td>
+        <td>${t.region && t.region !== 'entire' ? '<span class="badge" style="background:#e9d8fd;color:#6b46c1;">'+t.region+'</span>' : '<span style="color:#a0aec0;">entire</span>'}</td>
         <td>${profileBadge(t)}</td>
         <td><span class="badge badge-${t.status}">${t.status}</span>
             ${t.progress ? `<div style="font-size:0.75em;color:#718096;margin-top:2px">${t.progress.step}: ${t.progress.detail||''}</div>` : ''}
-            ${t.has_pre_annotations ? '<span class="badge" style="background:#e9d8fd;color:#6b46c1;margin-left:4px">ML</span>' : ''}
+            ${t.has_pre_annotations ? '<span class="badge" style="background:#e9d8fd;color:#6b46c1;margin-left:4px">pré-annoté</span>' : ''}
             <span class="cvat-check" id="cvat-check-${t.id}"></span></td>
         <td>${t.assignee || '-'}</td>
         <td>${t.annotated_frames || 0}/${t.frame_count || 0}</td>
-        <td class="actions">
-            ${t.cvat_url ? `<a href="${t.cvat_url}" target="_blank" class="btn btn-sm btn-outline">CVAT</a>` : ''}
-            ${['created','annotating'].includes(t.status) ? `<button class="btn btn-sm btn-outline" onclick="syncTask(${t.id})">Sync</button>` : ''}
-            ${['created','annotating'].includes(t.status) ? `<button class="btn btn-sm btn-outline" style="background:#7c3aed;color:white;border-color:#7c3aed" onclick="propagateMedSAM2(${t.id})">MedSAM2</button>` : ''}
-            ${!t.has_pre_annotations ? `<button class="btn btn-sm btn-outline" onclick="preAnnotate(${t.id})">ML</button>` : ''}
-            ${t.status === 'reviewing' ? `<button class="btn btn-sm btn-success" onclick="validateTask(${t.id},'validated')">Valider</button>
+        <td class="actions" style="white-space:nowrap;">
+            ${t.cvat_url ? `<a href="${t.cvat_url}" target="_blank" class="btn btn-sm btn-primary" title="Ouvrir dans CVAT">CVAT</a>` : ''}
+            ${canAnnotate ? `<button class="btn btn-sm btn-outline" style="background:#7c3aed;color:white;border-color:#7c3aed" onclick="preAnnotate(${t.id})" title="Pré-annoter (bone-ml ou CPU Otsu)">Pré-annoter</button>` : ''}
+            ${canAnnotate ? `<button class="btn btn-sm btn-outline" style="background:#6b46c1;color:white;border-color:#6b46c1" onclick="propagateMedSAM2(${t.id})">MedSAM2</button>` : ''}
+            ${canAnnotate ? `<button class="btn btn-sm btn-outline" onclick="syncTask(${t.id})" title="Importer CVAT → PostgreSQL">Sync</button>` : ''}
+            ${canValidate ? `<button class="btn btn-sm btn-success" onclick="validateTask(${t.id},'validated')" title="Valider → quality_tier=gold">Valider GOLD</button>
                 <button class="btn btn-sm btn-danger" onclick="validateTask(${t.id},'rejected')">Rejeter</button>` : ''}
-            <button class="btn btn-sm btn-danger" onclick="deleteTask(${t.id})" title="Supprimer la tache et la tache CVAT">Suppr</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteTask(${t.id}, '${t.status}')" title="Supprimer la tâche">Suppr</button>
         </td>
-    </tr>`).join('');
+    </tr>`;
+    }).join('');
     tasks.filter(t => t.cvat_task_id).forEach(t => checkCvatExists(t.id));
     updateProfileFilter(tasks);
 }
 
-async function deleteTask(id) {
-    if (!confirm(`Supprimer la tache #${id} ?\nCela supprimera aussi la tache CVAT associee.`)) return;
+async function deleteTask(id, status) {
+    const warn = status === 'failed'
+        ? `Supprimer la tâche failed #${id} ?`
+        : `Supprimer la tâche #${id} ?\nLa tâche CVAT associée sera aussi supprimée si elle n'est plus référencée.`;
+    if (!confirm(warn)) return;
     try {
         const r = await fetch(`${API}/api/annotation/task/${id}`, {method:'DELETE'});
         const d = await r.json();
         if (r.ok) {
-            let msg = `Tache #${id} supprimee.`;
-            if (d.cvat_task_id) msg += ` CVAT #${d.cvat_task_id}: ${d.cvat_deleted ? 'supprimee' : 'echec suppression'}`;
-            if (d.warning) msg += `\nWarning: ${d.warning}`;
+            let msg = `Tâche #${id} supprimée.`;
+            if (d.cvat_task_id) msg += ` CVAT #${d.cvat_task_id}: ${d.cvat_deleted ? 'supprimée' : 'conservée'}`;
+            if (d.warning) msg += `\nNote: ${d.warning}`;
             alert(msg);
         } else {
             alert(`Erreur: ${d.detail || 'Inconnu'}`);
         }
         loadTasks();
+        loadTracking();
+    } catch(e) { alert('Erreur: '+e); }
+}
+
+async function cleanupFailedTasks() {
+    if (!confirm('Supprimer TOUTES les tâches en statut failed ?')) return;
+    try {
+        const r = await fetch(`${API}/api/annotation/tasks/failed`, {method:'DELETE'});
+        const d = await r.json();
+        if (r.ok) {
+            alert(`${d.count || 0} tâche(s) failed supprimée(s).`);
+        } else {
+            alert(`Erreur: ${d.detail || JSON.stringify(d)}`);
+        }
+        loadTasks();
+        loadTracking();
     } catch(e) { alert('Erreur: '+e); }
 }
 
@@ -726,26 +781,44 @@ async function runPropagation() {
 }
 
 async function preAnnotate(id) {
-    if (!confirm('Demander les pre-annotations ML (bone-ml) ?')) return;
+    if (!confirm('Pré-annoter la tâche ?\n1) bone-ml si modèle dispo\n2) sinon seeds CPU (Otsu)\n3) puis MedSAM2 si joignable')) return;
     try {
-        const r = await fetch(`${API}/api/annotation/pre-annotate/${id}`, {method:'POST'});
+        const r = await fetch(`${API}/api/annotation/pre-annotate/${id}?mode=auto&propagate=true`, {method:'POST'});
         const d = await r.json();
-        alert(`Pre-annotation: ${d.status} (bone-ml: ${d.bone_ml_status})`);
+        if (r.ok) {
+            alert(`Pré-annotation: ${d.status}\nDétail: ${d.bone_ml_status || '-'}\n→ Corrigez dans CVAT puis Sync + Valider GOLD`);
+        } else {
+            alert(`Erreur: ${d.detail || JSON.stringify(d)}`);
+        }
         loadTasks();
+        loadTracking();
     } catch(e) { alert('Erreur: '+e); }
 }
 
 async function validateTask(id, decision) {
     const by = prompt('Votre nom (validateur):');
     if (!by) return;
+    const tip = decision === 'validated'
+        ? 'Valider → quality_tier=gold en PostgreSQL (après Sync CVAT recommandé). Continuer ?'
+        : 'Rejeter cette tâche ?';
+    if (!confirm(tip)) return;
     try {
+        // Sync first so PG has the latest CVAT shapes before gold promotion.
+        if (decision === 'validated') {
+            try {
+                await fetch(`${API}/api/annotation/sync/${id}`, {method:'POST'});
+            } catch(_) { /* non-blocking */ }
+        }
         const r = await fetch(`${API}/api/annotation/validate/${id}`, {
             method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({validated_by: by, decision: decision})
         });
         const d = await r.json();
-        alert(`Tache ${id}: ${d.status}`);
+        alert(decision === 'validated'
+            ? `Tâche #${id} validée GOLD`
+            : `Tâche #${id}: ${d.status}`);
         loadTasks();
+        loadTracking();
     } catch(e) { alert('Erreur: '+e); }
 }
 

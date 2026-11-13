@@ -14,6 +14,8 @@ from .imaging import (
     frame_to_png,
     get_cache_stats,
     load_frame,
+    load_frame_as_png,
+    preload_frames,
 )
 
 logger = logging.getLogger(__name__)
@@ -68,6 +70,32 @@ class ImagingService:
         """
         bone, side, region = parse_category(dirname)
         return {"bone_type": bone, "side": side, "region": region}
+
+    async def load_frame_as_png(self, path: str, size: int = 768) -> bytes:
+        """Load a frame and return cached PNG bytes.
+
+        Args:
+            path: Path to .b2nd frame file.
+            size: Output size in pixels.
+
+        Returns:
+            PNG bytes from cache or freshly converted.
+        """
+        return load_frame_as_png(path, size)
+
+    async def preload_acquisition(
+        self, paths: list[str], size: int = 768,
+    ) -> int:
+        """Preload multiple frames into cache for fluid navigation.
+
+        Args:
+            paths: List of .b2nd file paths.
+            size: Output size in pixels.
+
+        Returns:
+            Number of frames successfully loaded.
+        """
+        return preload_frames(paths, size)
 
     async def clear_cache(self) -> None:
         """Clear all frame caches."""

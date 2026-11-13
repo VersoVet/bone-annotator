@@ -250,20 +250,38 @@ async def sync_acquisitions() -> dict[str, Any]:
         acqs = list_acquisitions()
         registry = IngestionRegistry()
 
+        import sqlite3
+        from datetime import UTC, datetime
+
         new_count = 0
+        now = datetime.now(UTC).isoformat()
         for acq in acqs:
-            acq_id = acq.get("id")
-            if not registry.is_ingested(acq_id):
-                # Register as pending
-                registry.add_acquisition(
-                    acq_id,
-                    status="pending",
-                    bone_type=acq.get("bone_type"),
-                    side=acq.get("side"),
-                    region=acq.get("region"),
-                    total_frames=acq.get("frame_count", 0),
-                )
-                new_count += 1
+            acq_id = acq.get("id") or ""
+            with sqlite3.connect(str(registry.db_path)) as conn:
+                existing = conn.execute(
+                    "SELECT 1 FROM acquisitions WHERE acquisition_id = ?", (acq_id,)
+                ).fetchone()
+                if not existing:
+                    conn.execute(
+                        """INSERT INTO acquisitions
+                        (acquisition_id, bone_type, side, region, session_id,
+                         source_path, total_frames, status, metadata_json,
+                         discovered_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            acq_id,
+                            acq.get("bone_type", ""),
+                            acq.get("side", ""),
+                            acq.get("region", ""),
+                            acq.get("session_id"),
+                            acq.get("source_path", ""),
+                            acq.get("frame_count", 0),
+                            "discovered",
+                            "{}",
+                            now,
+                        ),
+                    )
+                    new_count += 1
 
         pending = registry.get_pending()
         return {
@@ -312,7 +330,8 @@ async def get_ingestion_status() -> dict[str, Any]:
     try:
         registry = IngestionRegistry()
         pending = registry.get_pending()
-        total = len(registry.db)
+        stats = registry.get_stats()
+        total = sum(stats["by_status"].values())
 
         return {
             "status": "ready",

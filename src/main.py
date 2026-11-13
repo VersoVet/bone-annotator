@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 bone-annotator starting...")
 
     # Initialiser OnyxClient pour intégration Onyx Dashboard
-    if OnyxClient:
+    if OnyxClient is not None:
         try:
             app_state.onyx_client = OnyxClient("bone-annotator")
             if hasattr(app_state.onyx_client, "start_async"):
@@ -168,7 +168,7 @@ async def lifespan(app: FastAPI):
             if hasattr(app_state.onyx_client, "stop_async"):
                 await app_state.onyx_client.stop_async()
             else:
-                await app_state.onyx_client.stop()
+                await app_state.onyx_client.stop()  # type: ignore[attr-defined]
         except Exception as e:
             logger.warning(f"⚠ Failed to publish shutdown status: {e}")
     logger.info("✓ Shutdown complete")
@@ -188,6 +188,7 @@ logger.info("✓ Core routes registered")
 # Include module routers
 _module_routers = [
     ("annotation", "src.modules.annotation.routes"),
+    ("annotation_workflow", "src.modules.annotation.workflow_routes"),
     ("ml", "src.modules.ml.routes"),
     ("predict", "src.modules.ml.predict.routes"),
     ("ingestion", "src.modules.ingestion.routes"),

@@ -8,6 +8,7 @@ dist/
 build/
 .eggs/
 *.egg
+.mypy_cache/
 
 # Virtual environments
 venv/

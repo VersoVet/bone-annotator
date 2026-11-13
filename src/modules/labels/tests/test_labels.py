@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.modules.labels.service import (
+    ACCEPTED_LABELS_URL,
     LABEL_GENERATOR_URL,
     get_label_hierarchy,
     get_labels_for_bone,
@@ -59,32 +60,62 @@ def test_load_anatomy_labels_structure() -> None:
 
 
 def test_label_generator_url_correct() -> None:
-    """Test que l'URL label-generator est correctement configurée."""
+    """Test que les URLs label-generator sont correctement configurées."""
     assert LABEL_GENERATOR_URL == "http://10.0.0.59:9466/api/labels/anatomy"
+    assert "accepted-labels" in ACCEPTED_LABELS_URL
+    assert "{bone_type}" in ACCEPTED_LABELS_URL
+
+
+def test_get_labels_for_bone_prefers_accepted_labels() -> None:
+    """Test que get_labels_for_bone priorise accepted-labels (54 zones)."""
+    accepted = {
+        "bone_type": "humerus",
+        "zones": [{"id": f"z{i}"} for i in range(54)],
+        "landmarks": [{"id": f"lm{i}"} for i in range(18)],
+        "source": "accepted-labels",
+    }
+    anatomy = {"humerus": {"zones": [{"id": "old"}], "landmarks": []}}
+
+    with (
+        patch("src.modules.labels.service.fetch_accepted_labels", return_value=accepted),
+        patch("src.modules.labels.service.load_anatomy_labels", return_value=anatomy),
+    ):
+        labels = get_labels_for_bone("humerus")
+        assert labels is not None
+        assert len(labels["zones"]) == 54
+        assert len(labels["landmarks"]) == 18
+        assert labels["labels_source"] == "accepted-labels"
 
 
 @pytest.mark.asyncio
 async def test_sync_labels_from_generator_uses_correct_url() -> None:
-    """Test que sync_labels_from_generator utilise l'URL correcte."""
-    mock_labels = {"humerus": {"zones": [], "landmarks": []}}
+    """Test que sync utilise anatomy + accepted-labels."""
+    mock_labels = {"humerus": {"zones": [{"id": "old"}], "landmarks": []}}
+    accepted_payload = {
+        "bone_type": "humerus",
+        "zones": [{"id": "diaphyse_humerale"}],
+        "landmarks": [{"id": "head_center"}],
+    }
 
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = MagicMock()
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = mock_labels
-        mock_client.get = MagicMock()
-        mock_client.get.return_value = mock_response
+
+        async def _get(url: str, timeout: float = 10.0) -> MagicMock:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            if "accepted-labels" in url:
+                mock_response.json.return_value = accepted_payload
+            else:
+                mock_response.json.return_value = mock_labels
+            return mock_response
+
+        mock_client.get = _get
         mock_client.__aenter__.return_value = mock_client
         mock_client.__aexit__.return_value = None
         mock_client_class.return_value = mock_client
 
-        await sync_labels_from_generator()
-
-        # Verify the correct URL was used
-        mock_client.get.assert_called_once()
-        call_args = mock_client.get.call_args
-        assert call_args[0][0] == LABEL_GENERATOR_URL
+        count = await sync_labels_from_generator()
+        assert count == 1
 
 
 def test_get_zones_with_region_filter() -> None:
@@ -100,9 +131,10 @@ def test_get_zones_with_region_filter() -> None:
         }
     }
 
-    with patch("src.modules.labels.service.load_anatomy_labels") as mock_load:
-        mock_load.return_value = mock_labels
-
+    with (
+        patch("src.modules.labels.service.fetch_accepted_labels", return_value=None),
+        patch("src.modules.labels.service.load_anatomy_labels", return_value=mock_labels),
+    ):
         # Test getting all zones
         zones = get_zones("humerus")
         assert len(zones) == 3

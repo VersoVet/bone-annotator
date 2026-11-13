@@ -1,4 +1,4 @@
-"""SAM proxy — forwards segmentation requests to SAM GPU server on OnyxCortex.
+"""SAM proxy — forwards segmentation requests to SAM GPU server on OnyxTensor.
 
 Supports multiple SAM models (vit_b, vit_l, vit_h, medsam).
 Model switching is handled by the SAM server at runtime.
@@ -30,7 +30,7 @@ def _load_sam_config() -> dict[str, Any]:
 
 
 _sam_config = _load_sam_config()
-SAM_GPU_URL = _sam_config.get("gpu_direct", "http://10.0.0.26:9470")
+SAM_GPU_URL = _sam_config.get("gpu_direct", "http://10.0.0.73:9470")
 SAM_DEFAULT_MODEL = _sam_config.get("default_model", "vit_b")
 
 
@@ -62,6 +62,9 @@ async def sam_embed(request: Request, model: str | None = None) -> dict[str, Any
 
     Returns:
         Embeddings blob.
+
+    Raises:
+        HTTPException: 504 on timeout, 503 if SAM unavailable.
     """
     await _ensure_model(model)
     try:
@@ -89,6 +92,9 @@ async def sam_segment(request: Request, model: str | None = None) -> dict[str, A
 
     Returns:
         Segmentation masks and scores.
+
+    Raises:
+        HTTPException: 504 on timeout, 503 if SAM unavailable.
     """
     await _ensure_model(model)
     try:
@@ -132,6 +138,9 @@ async def sam_switch_model(request: SwitchModelRequest) -> dict[str, Any]:
 
     Returns:
         Switch result with new active model.
+
+    Raises:
+        HTTPException: If switch fails or SAM is unavailable.
     """
     try:
         async with httpx.AsyncClient() as client:

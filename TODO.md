@@ -1,5 +1,53 @@
 # TODO - bone-annotator
 
+## S0 — Apprentissage ZONES (GOLD MVP) — 2026-11-04
+
+**Objectif**: frames `quality_tier=gold` pour débloquer training BoneSeg.
+
+| Champ | Valeur |
+|-------|--------|
+| **Internal task** | **#4** (`zones_s0` / segmentation) |
+| **CVAT task_id** | **28** — http://10.0.0.59:8080/tasks/28 |
+| **Frames** | **929** |
+| **Labels zones** | **54** (accepted-labels) |
+| **Acquisition** | `HUMERUS_B_20241014_153103_04159` |
+| **Dashboard** | `/annotate/` + `/annotate/annotations` |
+
+### Flow S0 (bout en bout)
+1. `POST /api/annotation/pre-annotate/4?mode=auto&propagate=true`  
+   → bone-ml si modèle, sinon **CPU Otsu seeds** + MedSAM2 (Cortex) si joignable
+2. Corriger zones dans CVAT #28
+3. `POST /api/annotation/sync/4` (ou bouton Sync) → status `reviewing`
+4. `POST /api/annotation/validate/4` `{"validated_by":"…","decision":"validated"}` → **quality_tier=gold**
+
+### Endpoints
+- Pré-annoter: `POST /api/annotation/pre-annotate/{id}?mode=auto|ml|cpu&propagate=true`
+- Nettoyer failed: `DELETE /api/annotation/tasks/failed`
+- Supprimer: `DELETE /api/annotation/task/{id}`
+- Labels GOLD: `GET http://10.0.0.59:9466/labels/api/accepted-labels/humerus`
+- Sync CVAT projet: `POST /api/cvat/projects/humerus/sync-labels?zones_only=true`
+
+### Statut
+- [x] Campagne #4 / CVAT #28 prête (929 frames, 54 zones)
+- [x] Dashboard: Pré-annoter / CVAT / Sync / Valider GOLD / Suppr / Nettoyer échecs
+- [x] Fallback CPU Otsu si bone-ml sans modèle / sans GPU Synapse
+- [x] Validate → `quality_tier=gold` en PG
+- [x] Pré-annot CPU live: **5 masks** sur frames `[0,232,464,696,928]`, label `diaphyse_humerale` (CVAT #28)
+- [x] Sync CVAT→PG fixé (`AnnotationPgDB` ignore `schema`) — **5 frames / 5 zones** syncées
+- [x] Dashboard `/annotate/` + `/annotate/annotations` : Pré-annoter / Sync / Valider GOLD / Nettoyer échecs
+- [ ] **Corriger** dans CVAT #28 puis Sync + Valider GOLD → catalog BoneSeg
+- [ ] **Deploy** Forge formel (hot-sync Synapse déjà en place)
+- [ ] Fix infra CVAT upload (`SuspiciousFileOperation`) — hors S0 critique
+
+### Notes
+- bone-ml unreachable depuis Synapse → fallback CPU Otsu. MedSAM2 OK sur Cortex `:9473`.
+- Push CVAT: strip `id` des shapes existantes avant merge (`_strip_shape_ids`).
+- Sync masks: bbox depuis queue RLE `points[-4:]`.
+- Catalog BoneSeg vide tant que gold=0 (bone-ml sync non bloquant).
+- Ne pas toucher bone-rotation.
+
+---
+
 ## Phase 1-2: API Routes & Module Integration — STATUT
 
 ### Modules Complétés ✅ (v0.1.20 - 57+ API Endpoints, All Modules with Routes)

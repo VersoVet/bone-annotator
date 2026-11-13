@@ -87,7 +87,7 @@ async def predict_task(task: dict[str, Any], model_version: str | None = None) -
         Dict with prediction results in Label Studio format.
     """
     try:
-        from onyx_sdk import get_client
+        from onyx_sdk import get_client  # type: ignore[attr-defined]
 
         onyx = get_client()
         if onyx:
@@ -141,6 +141,7 @@ def _load_image(image_ref: str) -> Any:
 
     Raises:
         ValueError: If path escapes BoneStore or URL not whitelisted.
+        Exception: If image file cannot be loaded (e.g., blosc2 error).
     """
     import io
 

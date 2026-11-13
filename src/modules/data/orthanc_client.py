@@ -173,7 +173,7 @@ class OrthancClient:
             self._auth = (username, password)
 
         self._client = httpx.Client(
-            base_url=self.base_url,
+            base_url=self.base_url,  # type: ignore[arg-type]
             auth=self._auth,
             timeout=30.0,
         )

@@ -1,0 +1,68 @@
+# Automatic Lumbar Vertebra Landmark Localization and Segmentation for Pedicle Screw Placement
+
+
+
+## Resume
+
+
+Automatic Lumbar Vertebra Landmark Localization and Segmentation for Pedicle Screw Placement
+
+A Deep-Learning-Based Lumbosacral Localization and Landmark Detection Network for Automatic Lumbar Stability and Spondylolisthesis Grading Assessment
+
+A Morphometric Study of Lumbar Vertebra Pedicles and Its Use in Transpedicular Screw Fixation
+
+Segmentation-Guided Coordinate Regression for Robust Landmark Detection on X-Rays: Application to Automated Assessment of Lower Limb Alignment
+
+SLD: Segmentation-Based Landmark Detection for Spinal Ligaments
+
+Autonomous lumbar spine pedicle screw planning using machine learning: A validation study
+
+Introduction: Several techniques for pedicle screw placement have been described including freehand techniques, fluoroscopy assisted, computed tomography (CT) guidance, and robotics. Image-guided surgery offers the potential to combine the benefits of CT guidance without the added radiation. This study investigated the ability of a neural network to place lumbar pedicle screws with the correct length, diameter, and angulation autonomously within radiographs without the need for human involvement.
+Materials and Methods: The neural network was trained using a machine learning process. The method combines the previously reported autonomous spine segmentation solution with a landmark localization solution. The pedicle screw placement was evaluated using the Zdichavsky, Ravi, and Gertzbein grading systems.
+Results: In total, the program placed 208 pedicle screws between the L1 and S1 spinal levels. Of the 208 placed pedicle screws, 208 (100%) had a Zdichavsky Score 1A, 206 (99.0%) of all sc
+
+Lumbar spine segmentation method based on deep learning.
+
+Aiming at the difficulties of lumbar vertebrae segmentation in computed tomography (CT) images, we propose an automatic lumbar vertebrae segmentation method based on deep learning. The method mainly includes two parts: lumbar vertebra positioning and lumbar vertebrae segmentation. First of all, we propose a lumbar spine localization network of Unet network, which can directly locate the lumbar spine part in the image. Then, we propose a three-dimensional XUnet lumbar vertebrae segmentation method to achieve automatic lumbar vertebrae segmentation. The method proposed in this paper was validated on the lumbar spine CT images on the public dataset VerSe 2020 and our hospital dataset. Through qualitative comparison and quantitative analysis, the experimental results show that the method proposed in this paper can obtain good lumbar vertebrae segmentation performance, which can be further applied to detection of spinal anomalies and surgical treatment.
+
+A Localisation-Segmentation Approach for Multi-label Annotation of Lumbar Vertebrae using Deep Nets
+
+Multi-class segmentation of vertebrae is a non-trivial task mainly due to the high correlation in the appearance of adjacent vertebrae. Hence, such a task calls for the consideration of both global and local context. Based on this motivation, we propose a two-staged approach that, given a computed tomography dataset of the spine, segments the five lumbar vertebrae and simultaneously labels them. The first stage employs a multi-layered perceptron performing non-linear regression for locating the lumbar region using the global context. The second stage, comprised of a fully-convolutional deep network, exploits the local context in the localised lumbar region to segment and label the lumbar vertebrae in one go. Aided with practical data augmentation for training, our approach is highly generalisable, capable of successfully segmenting both healthy and abnormal vertebrae (fractured and scoliotic spines). We consistently achieve an average Dice coefficient of over 90 percent on a publicly a
+
+Segmentation-guided coordinate regression for robust landmark detection on X-rays: application to automated assessment of lower limb alignment_supp1-3394895.pdf
+
+A Deep Learning-Based Fully Automated Vertebra Segmentation and Labeling Workflow.
+
+Aims/Background Spinal disorders, such as herniated discs and scoliosis, are highly prevalent conditions with rising incidence in the aging global population. Accurate analysis of spinal anatomical structures is a critical prerequisite for achieving high-precision positioning with surgical navigation robots. However, traditional manual segmentation methods are limited by issues such as low efficiency and poor consistency. This work aims to develop a fully automated deep learning-based vertebral segmentation and labeling workflow to provide efficient and accurate preoperative analysis support for spine surgery navigation robots.
+                  Methods In the localization stage, the You Only Look Once version 7 (YOLOv7) network was utilized to predict the bounding boxes of individual vertebrae on computed tomography (CT) sagittal slices, transforming the 3D localization problem into a 2D one. Subsequently, the Density-Based Spatial Clustering of Applications with Noise (DBSCAN) clustering algorithm was employed to aggregate the 2D detection results into 3D vertebral centers. This approach significantly reduces inference time and enhances localization accuracy. In the segmentation stage, a 3D U-Net model integrated with an attention mechanism was trained using the region of interest (ROI) based on the vertebral center as input, effectively extracting the 3D structural features of vertebrae to achieve precise segmentation. In the labeling stage, a vertebra labeling network was trained by combining deep learning architectures—ResNet and Transformer, which are capable of extracting rich intervertebral features, to obtain the final labeling results through post-processing based on positional logic analysis. To verify the effectiveness of this workflow, experiments were conducted on a dataset comprising 106 spinal CT datasets sourced from various devices, covering a wide range of clinical scenarios.
+                  Results The results demonstrate that the method performed excellently in the three key tasks of localization, segmentation, and labeling, with a Mean Localization Error (MLE) of 1.42 mm. The segmentation accuracy metrics included a Dice Similarity Coefficient (DSC) of 0.968 ± 0.014, Intersection over Union (IoU) of 0.879 ± 0.018, Pixel Accuracy (PA) of 0.988 ± 0.005, mean symmetric distance (MSD) of 1.09 ± 0.19 mm, and Hausdorff Distance (HD) of 5.42 ± 2.05 mm. The degree of classification accuracy reached up to 94.36%.
+                  Conclusion These quantitative assessments and visualizations confirm the effectiveness of our method (vertebra localization, vertebra segmentation and vertebra labeling), indicating its potential for deployment in spinal surgery navigation robots to provide accurate and efficient preoperative analysis and navigation support for spinal surgeries.
+
+Pedicle Screw Fixation in Cervical Spine
+
+Automated anatomical landmark detection ondistal femur surface using convolutional neural network
+
+A Fully Automated Deep Learning Pipeline for Anatomical Landmark Localization on Three-Dimensional Pelvic Surface Scans.
+
+Accurate identification of anatomical landmarks on three-dimensional (3D) pelvic surface scans is essential for musculoskeletal assessment, yet manual procedures remain limited by operator dependence and soft tissue variability. This study presents a fully automated deep learning pipeline for localizing anatomical landmarks on the posterior pelvic region from raw 3D point cloud data. The pipeline integrates three modules: PelvicROINet for extracting the region of interest, PelvicAlignNet for rotation correction to standardize posture, and PelvicLandmarkNet for localizing six anatomical landmarks including the bilateral posterior superior iliac spines, bilateral iliac crests, L1, and L4. The models were trained independently with task-specific annotations and combined sequentially during inference. Under a subject-level split evaluation setting, the fully integrated system achieved a median error of 11.25 mm, demonstrating consistent localization performance across unseen subjects. Comp
+
+Automatic vertebrae localization and segmentation in CT with a two-stage Dense-U-Net
+
+Abstract
+                  Automatic vertebrae localization and segmentation in computed tomography (CT) are fundamental for spinal image analysis and spine surgery with computer-assisted surgery systems. But they remain challenging due to high variation in spinal anatomy among patients. In this paper, we proposed a deep-learning approach for automatic CT vertebrae localization and segmentation with a two-stage Dense-U-Net. The first stage used a 2D-Dense-U-Net to localize vertebrae by detecting the vertebrae centroids with dense labels and 2D slices. The second stage segmented the specific vertebra within a region-of-interest identified based on the centroid using 3D-Dense-U-Net. Finally, each segmented vertebra was merged into a complete spine and resampled to original resolution. We evaluated our method on the dataset from the CSI 2014 Workshop with 6 metrics: location error (1.69 ± 0.78 mm), detection rate (100%) for vertebrae localization; the dice coefficient (0.953 ± 0.014), intersection over union (0.911 ± 0.025), Hausdorff distance (4.013 ± 2.128 mm), pixel accuracy (0.998 ± 0.001) for vertebrae segmentation. The experimental results demonstrated the efficiency of the proposed method. Furthermore, evaluation on the dataset from the xVertSeg challenge with location error (4.12 ± 2.31), detection rate (100%), dice coefficient (0.877 ± 0.035) shows the generalizability of our method. In summary, our solution localized the vertebrae successfully by detecting the centroids of vertebrae and implemented instance segmentation of vertebrae in the whole spine.
+
+Solutions for Lower Limb Misalignment: A Segmentation-Guided Coordinate Regression Approach for Landmark Detection and Automatic Measurement
+
+Traditionally, surgeons measure lower limb deformities manually by assessing angles between axes drawn on full lower limb X-rays connecting specific landmarks. This process is considered cumbersome and subject to the surgeon's expertise. Our study aims to alleviate the manual detection of landmarks while enhancing the assessment of lower limb malalignment through an innovative approach that combines coordinate regression and landmark segmentation. While various deep learning solutions exist, our method differs by using landmark segmentation to indicate the possible location of the landmarks; this information is combined with the X-rays to estimate the position of the landmarks via coordinate regression. We named this deep learning architecture segmentation-guided regression.To address the performance of our proposed approach, we evaluated the detection errors for eight landmarks and measured five malalignment metrics. We also compare our approach against landmark regression and landmar
+
+
+## Synthese
+
+
+Blomenkamp et al. (2026) proposent SLD (Segmentation-based Landmark Detection), une nouvelle méthode automatisée pour détecter les points de repère des ligaments spinaux sur des géométries vertébrales 3D, généralisable aux régions cervicale, thoracique et lombaire. La méthode repose sur trois étapes : préparation des géométries vertébrales par remaillage et lissage avec extraction de caractéristiques, segmentation des vertèbres en composants anatomiques, puis application de règles spécifiques au domaine pour identifier les sites d'attache ligamentaire. L'évaluation a été conduite sur 57 modèles de surface vertébrale issus de trois jeux de données indépendants (VerSe, Sawbone, et un jeu de données cervical publié antérieurement), annotés manuellement par des professionnels médicaux comme vérité terrain. La méthode atteint une précision globale élevée (MAE de 0,7 mm, RMSE de 1,1 mm) et surpasse généralement les méthodes de détection existantes basées sur l'enregistrement (registration), qui souffrent d'erreurs liées à un enregistrement imparfait. Contrairement à l'approche d'Al-Dhamari et al., SLD ne nécessite ni annotation manuelle ni interaction utilisateur, et les auteurs publient le jeu de données annoté ainsi qu'une implémentation en plugin public pour favoriser la reproductibilité et les applications en modélisation biomécanique de la colonne vertébrale.
+
+
+## Conclusion
+
+
+La méthode de segmentation proposée pour la détection automatisée des landmarks des ligaments spinaux atteint une haute précision et surpasse les méthodes automatisées existantes en termes de MAE et RMSE La méthode démontre une forte généralisation à travers les régions cervicale, thoracique et lombaire La méthode est robuste face aux jeux de données de qualité de maillage et de diversité anatomique variables, sans nécessiter d'annotation manuelle ni d'interaction utilisateur, contrairement à la méthode d'Al-Dhamari et al. La conception modulaire permet une intégration transparente dans les workflows existants de segmentation ou d'enregistrement, fournissant une étape de prétraitement fiable pour la construction automatisée de modèles biomécaniques L'approche offre des bénéfices potentiels pour les applications cliniques et de recherche, incluant les simulations par éléments finis (FE) et systèmes multicorps (MBS) spécifiques au patient, la conception d'implants et l'analyse fonctionnelle de la colonne vertébrale

@@ -87,63 +87,24 @@ async def prepare_and_upload(
         task_db.update_task(task_id, status="uploading", notes="[45%] Authenticating CVAT...")
 
         anatomy = get_labels_for_bone(request.bone_type)
-        if anatomy and request.labels_filter:
-            anatomy = dict(anatomy)
-            anatomy["zones"] = [
-                z
-                for z in anatomy.get("zones", [])
-                if z.get("id") in request.labels_filter or z.get("label") in request.labels_filter
-            ]
-            anatomy["landmarks"] = [
-                lm
-                for lm in anatomy.get("landmarks", [])
-                if lm.get("id") in request.labels_filter or lm.get("label") in request.labels_filter
-            ]
-            logger.info(
-                "Task %d: labels filtered to %d zones + %d landmarks",
-                task_id,
-                len(anatomy.get("zones", [])),
-                len(anatomy.get("landmarks", [])),
-            )
+        anatomy = _filter_by_region(anatomy, request.region)
+        anatomy = _filter_anatomy(anatomy, request.labels_filter, task_id)
         cvat_labels = labels_to_cvat_format(anatomy) if anatomy else []
 
         cfg = get_cvat_config()
         cvat = CVATClient(cfg["host"], cfg["port"], cfg["username"], cfg["password"])
         await cvat.authenticate()
 
-        task_db.update_task(task_id, notes="[50%] Creating CVAT project/task...")
-
-        # Project
-        project_id = await cvat.get_or_create_project(request.bone_type, cvat_labels)
-        if project_id:
-            await cvat.sync_project_labels(project_id, cvat_labels)
-            task_db.save_project_mapping(request.bone_type, project_id)
-
-        profile_suffix = f"_{request.profile_id}" if request.profile_id else ""
-        task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}{profile_suffix}"
-        subset = request.objective or request.profile_id or None
-        cvat_task = await cvat.create_task(task_name, project_id=project_id, subset=subset)
-        if not cvat_task:
-            task_db.update_task(task_id, status="failed", notes="CVAT task creation failed")
-            await cvat.close()
+        cvat_task_id = await _create_and_upload_cvat(
+            cvat,
+            task_db,
+            task_id,
+            request,
+            cvat_labels,
+            dataset,
+        )
+        if cvat_task_id is None:
             return
-
-        cvat_task_id = cvat_task["id"]
-        cvat_url = f"{cvat.base_url}/tasks/{cvat_task_id}"
-        task_db.update_task(task_id, cvat_task_id=cvat_task_id, cvat_url=cvat_url)
-
-        # Labels (only if no project)
-        if not project_id and cvat_labels:
-            await cvat.set_labels(cvat_task_id, cvat_labels)
-
-        # Upload images (55-90%)
-        task_db.update_task(task_id, notes=f"[55%] Uploading {dataset.frame_count} frames to CVAT...")
-        image_paths = await asyncio.to_thread(_list_images, dataset.path / "images")
-        if image_paths:
-            if not await cvat.upload_image_paths(cvat_task_id, image_paths):
-                raise RuntimeError(f"CVAT image upload failed for task {cvat_task_id}")
-
-        task_db.update_task(task_id, notes="[90%] Upload complete, finalizing...")
         await cvat.close()
 
         # --- STEP 3: Done (90-100%) ---
@@ -168,9 +129,119 @@ async def prepare_and_upload(
         task_db.update_task(task_id, status="failed", notes=str(e)[:500])
 
 
+def _filter_by_region(
+    anatomy: dict[str, Any] | None,
+    region: str,
+) -> dict[str, Any] | None:
+    """Filter anatomy zones to only those relevant for a portion/region.
+
+    Args:
+        anatomy: Full anatomy dict from label-generator.
+        region: Acquisition portion (proximal, distal, entire).
+
+    Returns:
+        Filtered anatomy dict, or original if region is entire/empty.
+    """
+    if not anatomy or not region or region == "entire":
+        return anatomy
+    filtered = dict(anatomy)
+    filtered["zones"] = [
+        z for z in anatomy.get("zones", [])
+        if z.get("region") in ("entire", region)
+    ]
+    logger.info(
+        "Region filter '%s': %d/%d zones kept",
+        region, len(filtered["zones"]), len(anatomy.get("zones", [])),
+    )
+    return filtered
+
+
 def _list_images(images_dir: Path) -> list[Path]:
     """List prepared PNG images in deterministic order."""
     return sorted(images_dir.glob("*.png"))
+
+
+def _filter_anatomy(
+    anatomy: dict[str, Any] | None,
+    labels_filter: list[str] | None,
+    task_id: int,
+) -> dict[str, Any] | None:
+    """Optionally filter zones/landmarks to a request subset."""
+    if not anatomy or not labels_filter:
+        return anatomy
+    filtered = dict(anatomy)
+    filtered["zones"] = [
+        z
+        for z in anatomy.get("zones", [])
+        if z.get("id") in labels_filter or z.get("label") in labels_filter
+    ]
+    filtered["landmarks"] = [
+        lm
+        for lm in anatomy.get("landmarks", [])
+        if lm.get("id") in labels_filter or lm.get("label") in labels_filter
+    ]
+    logger.info(
+        "Task %d: labels filtered to %d zones + %d landmarks",
+        task_id,
+        len(filtered.get("zones", [])),
+        len(filtered.get("landmarks", [])),
+    )
+    return filtered
+
+
+async def _create_and_upload_cvat(
+    cvat: CVATClient,
+    task_db: AnnotationTaskDB,
+    task_id: int,
+    request: CreateTaskRequest,
+    cvat_labels: list[dict[str, Any]],
+    dataset: Any,
+) -> int | None:
+    """Create CVAT project/task and upload prepared frames.
+
+    Args:
+        cvat: Authenticated CVAT client.
+        task_db: Task database instance.
+        task_id: Local annotation task ID.
+        request: Original task creation request.
+        cvat_labels: Label definitions formatted for CVAT.
+        dataset: Prepared dataset with frames to upload.
+
+    Returns:
+        CVAT task id, or None if creation failed.
+
+    Raises:
+        RuntimeError: If image upload to CVAT fails.
+    """
+    task_db.update_task(task_id, notes="[50%] Creating CVAT project/task...")
+    project_id = await cvat.get_or_create_project(request.bone_type, cvat_labels)
+    if project_id:
+        await cvat.sync_project_labels(project_id, cvat_labels)
+        task_db.save_project_mapping(request.bone_type, project_id)
+
+    profile_suffix = f"_{request.profile_id}" if request.profile_id else ""
+    task_name = f"{request.acquisition_id}_{request.bone_type}_{request.region}{profile_suffix}"
+    subset = request.objective or request.profile_id or None
+    cvat_task = await cvat.create_task(task_name, project_id=project_id, subset=subset)
+    if not cvat_task:
+        task_db.update_task(task_id, status="failed", notes="CVAT task creation failed")
+        await cvat.close()
+        return None
+
+    cvat_task_id = cvat_task["id"]
+    cvat_url = f"{cvat.base_url}/tasks/{cvat_task_id}"
+    task_db.update_task(task_id, cvat_task_id=cvat_task_id, cvat_url=cvat_url)
+
+    if not project_id and cvat_labels:
+        await cvat.set_labels(cvat_task_id, cvat_labels)
+
+    task_db.update_task(task_id, notes=f"[55%] Uploading {dataset.frame_count} frames to CVAT...")
+    image_paths = await asyncio.to_thread(_list_images, dataset.path / "images")
+    if image_paths and not await cvat.upload_image_paths(cvat_task_id, image_paths):
+        raise RuntimeError(f"CVAT image upload failed for task {cvat_task_id}")
+
+    task_db.update_task(task_id, notes="[90%] Upload complete, finalizing...")
+    return int(cvat_task_id)
 
 
 async def _resolve_crop_params(

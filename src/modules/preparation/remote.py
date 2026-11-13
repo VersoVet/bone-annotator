@@ -34,8 +34,6 @@ async def prepare_remote(
         Result dict with frame_count, duration_seconds, pipeline_config.
 
     Raises:
-        httpx.ConnectError: If remote service unreachable.
-        httpx.TimeoutException: If processing exceeds timeout.
         RuntimeError: If remote job fails.
     """
     host = config["remote_host"]

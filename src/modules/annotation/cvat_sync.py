@@ -38,6 +38,9 @@ async def sync_from_cvat(
 
     Returns:
         Dict with synced_frames, zones_count, landmarks_count, author.
+
+    Raises:
+        ValueError: If task is missing required id field.
     """
     cvat_task_id = task["cvat_task_id"]
 
@@ -95,25 +98,35 @@ async def sync_from_cvat(
 
             provenance = _extract_shape_provenance(shape.get("attributes", []))
             label_name = label_map.get(shape.get("label_id"), str(shape.get("label_id", "")))
-            shape_data = {
+            shape_type = shape.get("type", "rectangle")
+            pts = list(shape.get("points") or [])
+            shape_data: dict[str, Any] = {
                 "label": label_name,
-                "type": shape.get("type", "rectangle"),
+                "type": shape_type,
                 **provenance,
             }
-            if shape.get("type") == "points":
-                pts = shape.get("points", [])
+            if shape_type == "points":
                 if len(pts) >= 2:
                     shape_data["x"] = pts[0]
                     shape_data["y"] = pts[1]
                 frames[frame_num]["landmarks"].append(shape_data)
                 landmarks_count += 1
             else:
-                pts = shape.get("points", [])
-                if len(pts) >= 4:
+                # CVAT mask RLE ends with [left, top, right, bottom].
+                if shape_type == "mask" and len(pts) >= 4:
+                    left, top, right, bottom = pts[-4:]
+                    shape_data["points"] = pts
+                    shape_data["x"] = left
+                    shape_data["y"] = top
+                    shape_data["width"] = right - left
+                    shape_data["height"] = bottom - top
+                elif shape_type == "rectangle" and len(pts) >= 4:
                     shape_data["x"] = pts[0]
                     shape_data["y"] = pts[1]
                     shape_data["width"] = pts[2] - pts[0]
                     shape_data["height"] = pts[3] - pts[1]
+                else:
+                    shape_data["points"] = pts
                 frames[frame_num]["zones"].append(shape_data)
                 zones_count += 1
 

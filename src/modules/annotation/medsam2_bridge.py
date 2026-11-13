@@ -25,9 +25,9 @@ def _load_medsam2_url() -> str:
     try:
         with open(_SKILL_ROOT / "config" / "sources.yaml") as f:
             cfg = yaml.safe_load(f)
-        return cfg.get("medsam2", {}).get("gpu_direct", "http://10.0.0.26:9473")
+        return cfg.get("medsam2", {}).get("gpu_direct", "http://10.0.0.73:9473")
     except Exception:
-        return "http://10.0.0.26:9473"
+        return "http://10.0.0.73:9473"
 
 
 async def propagate(
@@ -49,6 +49,9 @@ async def propagate(
 
     Returns:
         Dict with propagation stats.
+
+    Raises:
+        ValueError: If dataset images are missing or seed frame index is out of range.
     """
     cvat_task_id = task["cvat_task_id"]
     images_dir = Path(task["dataset_path"]) / "images"
@@ -120,15 +123,19 @@ async def propagate(
             frame_files,
             seed_frame_idx,
             seed_mask_b64,
+            mask_format="rle",
         )
-        logger.info("MedSAM2 returned %d masks for label %d", len(propagated_masks), label_id)
+        mask_fmt = propagated_masks.pop("_format", "png")
+        logger.info("MedSAM2 returned %d masks (fmt=%s) for label %d", len(propagated_masks), mask_fmt, label_id)
 
-        for frame_idx, mask_b64 in propagated_masks.items():
-            mask_bytes = base64.b64decode(mask_b64)
-            mask_arr = np.array(Image.open(io.BytesIO(mask_bytes)))
-            if mask_arr.max() == 0:
+        for frame_idx, mask_data in propagated_masks.items():
+            if not isinstance(frame_idx, int):
                 continue
-            binary = (mask_arr > 128).astype(np.uint8)
+            # Seed frame mask is always PNG b64 regardless of server format
+            fmt = "png" if frame_idx == seed_frame_idx else mask_fmt
+            binary = _decode_propagated_mask(mask_data, fmt)
+            if binary is None or binary.max() == 0:
+                continue
             rle = _binary_mask_to_rle(binary)
             if rle:
                 all_cvat_shapes.append(
@@ -180,7 +187,7 @@ def _cvat_shape_to_binary(shape: dict[str, Any], images_dir: Path) -> np.ndarray
         import cv2
 
         points = np.array([(int(pts[i]), int(pts[i + 1])) for i in range(0, len(pts), 2)])
-        cv2.fillPoly(mask, [points], 1)
+        cv2.fillPoly(mask, [points], 1)  # type: ignore[call-overload]
 
     return mask
 
@@ -194,6 +201,12 @@ def _cvat_mask_to_binary(
     Args:
         shape: CVAT mask shape containing crop RLE and left/top bounds.
         image_size: Full image size as ``(width, height)``.
+
+    Returns:
+        Binary mask array of shape ``(height, width)``, or None if shape data is invalid.
+
+    Raises:
+        ValueError: If mask bounds exceed the source image dimensions.
     """
     pts = shape.get("points", [])
     if len(pts) < 5:
@@ -221,19 +234,95 @@ def _cvat_mask_to_binary(
     return mask
 
 
+def _decode_propagated_mask(mask_data: str, fmt: str) -> np.ndarray | None:
+    """Decode a mask returned by MedSAM2 server.
+
+    Args:
+        mask_data: Encoded mask string (RLE or PNG base64).
+        fmt: Format identifier — ``"rle"`` or ``"png"``.
+
+    Returns:
+        Binary numpy mask, or None on decode failure.
+    """
+    if fmt == "rle":
+        return _decode_rle(mask_data)
+    # PNG base64 fallback
+    mask_bytes = base64.b64decode(mask_data)
+    mask_arr = np.array(Image.open(io.BytesIO(mask_bytes)))
+    return (mask_arr > 128).astype(np.uint8)
+
+
+def _decode_rle(rle_str: str) -> np.ndarray | None:
+    """Decode server RLE format ``"h,w|run0,run1,..."`` to binary mask.
+
+    Args:
+        rle_str: RLE-encoded mask string from MedSAM2 server.
+
+    Returns:
+        Binary numpy mask of shape ``(h, w)``, or None on parse error.
+    """
+    try:
+        header, runs_str = rle_str.split("|", 1)
+        h, w = (int(x) for x in header.split(","))
+        flat = np.zeros(h * w, dtype=np.uint8)
+        pos, val = 0, 0
+        for run in runs_str.split(","):
+            length = int(run)
+            end = min(pos + length, len(flat))
+            flat[pos:end] = val
+            pos = end
+            val = 1 - val
+        return flat.reshape(h, w)
+    except Exception:
+        logger.warning("Failed to decode RLE mask (len=%d)", len(rle_str))
+        return None
+
+
+async def _read_frames_b64(frame_files: list[Path]) -> list[str]:
+    """Read frame files and encode as base64 off the event loop.
+
+    Args:
+        frame_files: Ordered list of PNG frame paths.
+
+    Returns:
+        List of base64-encoded file contents.
+    """
+    import asyncio
+
+    def _read_all() -> list[str]:
+        return [base64.b64encode(p.read_bytes()).decode() for p in frame_files]
+
+    return await asyncio.to_thread(_read_all)
+
+
 async def _propagate_all_frames(
     medsam2_url: str,
     frame_files: list[Path],
     seed_frame_idx: int,
     seed_mask_b64: str,
     batch_size: int = 64,
-) -> dict[int, str]:
+    mask_format: str = "rle",
+) -> dict[int, Any]:
     """Propagate forward and backward in bounded batches.
 
     Each batch overlaps the previous batch at its seed frame. Returned masks
     are mapped to their original CVAT frame indices, so no sampling occurs.
+
+    Args:
+        medsam2_url: MedSAM2 server URL.
+        frame_files: All frame file paths in order.
+        seed_frame_idx: Index of the seed frame.
+        seed_mask_b64: PNG base64 seed mask (always PNG for the seed).
+        batch_size: Max frames per GPU batch.
+        mask_format: Encoding for returned masks — ``"rle"`` or ``"png"``.
+
+    Returns:
+        Dict mapping frame index to encoded mask string, plus ``_format`` key.
     """
-    result: dict[int, str] = {seed_frame_idx: seed_mask_b64}
+    import time
+
+    result: dict[int, Any] = {seed_frame_idx: seed_mask_b64, "_format": mask_format}
+    t_total = time.monotonic()
     async with httpx.AsyncClient() as client:
         for direction in (1, -1):
             current_idx = seed_frame_idx
@@ -246,25 +335,54 @@ async def _propagate_all_frames(
                     end = max(0, current_idx - batch_size + 1)
                     indices = list(range(current_idx, end - 1, -1))
                 frames = [frame_files[index] for index in indices]
+                frames_b64 = await _read_frames_b64(frames)
+                t_batch = time.monotonic()
                 response = await client.post(
                     f"{medsam2_url}/propagate",
                     json={
-                        "frames": [base64.b64encode(path.read_bytes()).decode() for path in frames],
+                        "frames": frames_b64,
                         "seed_frame_idx": 0,
                         "seed_mask": current_mask,
                         "score_threshold": 0.0,
+                        "mask_format": mask_format,
                     },
                     timeout=300.0,
                 )
                 if response.status_code != 200:
                     raise RuntimeError(f"MedSAM2 propagation failed: {response.text[:200]}")
-                masks = response.json().get("masks", [])
+                data = response.json()
+                actual_format = data.get("mask_format", "png")
+                masks = data.get("masks", [])
                 if len(masks) != len(indices):
                     raise RuntimeError("MedSAM2 returned an incomplete batch")
+                server_elapsed = data.get("elapsed_seconds", 0)
+                server_fps = data.get("fps", 0)
+                logger.info(
+                    "Batch %d frames (dir=%+d, %s): server %.1fs (%.1f fps), roundtrip %.1fs",
+                    len(indices),
+                    direction,
+                    actual_format,
+                    server_elapsed,
+                    server_fps,
+                    time.monotonic() - t_batch,
+                )
+                result["_format"] = actual_format
                 for index, mask in zip(indices, masks):
                     result[index] = mask
+                # Seed mask for next batch: last mask of this batch (always PNG for server input)
+                if actual_format == "rle":
+                    last_binary = _decode_rle(masks[-1])
+                    if last_binary is not None:
+                        pil = Image.fromarray((last_binary * 255).astype(np.uint8))
+                        buf = io.BytesIO()
+                        pil.save(buf, format="PNG")
+                        current_mask = base64.b64encode(buf.getvalue()).decode()
+                    else:
+                        current_mask = masks[-1]
+                else:
+                    current_mask = masks[-1]
                 current_idx = indices[-1]
-                current_mask = masks[-1]
+    logger.info("Total propagation: %d frames in %.1fs", len(result) - 1, time.monotonic() - t_total)
     return result
 
 

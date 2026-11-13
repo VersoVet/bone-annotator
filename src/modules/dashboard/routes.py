@@ -29,6 +29,9 @@ async def stream_events() -> StreamingResponse:
 
     Returns:
         SSE StreamingResponse with event stream.
+
+    Raises:
+        HTTPException: If event stream cannot be initialized.
     """
     try:
         service = get_service()
@@ -183,6 +186,7 @@ async def publish_event(
 
     Raises:
         HTTPException: If publication fails.
+        ValueError: If event_type is empty.
     """
     try:
         if not event_type:

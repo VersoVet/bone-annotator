@@ -20,6 +20,9 @@ async def model_info() -> dict[str, Any]:
 
     Returns:
         Model version, type, and load status.
+
+    Raises:
+        HTTPException: If model info cannot be fetched.
     """
     try:
         info = await get_model_info()

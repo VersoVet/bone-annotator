@@ -7,7 +7,7 @@ and CVAT workflow orchestration.
 import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from .service import get_service
@@ -305,16 +305,26 @@ async def cvat_status() -> dict[str, Any]:
 
 
 @router.post("/projects/{bone_type}/sync-labels")
-async def sync_project_labels(bone_type: str) -> dict[str, Any]:
-    """Sync labels from label-generator to the CVAT project for a bone type.
+async def sync_project_labels(
+    bone_type: str,
+    zones_only: bool = True,
+    region: str = Query("", description="Filter zones by portion (proximal, distal, entire)"),
+) -> dict[str, Any]:
+    """Sync accepted-labels from label-generator to the CVAT project.
 
+    Source: GET /labels/api/accepted-labels/{bone_type} (zones = seg classes).
     Adds missing labels to the project. Never deletes existing labels.
 
     Args:
         bone_type: Bone type (matches project bone_{bone_type}).
+        zones_only: If True (default), sync zone classes only (S0 seg).
+        region: Optional portion filter (proximal, distal, entire).
 
     Returns:
         Sync result with labels added count.
+
+    Raises:
+        HTTPException: If sync fails or labels cannot be loaded.
     """
     try:
         from src.modules.cvat.format import labels_to_cvat_format
@@ -323,7 +333,15 @@ async def sync_project_labels(bone_type: str) -> dict[str, Any]:
         anatomy = get_labels_for_bone(bone_type)
         if not anatomy:
             raise HTTPException(status_code=404, detail=f"No labels for {bone_type}")
-        cvat_labels = labels_to_cvat_format(anatomy)
+        payload = dict(anatomy)
+        if zones_only:
+            payload["landmarks"] = []
+        if region and region != "entire":
+            payload["zones"] = [
+                z for z in payload.get("zones", [])
+                if z.get("region") in ("entire", region)
+            ]
+        cvat_labels = labels_to_cvat_format(payload)
 
         service = get_service()
         await service.connect()
@@ -331,7 +349,15 @@ async def sync_project_labels(bone_type: str) -> dict[str, Any]:
         if not project_id:
             raise HTTPException(status_code=503, detail="Cannot create/find project")
         added = await service.client.sync_project_labels(project_id, cvat_labels)
-        return {"status": "ok", "bone_type": bone_type, "project_id": project_id, "labels_added": added}
+        return {
+            "status": "ok",
+            "bone_type": bone_type,
+            "project_id": project_id,
+            "labels_added": added,
+            "labels_total": len(cvat_labels),
+            "zones_only": zones_only,
+            "source": anatomy.get("labels_source", "anatomy"),
+        }
     except HTTPException:
         raise
     except Exception as e:

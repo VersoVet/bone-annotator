@@ -65,7 +65,7 @@ def test_weekly_report_markdown() -> None:
 
 def test_migrations_include_learning_decisions() -> None:
     """Learning decisions table is registered in migrations."""
-    from src.modules.storage.task_db import _MIGRATIONS
+    from src.modules.storage.task_db import MIGRATIONS as _MIGRATIONS
 
     sql = "\n".join(_MIGRATIONS)
     assert "learning_decisions" in sql
